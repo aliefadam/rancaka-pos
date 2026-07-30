@@ -4,6 +4,7 @@ use App\Enums\UserRole;
 use App\Http\Controllers\Admin\TenantController;
 use App\Http\Controllers\Tenant\CategoryController as TenantCategoryController;
 use App\Http\Controllers\Tenant\DashboardController as TenantDashboardController;
+use App\Http\Controllers\Tenant\EmployeeController as TenantEmployeeController;
 use App\Http\Controllers\Tenant\ExpenseController as TenantExpenseController;
 use App\Http\Controllers\Tenant\PosController as TenantPosController;
 use App\Http\Controllers\Tenant\ProductController as TenantProductController;
@@ -58,6 +59,12 @@ Route::middleware(['auth', 'role:owner,employee'])->prefix('tenant')->name('tena
     Route::resource('expenses', TenantExpenseController::class)
         ->only(['index', 'store', 'update', 'destroy'])
         ->names('expenses');
+
+    Route::middleware('role:owner')->group(function () {
+        Route::resource('employees', TenantEmployeeController::class)
+            ->only(['index', 'store', 'update', 'destroy'])
+            ->names('employees');
+    });
 
     Route::post('/shift/open', [TenantShiftController::class, 'open'])->name('shift.open');
     Route::post('/shift/close', [TenantShiftController::class, 'close'])->name('shift.close');

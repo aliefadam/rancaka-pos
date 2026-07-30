@@ -108,6 +108,16 @@ const navigationByRole = {
                 },
             ],
         },
+        {
+            group: "Tim",
+            items: [
+                {
+                    name: "Karyawan",
+                    href: "tenant.employees.index",
+                    icon: "fi-sr-users",
+                },
+            ],
+        },
     ],
     employee: [
         {
