@@ -1,8 +1,8 @@
 import Dropdown from "@/Components/Dropdown";
 import { useToast } from "@/Contexts/ToastContext";
 import { Transition } from "@headlessui/react";
-import { Link, usePage } from "@inertiajs/react";
-import { Fragment, useEffect, useState } from "react";
+import { Link, router, usePage } from "@inertiajs/react";
+import { Fragment, useEffect, useMemo, useState } from "react";
 
 const navigationByRole = {
     superadmin: [
@@ -204,11 +204,34 @@ const navigationByRole = {
 };
 
 export default function AdminLayout({ header, children }) {
-    const { auth, flash } = usePage().props;
+    const page = usePage();
+    const { auth, flash } = page.props;
     const user = auth.user;
     const navigation = navigationByRole[user.role] ?? [];
     const [sidebarOpen, setSidebarOpen] = useState(false);
+    const [desktopSidebarOpen, setDesktopSidebarOpen] = useState(true);
+    const [searchQuery, setSearchQuery] = useState("");
+    const [searchOpen, setSearchOpen] = useState(false);
     const toast = useToast();
+
+    const searchableItems = useMemo(
+        () =>
+            navigation.flatMap((section) =>
+                section.items.map((item) => ({
+                    ...item,
+                    group: section.group,
+                })),
+            ),
+        [navigation],
+    );
+
+    const searchResults = useMemo(() => {
+        const query = searchQuery.trim().toLowerCase();
+        if (!query) return [];
+        return searchableItems.filter((item) =>
+            item.name.toLowerCase().includes(query),
+        );
+    }, [searchQuery, searchableItems]);
 
     useEffect(() => {
         if (flash?.success) toast.success(flash.success);
@@ -216,17 +239,40 @@ export default function AdminLayout({ header, children }) {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [flash?.success, flash?.error]);
 
-    const SidebarContent = () => (
+    useEffect(() => {
+        if (route().current("tenant.pos.index")) {
+            setDesktopSidebarOpen(false);
+            setSidebarOpen(false);
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [page.url]);
+
+    const goToSearchResult = (item) => {
+        setSearchQuery("");
+        setSearchOpen(false);
+        router.visit(route(item.href));
+    };
+
+    const SidebarContent = ({ onClose }) => (
         <>
-            <div className="flex h-16 shrink-0 items-center gap-3 px-6">
-                <img
-                    src="/logo.png"
-                    alt="Logo Rancaka"
-                    className="h-9 w-9 rounded-xl object-cover shadow-sm shadow-indigo-200"
-                />
-                <span className="text-lg font-bold text-slate-900">
-                    Rancaka
-                </span>
+            <div className="flex h-16 shrink-0 items-center justify-between gap-3 px-6">
+                <div className="flex items-center gap-3">
+                    <img
+                        src="/logo.png"
+                        alt="Logo Rancaka"
+                        className="h-9 w-9 rounded-xl object-cover shadow-sm shadow-indigo-200"
+                    />
+                    <span className="text-lg font-bold text-slate-900">
+                        Rancaka
+                    </span>
+                </div>
+                <button
+                    type="button"
+                    onClick={onClose}
+                    className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 hover:bg-slate-50 hover:text-slate-600"
+                >
+                    <i className="fi fi-sr-cross-small" />
+                </button>
             </div>
 
             <nav className="scrollbar-thin mt-4 min-h-0 flex-1 space-y-6 overflow-y-auto px-3 pb-4">
@@ -270,8 +316,12 @@ export default function AdminLayout({ header, children }) {
 
     return (
         <div className="min-h-screen bg-slate-50">
-            <aside className="fixed inset-y-0 left-0 z-30 hidden w-64 flex-col border-r border-slate-200 bg-white lg:flex">
-                <SidebarContent />
+            <aside
+                className={`fixed inset-y-0 left-0 z-30 hidden w-64 flex-col border-r border-slate-200 bg-white transition-transform duration-300 lg:flex ${
+                    desktopSidebarOpen ? "lg:translate-x-0" : "lg:-translate-x-full"
+                }`}
+            >
+                <SidebarContent onClose={() => setDesktopSidebarOpen(false)} />
             </aside>
 
             <Transition show={sidebarOpen} as={Fragment}>
@@ -301,21 +351,16 @@ export default function AdminLayout({ header, children }) {
                         leaveTo="-translate-x-full"
                     >
                         <aside className="fixed inset-y-0 left-0 flex w-64 flex-col border-r border-slate-200 bg-white shadow-xl">
-                            <button
-                                type="button"
-                                onClick={() => setSidebarOpen(false)}
-                                className="absolute right-3 top-4 flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 hover:bg-slate-50 hover:text-slate-600"
-                            >
-                                <i className="fi fi-sr-cross-small" />
-                            </button>
-                            <SidebarContent />
+                            <SidebarContent onClose={() => setSidebarOpen(false)} />
                         </aside>
                     </Transition.Child>
                 </div>
             </Transition>
 
-            <div className="lg:pl-64">
-                <header className="sticky top-0 z-20 flex h-16 items-center justify-between border-b border-slate-200 bg-white/80 px-4 backdrop-blur sm:px-6">
+            <div
+                className={`transition-all duration-300 ${desktopSidebarOpen ? "lg:pl-64" : "lg:pl-0"}`}
+            >
+                <header className="sticky top-0 z-20 flex h-16 items-center justify-between gap-4 border-b border-slate-200 bg-white/80 px-4 backdrop-blur sm:px-6">
                     <div className="flex items-center gap-4">
                         <button
                             type="button"
@@ -324,10 +369,73 @@ export default function AdminLayout({ header, children }) {
                         >
                             <i className="fi fi-sr-menu-burger text-lg" />
                         </button>
+                        {!desktopSidebarOpen && (
+                            <button
+                                type="button"
+                                onClick={() => setDesktopSidebarOpen(true)}
+                                className="hidden items-center text-slate-400 hover:text-slate-600 lg:flex"
+                            >
+                                <i className="fi fi-sr-menu-burger text-lg" />
+                            </button>
+                        )}
                         {header && (
-                            <h1 className="text-lg font-semibold text-slate-900">
+                            <h1 className="hidden text-lg font-semibold text-slate-900 sm:block">
                                 {header}
                             </h1>
+                        )}
+                    </div>
+
+                    <div className="relative min-w-0 flex-1 max-w-md">
+                        <div className="relative">
+                            <i className="fi fi-sr-search absolute left-3 top-1/2 -translate-y-1/2 text-sm text-slate-400" />
+                            <input
+                                type="text"
+                                value={searchQuery}
+                                onChange={(e) => {
+                                    setSearchQuery(e.target.value);
+                                    setSearchOpen(true);
+                                }}
+                                onFocus={() => setSearchOpen(true)}
+                                onBlur={() =>
+                                    setTimeout(() => setSearchOpen(false), 150)
+                                }
+                                placeholder="Cari menu..."
+                                className="w-full rounded-xl border border-slate-200 bg-slate-50 py-2 pl-9 pr-3 text-sm text-slate-700 placeholder:text-slate-400 focus:border-indigo-300 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-100"
+                            />
+                        </div>
+
+                        {searchOpen && searchQuery.trim() !== "" && (
+                            <div className="absolute left-0 top-full z-30 mt-2 w-full overflow-hidden rounded-xl border border-slate-200 bg-white shadow-lg">
+                                {searchResults.length === 0 ? (
+                                    <p className="px-4 py-3 text-sm text-slate-400">
+                                        Menu tidak ditemukan.
+                                    </p>
+                                ) : (
+                                    <div className="max-h-72 overflow-y-auto py-1">
+                                        {searchResults.map((item) => (
+                                            <button
+                                                key={item.href}
+                                                type="button"
+                                                onMouseDown={(e) =>
+                                                    e.preventDefault()
+                                                }
+                                                onClick={() =>
+                                                    goToSearchResult(item)
+                                                }
+                                                className="flex w-full items-center gap-3 px-4 py-2.5 text-left text-sm text-slate-600 hover:bg-slate-50"
+                                            >
+                                                <i
+                                                    className={`fi ${item.icon} text-slate-400`}
+                                                />
+                                                <span>{item.name}</span>
+                                                <span className="ml-auto text-xs text-slate-300">
+                                                    {item.group}
+                                                </span>
+                                            </button>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
                         )}
                     </div>
 
