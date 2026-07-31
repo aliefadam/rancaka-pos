@@ -325,8 +325,8 @@ export default function AdminLayout({ header, children }) {
     return (
         <div className="min-h-screen bg-slate-50">
             <aside
-                className={`fixed inset-y-0 left-0 z-30 hidden w-64 flex-col border-r border-slate-200 bg-white transition-transform duration-300 lg:flex ${
-                    desktopSidebarOpen ? "lg:translate-x-0" : "lg:-translate-x-full"
+                className={`fixed inset-y-0 left-0 z-30 hidden w-64 flex-col border-r border-slate-200 bg-white transition-transform duration-300 xl:flex ${
+                    desktopSidebarOpen ? "xl:translate-x-0" : "xl:-translate-x-full"
                 }`}
             >
                 <SidebarContent
@@ -336,7 +336,7 @@ export default function AdminLayout({ header, children }) {
             </aside>
 
             <Transition show={sidebarOpen} as={Fragment}>
-                <div className="fixed inset-0 z-40 lg:hidden">
+                <div className="fixed inset-0 z-40 xl:hidden">
                     <Transition.Child
                         as={Fragment}
                         enter="transition-opacity ease-out duration-300"
@@ -372,14 +372,14 @@ export default function AdminLayout({ header, children }) {
             </Transition>
 
             <div
-                className={`transition-all duration-300 ${desktopSidebarOpen ? "lg:pl-64" : "lg:pl-0"}`}
+                className={`transition-all duration-300 ${desktopSidebarOpen ? "xl:pl-64" : "xl:pl-0"}`}
             >
                 <header className="sticky top-0 z-20 flex h-16 items-center justify-between gap-4 border-b border-slate-200 bg-white/80 px-4 backdrop-blur sm:px-6">
                     <div className="flex items-center gap-4">
                         <button
                             type="button"
                             onClick={() => setSidebarOpen(true)}
-                            className="flex items-center text-slate-400 hover:text-slate-600 lg:hidden"
+                            className="flex items-center text-slate-400 hover:text-slate-600 xl:hidden"
                         >
                             <i className="fi fi-rr-menu-burger text-lg" />
                         </button>
@@ -387,7 +387,7 @@ export default function AdminLayout({ header, children }) {
                             <button
                                 type="button"
                                 onClick={() => setDesktopSidebarOpen(true)}
-                                className="hidden items-center text-slate-400 hover:text-slate-600 lg:flex"
+                                className="hidden items-center text-slate-400 hover:text-slate-600 xl:flex"
                             >
                                 <i className="fi fi-rr-menu-burger text-lg" />
                             </button>
