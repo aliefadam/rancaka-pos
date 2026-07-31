@@ -5,16 +5,38 @@ namespace App\Models;
 use App\Enums\UserRole;
 use Database\Factories\TenantFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Support\Facades\Storage;
 
-#[Fillable(['name', 'email', 'phone', 'address', 'status'])]
+#[Fillable([
+    'name', 'email', 'phone', 'address', 'status',
+    'logo_path', 'receipt_footer', 'tax_percentage', 'service_charge_percentage',
+])]
 class Tenant extends Model
 {
     /** @use HasFactory<TenantFactory> */
     use HasFactory;
+
+    protected $appends = ['logo_url'];
+
+    protected function casts(): array
+    {
+        return [
+            'tax_percentage' => 'decimal:2',
+            'service_charge_percentage' => 'decimal:2',
+        ];
+    }
+
+    protected function logoUrl(): Attribute
+    {
+        return Attribute::get(
+            fn () => $this->logo_path ? Storage::disk('public')->url($this->logo_path) : null,
+        );
+    }
 
     public function users(): HasMany
     {

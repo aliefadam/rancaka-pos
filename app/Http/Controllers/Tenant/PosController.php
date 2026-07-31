@@ -56,6 +56,8 @@ class PosController extends Controller
             ];
         }
 
+        $tenant = $request->user()->tenant;
+
         return Inertia::render('Tenant/Pos/Index', [
             'activeShift' => $activeShift,
             'products' => Product::where('tenant_id', $tenantId)
@@ -63,9 +65,18 @@ class PosController extends Controller
                 ->with('category:id,name')
                 ->orderBy('name')
                 ->get(),
-            'categories' => $request->user()->tenant->categories()->where('is_active', true)->orderBy('name')->get(['id', 'name', 'icon']),
+            'categories' => $tenant->categories()->where('is_active', true)->orderBy('name')->get(['id', 'name', 'icon']),
             'heldTransactions' => $heldTransactions,
             'shiftSummary' => $shiftSummary,
+            'storeSettings' => [
+                'name' => $tenant->name,
+                'address' => $tenant->address,
+                'phone' => $tenant->phone,
+                'logo_url' => $tenant->logo_url,
+                'receipt_footer' => $tenant->receipt_footer,
+                'tax_percentage' => (float) $tenant->tax_percentage,
+                'service_charge_percentage' => (float) $tenant->service_charge_percentage,
+            ],
         ]);
     }
 
@@ -162,8 +173,12 @@ class PosController extends Controller
                 ];
             }
 
+            $tenant = $request->user()->tenant;
+            $taxAmount = (int) round($subtotal * ((float) $tenant->tax_percentage / 100));
+            $serviceChargeAmount = (int) round($subtotal * ((float) $tenant->service_charge_percentage / 100));
+
             $additionalFee = $data['additional_fee'] ?? 0;
-            $total = $subtotal + $additionalFee;
+            $total = $subtotal + $taxAmount + $serviceChargeAmount + $additionalFee;
             $amountReceived = $data['amount_received'] ?? null;
             $changeAmount = $amountReceived !== null ? max(0, $amountReceived - $total) : null;
 
@@ -179,6 +194,8 @@ class PosController extends Controller
                 'status' => $status,
                 'payment_method' => $data['payment_method'],
                 'subtotal' => $subtotal,
+                'tax_amount' => $taxAmount,
+                'service_charge_amount' => $serviceChargeAmount,
                 'additional_fee' => $additionalFee,
                 'total' => $total,
                 'amount_received' => $amountReceived,

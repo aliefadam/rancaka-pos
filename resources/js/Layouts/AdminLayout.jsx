@@ -123,6 +123,16 @@ const navigationByRole = {
                 },
             ],
         },
+        {
+            group: "Pengaturan",
+            items: [
+                {
+                    name: "Pengaturan Toko",
+                    href: "tenant.settings.edit",
+                    icon: "fi-rr-settings",
+                },
+            ],
+        },
     ],
     employee: [
         {

@@ -38,7 +38,7 @@ class TransactionHistoryController extends Controller
 
         return Inertia::render('Tenant/Reports/Transactions/Index', [
             'transactions' => $transactions,
-            'tenant' => $request->user()->tenant->only(['name', 'address', 'phone']),
+            'tenant' => $request->user()->tenant->only(['name', 'address', 'phone', 'logo_url', 'receipt_footer']),
             'filters' => ['search' => $search, 'date' => $date, 'status' => $status],
         ]);
     }

@@ -153,6 +153,7 @@ export default function Index({
     categories,
     heldTransactions,
     shiftSummary,
+    storeSettings,
 }) {
     const toast = useToast();
     const restoredDraft = useMemo(
@@ -221,7 +222,14 @@ export default function Index({
         (sum, item) => sum + item.price * item.quantity,
         0,
     );
-    const total = subtotal + Number(additionalFee || 0);
+    const taxAmount = Math.round(
+        subtotal * (storeSettings.tax_percentage / 100),
+    );
+    const serviceChargeAmount = Math.round(
+        subtotal * (storeSettings.service_charge_percentage / 100),
+    );
+    const total =
+        subtotal + taxAmount + serviceChargeAmount + Number(additionalFee || 0);
 
     const clearCart = () => {
         if (activeShift && typeof window !== 'undefined') {
@@ -484,6 +492,10 @@ export default function Index({
         amountReceived,
         onAmountReceivedChange: setAmountReceived,
         subtotal,
+        taxAmount,
+        taxPercentage: storeSettings.tax_percentage,
+        serviceChargeAmount,
+        serviceChargePercentage: storeSettings.service_charge_percentage,
         total,
         processing,
         onClear: () => setClearCartConfirmOpen(true),

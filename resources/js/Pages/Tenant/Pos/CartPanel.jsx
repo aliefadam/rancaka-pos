@@ -30,6 +30,10 @@ export default function CartPanel({
     amountReceived,
     onAmountReceivedChange,
     subtotal,
+    taxAmount,
+    taxPercentage,
+    serviceChargeAmount,
+    serviceChargePercentage,
     total,
     processing,
     onClear,
@@ -268,6 +272,18 @@ export default function CartPanel({
                             <span>Subtotal</span>
                             <span>{formatRupiah(subtotal)}</span>
                         </div>
+                        {taxPercentage > 0 && (
+                            <div className="flex items-center justify-between text-slate-500">
+                                <span>Pajak ({taxPercentage}%)</span>
+                                <span>{formatRupiah(taxAmount)}</span>
+                            </div>
+                        )}
+                        {serviceChargePercentage > 0 && (
+                            <div className="flex items-center justify-between text-slate-500">
+                                <span>Biaya Layanan ({serviceChargePercentage}%)</span>
+                                <span>{formatRupiah(serviceChargeAmount)}</span>
+                            </div>
+                        )}
                         <div className="flex items-center justify-between text-slate-500">
                             <span>Biaya tambahan</span>
                             <span>{formatRupiah(additionalFee)}</span>

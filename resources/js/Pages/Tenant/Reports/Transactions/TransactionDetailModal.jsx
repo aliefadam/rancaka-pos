@@ -121,6 +121,30 @@ export default function TransactionDetailModal({
                         <span>Subtotal</span>
                         <span>{formatRupiah(transaction.subtotal)}</span>
                     </div>
+                    {transaction.tax_amount > 0 && (
+                        <div className="flex items-center justify-between text-slate-500">
+                            <span>Pajak</span>
+                            <span>{formatRupiah(transaction.tax_amount)}</span>
+                        </div>
+                    )}
+                    {transaction.service_charge_amount > 0 && (
+                        <div className="flex items-center justify-between text-slate-500">
+                            <span>Biaya Layanan</span>
+                            <span>
+                                {formatRupiah(
+                                    transaction.service_charge_amount,
+                                )}
+                            </span>
+                        </div>
+                    )}
+                    {transaction.additional_fee > 0 && (
+                        <div className="flex items-center justify-between text-slate-500">
+                            <span>Biaya Tambahan</span>
+                            <span>
+                                {formatRupiah(transaction.additional_fee)}
+                            </span>
+                        </div>
+                    )}
                     <div className="flex items-center justify-between border-t border-slate-100 pt-1.5 text-base font-bold text-slate-900">
                         <span>Total</span>
                         <span>{formatRupiah(transaction.total)}</span>

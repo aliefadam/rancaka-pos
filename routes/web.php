@@ -13,6 +13,7 @@ use App\Http\Controllers\Tenant\Reports\FinancialReportController as TenantFinan
 use App\Http\Controllers\Tenant\Reports\ShiftHistoryController as TenantShiftHistoryController;
 use App\Http\Controllers\Tenant\Reports\TransactionHistoryController as TenantTransactionHistoryController;
 use App\Http\Controllers\Tenant\RoleController as TenantRoleController;
+use App\Http\Controllers\Tenant\SettingsController as TenantSettingsController;
 use App\Http\Controllers\Tenant\ShiftController as TenantShiftController;
 use App\Http\Controllers\Tenant\Stock\ProductStockController as TenantProductStockController;
 use App\Http\Controllers\Tenant\Stock\RawMaterialStockController as TenantRawMaterialStockController;
@@ -81,6 +82,9 @@ Route::middleware(['auth', 'role:owner,employee'])->prefix('tenant')->name('tena
         Route::resource('roles', TenantRoleController::class)
             ->only(['index', 'store', 'update', 'destroy'])
             ->names('roles');
+
+        Route::get('/settings', [TenantSettingsController::class, 'edit'])->name('settings.edit');
+        Route::put('/settings', [TenantSettingsController::class, 'update'])->name('settings.update');
     });
 
     Route::post('/shift/open', [TenantShiftController::class, 'open'])->name('shift.open');
