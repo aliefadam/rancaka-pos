@@ -98,7 +98,7 @@ export default function Login({ status }) {
                             onClick={fillDemoAccount}
                             className="mt-6 flex w-full items-center justify-center gap-2 rounded-lg border border-dashed border-indigo-300 bg-indigo-50 px-4 py-2.5 text-sm font-semibold text-indigo-700 transition hover:bg-indigo-100"
                         >
-                            <i className="fi fi-sr-user-add" />
+                            <i className="fi fi-rr-user-add" />
                             Isi Akun Demo
                         </button>
 
@@ -112,7 +112,7 @@ export default function Login({ status }) {
                                 </label>
                                 <div className="relative">
                                     <span className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3.5 text-slate-400">
-                                        <i className="fi fi-sr-user" />
+                                        <i className="fi fi-rr-user" />
                                     </span>
                                     <input
                                         id="username"
@@ -147,7 +147,7 @@ export default function Login({ status }) {
                                 </label>
                                 <div className="relative">
                                     <span className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3.5 text-slate-400">
-                                        <i className="fi fi-sr-lock" />
+                                        <i className="fi fi-rr-lock" />
                                     </span>
                                     <input
                                         id="password"
@@ -177,8 +177,8 @@ export default function Login({ status }) {
                                         <i
                                             className={
                                                 showPassword
-                                                    ? 'fi fi-sr-eye-crossed'
-                                                    : 'fi fi-sr-eye'
+                                                    ? 'fi fi-rr-eye-crossed'
+                                                    : 'fi fi-rr-eye'
                                             }
                                         />
                                     </button>
@@ -211,9 +211,9 @@ export default function Login({ status }) {
                                 className="flex w-full items-center justify-center gap-2 rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-70"
                             >
                                 {processing ? (
-                                    <i className="fi fi-sr-spinner animate-spin" />
+                                    <i className="fi fi-rr-spinner animate-spin" />
                                 ) : (
-                                    <i className="fi fi-sr-sign-in-alt" />
+                                    <i className="fi fi-rr-sign-in-alt" />
                                 )}
                                 Masuk
                             </button>

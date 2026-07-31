@@ -287,7 +287,7 @@ export default function ProductFormModal({
                                     onClick={addIngredient}
                                     className="flex shrink-0 items-center gap-1.5 rounded-lg border border-slate-200 px-3 py-2 text-xs font-semibold text-slate-600 transition hover:bg-slate-50"
                                 >
-                                    <i className="fi fi-sr-add" />
+                                    <i className="fi fi-rr-add" />
                                     Tambah Bahan
                                 </button>
                             </div>
@@ -365,7 +365,7 @@ export default function ProductFormModal({
                                                     }
                                                     className="flex h-[42px] w-10 shrink-0 items-center justify-center rounded-lg text-slate-400 transition hover:bg-rose-50 hover:text-rose-600"
                                                 >
-                                                    <i className="fi fi-sr-trash" />
+                                                    <i className="fi fi-rr-trash" />
                                                 </button>
                                             </div>
                                         ),
@@ -390,7 +390,7 @@ export default function ProductFormModal({
                         className="flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-70"
                     >
                         {processing && (
-                            <i className="fi fi-sr-spinner animate-spin" />
+                            <i className="fi fi-rr-spinner animate-spin" />
                         )}
                         {isEdit ? 'Simpan Perubahan' : 'Tambah'}
                     </button>

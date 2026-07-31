@@ -3,51 +3,51 @@ import { useEffect, useRef, useState } from 'react';
 import { Area, AreaChart, ResponsiveContainer } from 'recharts';
 
 const TRUST_BADGES = [
-    { icon: 'fi fi-sr-bolt', label: 'Real-time' },
-    { icon: 'fi fi-sr-shield-check', label: 'Data Aman' },
-    { icon: 'fi fi-sr-laptop-mobile', label: 'Akses Kapan Saja' },
+    { icon: 'fi fi-rr-bolt', label: 'Real-time' },
+    { icon: 'fi fi-rr-shield-check', label: 'Data Aman' },
+    { icon: 'fi fi-rr-laptop-mobile', label: 'Akses Kapan Saja' },
 ];
 
 const BUSINESS_TYPES = [
-    { icon: 'fi fi-sr-shop', label: 'Retail & Toko' },
-    { icon: 'fi fi-sr-restaurant', label: 'Restoran & Kafe' },
-    { icon: 'fi fi-sr-shopping-basket', label: 'Toko Kelontong' },
-    { icon: 'fi fi-sr-boxes', label: 'Grosir & Distributor' },
+    { icon: 'fi fi-rr-shop', label: 'Retail & Toko' },
+    { icon: 'fi fi-rr-restaurant', label: 'Restoran & Kafe' },
+    { icon: 'fi fi-rr-shopping-basket', label: 'Toko Kelontong' },
+    { icon: 'fi fi-rr-boxes', label: 'Grosir & Distributor' },
 ];
 
 const FEATURES = [
     {
-        icon: 'fi fi-sr-shop',
+        icon: 'fi fi-rr-shop',
         title: 'Kasir (POS) Cepat',
         description:
             'Proses transaksi penjualan dengan antarmuka kasir yang ringan, mendukung tahan transaksi (hold) dan checkout dalam hitungan detik.',
     },
     {
-        icon: 'fi fi-sr-box-open-full',
+        icon: 'fi fi-rr-box-open-full',
         title: 'Produk & Kategori',
         description:
             'Atur produk, kategori, dan bahan baku dalam satu tempat agar katalog toko Anda selalu rapi dan mudah dicari.',
     },
     {
-        icon: 'fi fi-sr-warehouse-alt',
+        icon: 'fi fi-rr-warehouse-alt',
         title: 'Manajemen Stok',
         description:
             'Pantau stok produk dan bahan baku secara real-time, lengkap dengan riwayat stok masuk dan penyesuaian stok.',
     },
     {
-        icon: 'fi fi-sr-chart-histogram',
+        icon: 'fi fi-rr-chart-histogram',
         title: 'Laporan Keuangan',
         description:
             'Lihat laporan keuangan, riwayat transaksi, dan riwayat shift kasir untuk membantu Anda mengambil keputusan bisnis.',
     },
     {
-        icon: 'fi fi-sr-clock',
+        icon: 'fi fi-rr-clock',
         title: 'Manajemen Shift',
         description:
             'Buka dan tutup shift kasir dengan pencatatan yang jelas, sehingga rekonsiliasi kas di akhir hari jadi lebih mudah.',
     },
     {
-        icon: 'fi fi-sr-building',
+        icon: 'fi fi-rr-building',
         title: 'Multi Tenant',
         description:
             'Kelola beberapa toko atau cabang sekaligus dari satu sistem, masing-masing dengan data yang terpisah dan aman.',
@@ -172,7 +172,7 @@ function DashboardPreview() {
                             Rp 4.850.000
                         </p>
                         <p className="mt-0.5 flex items-center gap-1 text-xs font-medium text-emerald-600">
-                            <i className="fi fi-sr-arrow-trend-up" />
+                            <i className="fi fi-rr-arrow-trend-up" />
                             12% dari kemarin
                         </p>
                     </div>
@@ -182,7 +182,7 @@ function DashboardPreview() {
                             128
                         </p>
                         <p className="mt-0.5 flex items-center gap-1 text-xs font-medium text-slate-400">
-                            <i className="fi fi-sr-receipt" />
+                            <i className="fi fi-rr-receipt" />
                             Shift berjalan
                         </p>
                     </div>
@@ -229,7 +229,7 @@ function DashboardPreview() {
 
             <div className="absolute -bottom-5 -left-5 hidden items-center gap-2.5 rounded-xl border border-slate-100 bg-white px-4 py-3 shadow-xl sm:flex">
                 <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-indigo-50 text-indigo-600">
-                    <i className="fi fi-sr-clock" />
+                    <i className="fi fi-rr-clock" />
                 </div>
                 <div>
                     <p className="text-xs font-semibold text-slate-900">
@@ -470,7 +470,7 @@ export default function Landing() {
                                         className="flex items-start gap-3 text-slate-600"
                                     >
                                         <span className="mt-0.5 flex h-5 w-5 flex-none items-center justify-center rounded-full bg-emerald-50 text-emerald-600">
-                                            <i className="fi fi-sr-check text-[10px]" />
+                                            <i className="fi fi-rr-check text-[10px]" />
                                         </span>
                                         {benefit}
                                     </li>
@@ -505,7 +505,7 @@ export default function Landing() {
                                             Kas Akhir Sesuai
                                         </span>
                                         <span className="flex items-center gap-1.5 text-sm font-semibold text-emerald-700">
-                                            <i className="fi fi-sr-badge-check" />
+                                            <i className="fi fi-rr-badge-check" />
                                             Rp 3.740.000
                                         </span>
                                     </div>
@@ -539,7 +539,7 @@ export default function Landing() {
                                     <details className="group rounded-xl border border-slate-200 bg-white p-5 open:shadow-sm">
                                         <summary className="flex cursor-pointer list-none items-center justify-between gap-4 text-sm font-semibold text-slate-900">
                                             {faq.question}
-                                            <i className="fi fi-sr-angle-small-down flex-none text-slate-400 transition group-open:rotate-180" />
+                                            <i className="fi fi-rr-angle-small-down flex-none text-slate-400 transition group-open:rotate-180" />
                                         </summary>
                                         <p className="mt-3 text-sm text-slate-500">
                                             {faq.answer}
@@ -571,7 +571,7 @@ export default function Landing() {
                                 className="mt-6 inline-flex items-center gap-2 rounded-lg bg-white px-6 py-3 text-sm font-semibold text-indigo-700 shadow-sm transition hover:bg-indigo-50"
                             >
                                 Masuk Sekarang
-                                <i className="fi fi-sr-arrow-right" />
+                                <i className="fi fi-rr-arrow-right" />
                             </Link>
                         </div>
                     </Reveal>

@@ -77,7 +77,7 @@ export default function Dashboard() {
                         href={route('tenant.pos.index')}
                         className="flex items-center gap-2 rounded-xl bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm shadow-indigo-200 transition hover:bg-indigo-700"
                     >
-                        <i className="fi fi-sr-add" />
+                        <i className="fi fi-rr-add" />
                         Transaksi Baru
                     </Link>
                 </div>
@@ -203,7 +203,7 @@ export default function Dashboard() {
                         {topProducts.length === 0 && (
                             <div className="flex min-h-52 flex-col items-center justify-center px-4 text-center">
                                 <span className="flex h-11 w-11 items-center justify-center rounded-full bg-slate-100 text-slate-400">
-                                    <i className="fi fi-sr-box-open" />
+                                    <i className="fi fi-rr-box-open" />
                                 </span>
                                 <p className="mt-3 text-sm font-medium text-slate-600">
                                     Belum ada produk terjual

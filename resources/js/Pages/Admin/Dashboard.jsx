@@ -6,7 +6,7 @@ const stats = [
         label: 'Penjualan Hari Ini',
         value: 'Rp 2.450.000',
         delta: '+12,4%',
-        icon: 'fi-sr-sack-dollar',
+        icon: 'fi-rr-sack-dollar',
         accent: 'bg-[#2a78d6]',
         soft: 'bg-[#2a78d6]/10 text-[#2a78d6]',
     },
@@ -14,7 +14,7 @@ const stats = [
         label: 'Transaksi Hari Ini',
         value: '48',
         delta: '+5,1%',
-        icon: 'fi-sr-receipt',
+        icon: 'fi-rr-receipt',
         accent: 'bg-[#eb6834]',
         soft: 'bg-[#eb6834]/10 text-[#eb6834]',
     },
@@ -22,7 +22,7 @@ const stats = [
         label: 'Total Produk',
         value: '186',
         delta: '+3 baru',
-        icon: 'fi-sr-box-open',
+        icon: 'fi-rr-box-open',
         accent: 'bg-[#1baf7a]',
         soft: 'bg-[#1baf7a]/10 text-[#1baf7a]',
     },
@@ -30,17 +30,17 @@ const stats = [
         label: 'Pelanggan Baru',
         value: '9',
         delta: '+2,0%',
-        icon: 'fi-sr-users-alt',
+        icon: 'fi-rr-users-alt',
         accent: 'bg-[#eda100]',
         soft: 'bg-[#eda100]/10 text-[#eda100]',
     },
 ];
 
 const quickActions = [
-    { label: 'Tambah Produk', icon: 'fi-sr-box-open' },
-    { label: 'Transaksi Baru', icon: 'fi-sr-shopping-cart-add' },
-    { label: 'Lihat Laporan', icon: 'fi-sr-chart-histogram' },
-    { label: 'Kelola Pengguna', icon: 'fi-sr-users-alt' },
+    { label: 'Tambah Produk', icon: 'fi-rr-box-open' },
+    { label: 'Transaksi Baru', icon: 'fi-rr-shopping-cart-add' },
+    { label: 'Lihat Laporan', icon: 'fi-rr-chart-histogram' },
+    { label: 'Kelola Pengguna', icon: 'fi-rr-users-alt' },
 ];
 
 export default function Dashboard() {
@@ -84,7 +84,7 @@ export default function Dashboard() {
                                 <i className={`fi ${stat.icon} text-lg`} />
                             </span>
                             <span className="flex items-center gap-1 text-xs font-semibold text-emerald-600">
-                                <i className="fi fi-sr-arrow-trend-up" />
+                                <i className="fi fi-rr-arrow-trend-up" />
                                 {stat.delta}
                             </span>
                         </div>
@@ -105,7 +105,7 @@ export default function Dashboard() {
                     </h3>
                     <div className="mt-6 flex flex-col items-center justify-center py-10 text-center">
                         <span className="flex h-14 w-14 items-center justify-center rounded-full bg-slate-50 text-slate-400">
-                            <i className="fi fi-sr-inbox text-2xl" />
+                            <i className="fi fi-rr-inbox text-2xl" />
                         </span>
                         <p className="mt-4 text-sm font-medium text-slate-600">
                             Belum ada aktivitas

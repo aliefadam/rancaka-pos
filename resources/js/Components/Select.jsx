@@ -38,7 +38,7 @@ export default function Select({
                     >
                         {selected ? selected.label : placeholder}
                     </span>
-                    <i className="fi fi-sr-angle-small-down shrink-0 text-xs text-slate-400" />
+                    <i className="fi fi-rr-angle-small-down shrink-0 text-xs text-slate-400" />
                 </ListboxButton>
 
                 <Transition
@@ -105,7 +105,7 @@ export default function Select({
                                             {option.label}
                                         </span>
                                         {selected && (
-                                            <i className="fi fi-sr-check text-indigo-600" />
+                                            <i className="fi fi-rr-check text-indigo-600" />
                                         )}
                                     </>
                                 )}

@@ -95,19 +95,19 @@ export default function Index({
                 <SummaryCard
                     label="Pendapatan"
                     value={summary.revenue}
-                    icon="fi-sr-chart-line-up"
+                    icon="fi-rr-chart-line-up"
                     tone="emerald"
                 />
                 <SummaryCard
                     label="Pengeluaran"
                     value={summary.expenses}
-                    icon="fi-sr-money-bill-wave"
+                    icon="fi-rr-money-bill-wave"
                     tone="rose"
                 />
                 <SummaryCard
                     label="Laba Bersih"
                     value={summary.netProfit}
-                    icon="fi-sr-sack-dollar"
+                    icon="fi-rr-sack-dollar"
                     tone={summary.netProfitValue < 0 ? 'amber' : 'indigo'}
                 />
             </div>
@@ -123,7 +123,7 @@ export default function Index({
                         </p>
                     </div>
                     <span className="mt-2 inline-flex w-fit items-center gap-1.5 rounded-full bg-indigo-50 px-2.5 py-1 text-xs font-semibold text-indigo-600 sm:mt-0">
-                        <i className="fi fi-sr-calendar" />
+                        <i className="fi fi-rr-calendar" />
                         Jan–Des {chartYear}
                     </span>
                 </div>
@@ -207,7 +207,7 @@ export default function Index({
                     subtitle={`Penjualan tertinggi periode ${periodLabel}`}
                     products={topProducts}
                     tone="emerald"
-                    icon="fi-sr-chart-line-up"
+                    icon="fi-rr-chart-line-up"
                     emptyMessage="Belum ada produk terjual pada periode ini."
                 />
                 <ProductList
@@ -215,7 +215,7 @@ export default function Index({
                     subtitle={`Penjualan terendah periode ${periodLabel}`}
                     products={lowProducts}
                     tone="amber"
-                    icon="fi-sr-triangle-warning"
+                    icon="fi-rr-triangle-warning"
                     emptyMessage="Belum ada produk aktif untuk dianalisis."
                 />
             </div>

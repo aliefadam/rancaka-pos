@@ -12,7 +12,7 @@ const navigationByRole = {
                 {
                     name: "Dashboard",
                     href: "admin.dashboard",
-                    icon: "fi-sr-apps",
+                    icon: "fi-rr-apps",
                 },
             ],
         },
@@ -22,7 +22,7 @@ const navigationByRole = {
                 {
                     name: "Tenant",
                     href: "admin.tenants.index",
-                    icon: "fi-sr-building",
+                    icon: "fi-rr-building",
                 },
             ],
         },
@@ -34,7 +34,7 @@ const navigationByRole = {
                 {
                     name: "Dashboard",
                     href: "tenant.dashboard",
-                    icon: "fi-sr-apps",
+                    icon: "fi-rr-apps",
                 },
             ],
         },
@@ -44,12 +44,12 @@ const navigationByRole = {
                 {
                     name: "Kasir",
                     href: "tenant.pos.index",
-                    icon: "fi-sr-cash-register",
+                    icon: "fi-rr-cash-register",
                 },
                 {
                     name: "Pengeluaran",
                     href: "tenant.expenses.index",
-                    icon: "fi-sr-money-bill-wave",
+                    icon: "fi-rr-money-bill-wave",
                 },
             ],
         },
@@ -59,17 +59,17 @@ const navigationByRole = {
                 {
                     name: "Kategori",
                     href: "tenant.categories.index",
-                    icon: "fi-sr-tags",
+                    icon: "fi-rr-tags",
                 },
                 {
                     name: "Produk",
                     href: "tenant.products.index",
-                    icon: "fi-sr-shopping-bag",
+                    icon: "fi-rr-shopping-bag",
                 },
                 {
                     name: "Bahan Baku",
                     href: "tenant.raw-materials.index",
-                    icon: "fi-sr-box-open",
+                    icon: "fi-rr-box-open",
                 },
             ],
         },
@@ -79,12 +79,12 @@ const navigationByRole = {
                 {
                     name: "Stok Produk",
                     href: "tenant.stock.products.index",
-                    icon: "fi-sr-box-open",
+                    icon: "fi-rr-box-open",
                 },
                 {
                     name: "Stok Bahan Baku",
                     href: "tenant.stock.raw-materials.index",
-                    icon: "fi-sr-boxes",
+                    icon: "fi-rr-boxes",
                 },
             ],
         },
@@ -94,17 +94,17 @@ const navigationByRole = {
                 {
                     name: "Keuangan",
                     href: "tenant.reports.financial.index",
-                    icon: "fi-sr-chart-pie-alt",
+                    icon: "fi-rr-chart-pie-alt",
                 },
                 {
                     name: "Riwayat Transaksi",
                     href: "tenant.reports.transactions.index",
-                    icon: "fi-sr-receipt",
+                    icon: "fi-rr-receipt",
                 },
                 {
                     name: "Riwayat Shift",
                     href: "tenant.reports.shifts.index",
-                    icon: "fi-sr-time-past",
+                    icon: "fi-rr-time-past",
                 },
             ],
         },
@@ -114,7 +114,7 @@ const navigationByRole = {
                 {
                     name: "Karyawan",
                     href: "tenant.employees.index",
-                    icon: "fi-sr-users",
+                    icon: "fi-rr-users",
                 },
             ],
         },
@@ -126,7 +126,7 @@ const navigationByRole = {
                 {
                     name: "Dashboard",
                     href: "tenant.dashboard",
-                    icon: "fi-sr-apps",
+                    icon: "fi-rr-apps",
                 },
             ],
         },
@@ -136,12 +136,12 @@ const navigationByRole = {
                 {
                     name: "Kasir",
                     href: "tenant.pos.index",
-                    icon: "fi-sr-cash-register",
+                    icon: "fi-rr-cash-register",
                 },
                 {
                     name: "Pengeluaran",
                     href: "tenant.expenses.index",
-                    icon: "fi-sr-money-bill-wave",
+                    icon: "fi-rr-money-bill-wave",
                 },
             ],
         },
@@ -151,17 +151,17 @@ const navigationByRole = {
                 {
                     name: "Kategori",
                     href: "tenant.categories.index",
-                    icon: "fi-sr-tags",
+                    icon: "fi-rr-tags",
                 },
                 {
                     name: "Produk",
                     href: "tenant.products.index",
-                    icon: "fi-sr-shopping-bag",
+                    icon: "fi-rr-shopping-bag",
                 },
                 {
                     name: "Bahan Baku",
                     href: "tenant.raw-materials.index",
-                    icon: "fi-sr-box-open",
+                    icon: "fi-rr-box-open",
                 },
             ],
         },
@@ -171,12 +171,12 @@ const navigationByRole = {
                 {
                     name: "Stok Produk",
                     href: "tenant.stock.products.index",
-                    icon: "fi-sr-box-open",
+                    icon: "fi-rr-box-open",
                 },
                 {
                     name: "Stok Bahan Baku",
                     href: "tenant.stock.raw-materials.index",
-                    icon: "fi-sr-boxes",
+                    icon: "fi-rr-boxes",
                 },
             ],
         },
@@ -186,17 +186,17 @@ const navigationByRole = {
                 {
                     name: "Keuangan",
                     href: "tenant.reports.financial.index",
-                    icon: "fi-sr-chart-pie-alt",
+                    icon: "fi-rr-chart-pie-alt",
                 },
                 {
                     name: "Riwayat Transaksi",
                     href: "tenant.reports.transactions.index",
-                    icon: "fi-sr-receipt",
+                    icon: "fi-rr-receipt",
                 },
                 {
                     name: "Riwayat Shift",
                     href: "tenant.reports.shifts.index",
-                    icon: "fi-sr-time-past",
+                    icon: "fi-rr-time-past",
                 },
             ],
         },
@@ -253,6 +253,15 @@ export default function AdminLayout({ header, children }) {
         router.visit(route(item.href));
     };
 
+    const [now, setNow] = useState(new Date());
+
+    useEffect(() => {
+        const interval = setInterval(() => setNow(new Date()), 1000);
+        return () => clearInterval(interval);
+    }, []);
+
+    const currentTime = now.toLocaleTimeString("id-ID", { hour12: false });
+
     const SidebarContent = ({ onClose }) => (
         <>
             <div className="flex h-16 shrink-0 items-center justify-between gap-3 px-6">
@@ -271,7 +280,7 @@ export default function AdminLayout({ header, children }) {
                     onClick={onClose}
                     className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 hover:bg-slate-50 hover:text-slate-600"
                 >
-                    <i className="fi fi-sr-cross-small" />
+                    <i className="fi fi-rr-cross-small" />
                 </button>
             </div>
 
@@ -367,7 +376,7 @@ export default function AdminLayout({ header, children }) {
                             onClick={() => setSidebarOpen(true)}
                             className="flex items-center text-slate-400 hover:text-slate-600 lg:hidden"
                         >
-                            <i className="fi fi-sr-menu-burger text-lg" />
+                            <i className="fi fi-rr-menu-burger text-lg" />
                         </button>
                         {!desktopSidebarOpen && (
                             <button
@@ -375,7 +384,7 @@ export default function AdminLayout({ header, children }) {
                                 onClick={() => setDesktopSidebarOpen(true)}
                                 className="hidden items-center text-slate-400 hover:text-slate-600 lg:flex"
                             >
-                                <i className="fi fi-sr-menu-burger text-lg" />
+                                <i className="fi fi-rr-menu-burger text-lg" />
                             </button>
                         )}
                         {header && (
@@ -383,75 +392,83 @@ export default function AdminLayout({ header, children }) {
                                 {header}
                             </h1>
                         )}
-                    </div>
 
-                    <div className="relative min-w-0 flex-1 max-w-md">
-                        <div className="relative">
-                            <i className="fi fi-sr-search absolute left-3 top-1/2 -translate-y-1/2 text-sm text-slate-400" />
-                            <input
-                                type="text"
-                                value={searchQuery}
-                                onChange={(e) => {
-                                    setSearchQuery(e.target.value);
-                                    setSearchOpen(true);
-                                }}
-                                onFocus={() => setSearchOpen(true)}
-                                onBlur={() =>
-                                    setTimeout(() => setSearchOpen(false), 150)
-                                }
-                                placeholder="Cari menu..."
-                                className="w-full rounded-xl border border-slate-200 bg-slate-50 py-2 pl-9 pr-3 text-sm text-slate-700 placeholder:text-slate-400 focus:border-indigo-300 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-100"
-                            />
-                        </div>
-
-                        {searchOpen && searchQuery.trim() !== "" && (
-                            <div className="absolute left-0 top-full z-30 mt-2 w-full overflow-hidden rounded-xl border border-slate-200 bg-white shadow-lg">
-                                {searchResults.length === 0 ? (
-                                    <p className="px-4 py-3 text-sm text-slate-400">
-                                        Menu tidak ditemukan.
-                                    </p>
-                                ) : (
-                                    <div className="max-h-72 overflow-y-auto py-1">
-                                        {searchResults.map((item) => (
-                                            <button
-                                                key={item.href}
-                                                type="button"
-                                                onMouseDown={(e) =>
-                                                    e.preventDefault()
-                                                }
-                                                onClick={() =>
-                                                    goToSearchResult(item)
-                                                }
-                                                className="flex w-full items-center gap-3 px-4 py-2.5 text-left text-sm text-slate-600 hover:bg-slate-50"
-                                            >
-                                                <i
-                                                    className={`fi ${item.icon} text-slate-400`}
-                                                />
-                                                <span>{item.name}</span>
-                                                <span className="ml-auto text-xs text-slate-300">
-                                                    {item.group}
-                                                </span>
-                                            </button>
-                                        ))}
-                                    </div>
-                                )}
+                        <div className="relative hidden w-64 sm:block">
+                            <div className="relative">
+                                <i className="fi fi-rr-search absolute left-3 top-1/2 -translate-y-1/2 text-sm text-slate-400" />
+                                <input
+                                    type="text"
+                                    value={searchQuery}
+                                    onChange={(e) => {
+                                        setSearchQuery(e.target.value);
+                                        setSearchOpen(true);
+                                    }}
+                                    onFocus={() => setSearchOpen(true)}
+                                    onBlur={() =>
+                                        setTimeout(
+                                            () => setSearchOpen(false),
+                                            150,
+                                        )
+                                    }
+                                    placeholder="Cari menu..."
+                                    className="w-full rounded-xl border border-slate-200 bg-slate-50 py-2 pl-9 pr-3 text-sm text-slate-700 placeholder:text-slate-400 focus:border-indigo-300 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-100"
+                                />
                             </div>
-                        )}
+
+                            {searchOpen && searchQuery.trim() !== "" && (
+                                <div className="absolute left-0 top-full z-30 mt-2 w-72 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-lg">
+                                    {searchResults.length === 0 ? (
+                                        <p className="px-4 py-3 text-sm text-slate-400">
+                                            Menu tidak ditemukan.
+                                        </p>
+                                    ) : (
+                                        <div className="max-h-72 overflow-y-auto py-1">
+                                            {searchResults.map((item) => (
+                                                <button
+                                                    key={item.href}
+                                                    type="button"
+                                                    onMouseDown={(e) =>
+                                                        e.preventDefault()
+                                                    }
+                                                    onClick={() =>
+                                                        goToSearchResult(item)
+                                                    }
+                                                    className="flex w-full items-center gap-3 px-4 py-2.5 text-left text-sm text-slate-600 hover:bg-slate-50"
+                                                >
+                                                    <i
+                                                        className={`fi ${item.icon} text-slate-400`}
+                                                    />
+                                                    <span>{item.name}</span>
+                                                    <span className="ml-auto text-xs text-slate-300">
+                                                        {item.group}
+                                                    </span>
+                                                </button>
+                                            ))}
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+                        </div>
                     </div>
 
-                    <Dropdown>
+                    <div className="flex items-center gap-4">
+                        <span className="hidden font-mono text-sm tabular-nums text-slate-500 sm:inline">
+                            {currentTime}
+                        </span>
+
+                        <Dropdown>
                         <Dropdown.Trigger>
                             <button
                                 type="button"
                                 className="flex items-center gap-2 rounded-xl px-2 py-1.5 text-sm font-medium text-slate-700 transition hover:bg-slate-50"
                             >
                                 <span className="flex h-8 w-8 items-center justify-center rounded-full bg-indigo-50 text-indigo-600">
-                                    <i className="fi fi-sr-user" />
+                                    <i className="fi fi-rr-user" />
                                 </span>
                                 <span className="hidden sm:inline">
                                     {user.name}
                                 </span>
-                                <i className="fi fi-sr-angle-small-down text-xs text-slate-400" />
+                                <i className="fi fi-rr-angle-small-down text-xs text-slate-400" />
                             </button>
                         </Dropdown.Trigger>
 
@@ -470,12 +487,13 @@ export default function AdminLayout({ header, children }) {
                                 as="button"
                             >
                                 <span className="flex items-center gap-2">
-                                    <i className="fi fi-sr-sign-out-alt" />
+                                    <i className="fi fi-rr-sign-out-alt" />
                                     Keluar
                                 </span>
                             </Dropdown.Link>
                         </Dropdown.Content>
-                    </Dropdown>
+                        </Dropdown>
+                    </div>
                 </header>
 
                 <main className="p-4 sm:p-6">{children}</main>

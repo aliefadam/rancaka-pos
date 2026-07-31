@@ -458,7 +458,7 @@ export default function Index({
                                 className="mt-5 flex w-full items-center justify-center gap-2 rounded-xl bg-indigo-600 px-4 py-3 text-sm font-semibold text-white shadow-sm shadow-indigo-200 transition hover:bg-indigo-700 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-70"
                             >
                                 {openShiftForm.processing ? (
-                                    <i className="fi fi-sr-spinner animate-spin" />
+                                    <i className="fi fi-rr-spinner animate-spin" />
                                 ) : (
                                     <i className="fi fi-rr-unlock" />
                                 )}
@@ -510,7 +510,7 @@ export default function Index({
 
                     <div className="mt-3 flex flex-wrap items-center gap-2">
                         <span className="flex items-center gap-1.5 rounded-full bg-emerald-50 px-3 py-1.5 text-xs font-semibold text-emerald-700">
-                            <i className="fi fi-sr-shop" />
+                            <i className="fi fi-rr-shop" />
                             Shift aktif sejak{' '}
                             {formatDateTime(activeShift.opened_at)}
                         </span>
@@ -598,7 +598,7 @@ export default function Index({
                         {filteredProducts.length === 0 && (
                             <div className="col-span-full flex flex-col items-center justify-center py-16 text-center">
                                 <span className="flex h-12 w-12 items-center justify-center rounded-full bg-slate-50 text-slate-400">
-                                    <i className="fi fi-sr-shopping-bag text-xl" />
+                                    <i className="fi fi-rr-shopping-bag text-xl" />
                                 </span>
                                 <p className="mt-4 text-sm font-medium text-slate-600">
                                     Produk tidak ditemukan
@@ -666,7 +666,7 @@ export default function Index({
                                     onClick={() => setMobileCartOpen(false)}
                                     className="absolute right-4 top-4 flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 transition hover:bg-slate-100 hover:text-slate-600"
                                 >
-                                    <i className="fi fi-sr-cross-small" />
+                                    <i className="fi fi-rr-cross-small" />
                                 </button>
                                 <CartPanel {...cartPanelProps} />
                             </Dialog.Panel>

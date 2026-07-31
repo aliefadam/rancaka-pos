@@ -160,7 +160,7 @@ export default function StockPage({
                         className="flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-3.5 py-2.5 text-sm font-medium text-slate-600 transition hover:bg-slate-50"
                     >
                         <i
-                            className={`fi fi-sr-refresh ${refreshing ? 'animate-spin' : ''}`}
+                            className={`fi fi-rr-refresh ${refreshing ? 'animate-spin' : ''}`}
                         />
                         <span className="hidden sm:inline">Refresh</span>
                     </button>
@@ -227,7 +227,7 @@ export default function StockPage({
                 {items.length === 0 && (
                     <div className="col-span-full flex flex-col items-center justify-center py-16 text-center">
                         <span className="flex h-12 w-12 items-center justify-center rounded-full bg-slate-50 text-slate-400">
-                            <i className="fi fi-sr-box-open text-xl" />
+                            <i className="fi fi-rr-box-open text-xl" />
                         </span>
                         <p className="mt-4 text-sm font-medium text-slate-600">
                             {entityLabel} tidak ditemukan

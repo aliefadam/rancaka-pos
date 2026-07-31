@@ -11,7 +11,7 @@ export default function ConfirmDialog({
     cancelText = 'Batal',
     variant = 'danger',
     processing = false,
-    icon = 'fi-sr-trash',
+    icon = 'fi-rr-trash',
 }) {
     const close = () => {
         if (!processing) onClose();
@@ -86,7 +86,7 @@ export default function ConfirmDialog({
                                         className={`flex flex-1 items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition disabled:cursor-not-allowed disabled:opacity-70 ${confirmBtnClass}`}
                                     >
                                         {processing && (
-                                            <i className="fi fi-sr-spinner animate-spin" />
+                                            <i className="fi fi-rr-spinner animate-spin" />
                                         )}
                                         {confirmText}
                                     </button>

@@ -187,7 +187,7 @@ export default function Index({ shifts, filters }) {
                                         className="px-6 py-20 text-center"
                                     >
                                         <span className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-slate-50 text-slate-400">
-                                            <i className="fi fi-sr-time-past text-xl" />
+                                            <i className="fi fi-rr-time-past text-xl" />
                                         </span>
                                         <p className="mt-4 text-sm font-medium text-slate-600">
                                             Belum ada riwayat shift
@@ -264,7 +264,7 @@ export default function Index({ shifts, filters }) {
                     {shifts.data.length === 0 && (
                         <div className="px-6 py-16 text-center">
                             <span className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-slate-50 text-slate-400">
-                                <i className="fi fi-sr-time-past text-xl" />
+                                <i className="fi fi-rr-time-past text-xl" />
                             </span>
                             <p className="mt-4 text-sm font-medium text-slate-600">
                                 Belum ada riwayat shift

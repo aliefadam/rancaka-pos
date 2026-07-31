@@ -153,7 +153,7 @@ export default function Index({ rawMaterials, filters }) {
                         className="flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-3.5 py-2.5 text-sm font-medium text-slate-600 transition hover:bg-slate-50"
                     >
                         <i
-                            className={`fi fi-sr-refresh ${refreshing ? 'animate-spin' : ''}`}
+                            className={`fi fi-rr-refresh ${refreshing ? 'animate-spin' : ''}`}
                         />
                         <span className="hidden sm:inline">Refresh</span>
                     </button>
@@ -162,7 +162,7 @@ export default function Index({ rawMaterials, filters }) {
                         onClick={openCreateModal}
                         className="flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-700"
                     >
-                        <i className="fi fi-sr-add" />
+                        <i className="fi fi-rr-add" />
                         Tambah Bahan Baku
                     </button>
                 </div>
@@ -246,7 +246,7 @@ export default function Index({ rawMaterials, filters }) {
                                                 }
                                                 className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 transition hover:bg-slate-100 hover:text-indigo-600"
                                             >
-                                                <i className="fi fi-sr-pencil" />
+                                                <i className="fi fi-rr-pencil" />
                                             </button>
                                             <button
                                                 type="button"
@@ -255,7 +255,7 @@ export default function Index({ rawMaterials, filters }) {
                                                 }
                                                 className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 transition hover:bg-rose-50 hover:text-rose-600"
                                             >
-                                                <i className="fi fi-sr-trash" />
+                                                <i className="fi fi-rr-trash" />
                                             </button>
                                         </div>
                                     </td>
@@ -269,7 +269,7 @@ export default function Index({ rawMaterials, filters }) {
                                         className="px-6 py-20 text-center"
                                     >
                                         <span className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-slate-50 text-slate-400">
-                                            <i className="fi fi-sr-box-open text-xl" />
+                                            <i className="fi fi-rr-box-open text-xl" />
                                         </span>
                                         <p className="mt-4 text-sm font-medium text-slate-600">
                                             Belum ada bahan baku
@@ -317,14 +317,14 @@ export default function Index({ rawMaterials, filters }) {
                                     onClick={() => openEditModal(rawMaterial)}
                                     className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 transition hover:bg-slate-100 hover:text-indigo-600"
                                 >
-                                    <i className="fi fi-sr-pencil" />
+                                    <i className="fi fi-rr-pencil" />
                                 </button>
                                 <button
                                     type="button"
                                     onClick={() => requestDelete(rawMaterial)}
                                     className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 transition hover:bg-rose-50 hover:text-rose-600"
                                 >
-                                    <i className="fi fi-sr-trash" />
+                                    <i className="fi fi-rr-trash" />
                                 </button>
                             </div>
                         </div>
@@ -333,7 +333,7 @@ export default function Index({ rawMaterials, filters }) {
                     {rawMaterials.length === 0 && (
                         <div className="px-6 py-16 text-center">
                             <span className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-slate-50 text-slate-400">
-                                <i className="fi fi-sr-box-open text-xl" />
+                                <i className="fi fi-rr-box-open text-xl" />
                             </span>
                             <p className="mt-4 text-sm font-medium text-slate-600">
                                 Belum ada bahan baku

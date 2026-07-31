@@ -155,7 +155,7 @@ export default function Index({ transactions, tenant, filters }) {
                     className="flex shrink-0 items-center gap-2 rounded-lg border border-slate-200 bg-white px-3.5 py-2.5 text-sm font-medium text-slate-600 transition hover:bg-slate-50"
                 >
                     <i
-                        className={`fi fi-sr-refresh ${refreshing ? 'animate-spin' : ''}`}
+                        className={`fi fi-rr-refresh ${refreshing ? 'animate-spin' : ''}`}
                     />
                     <span className="hidden sm:inline">Refresh</span>
                 </button>
@@ -297,7 +297,7 @@ export default function Index({ transactions, tenant, filters }) {
                                         className="px-6 py-20 text-center"
                                     >
                                         <span className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-slate-50 text-slate-400">
-                                            <i className="fi fi-sr-receipt text-xl" />
+                                            <i className="fi fi-rr-receipt text-xl" />
                                         </span>
                                         <p className="mt-4 text-sm font-medium text-slate-600">
                                             Belum ada transaksi
@@ -386,7 +386,7 @@ export default function Index({ transactions, tenant, filters }) {
                     {transactions.data.length === 0 && (
                         <div className="px-6 py-16 text-center">
                             <span className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-slate-50 text-slate-400">
-                                <i className="fi fi-sr-receipt text-xl" />
+                                <i className="fi fi-rr-receipt text-xl" />
                             </span>
                             <p className="mt-4 text-sm font-medium text-slate-600">
                                 Belum ada transaksi

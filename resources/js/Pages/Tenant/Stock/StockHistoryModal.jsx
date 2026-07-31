@@ -61,7 +61,7 @@ export default function StockHistoryModal({
 
                 {loading || !history ? (
                     <div className="flex flex-col items-center justify-center py-16 text-center">
-                        <i className="fi fi-sr-spinner animate-spin text-2xl text-slate-300" />
+                        <i className="fi fi-rr-spinner animate-spin text-2xl text-slate-300" />
                     </div>
                 ) : (
                     <>
