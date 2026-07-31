@@ -3,6 +3,7 @@ import ConfirmDialog from '@/Components/ConfirmDialog';
 import Select from '@/Components/Select';
 import { useToast } from '@/Contexts/ToastContext';
 import AdminLayout from '@/Layouts/AdminLayout';
+import usePermission from '@/Hooks/usePermission';
 import RawMaterialFormModal from '@/Pages/Tenant/RawMaterials/RawMaterialFormModal';
 import { Head, router } from '@inertiajs/react';
 import { useEffect, useRef, useState } from 'react';
@@ -51,6 +52,7 @@ function StockBadge({ stock, unit, lowStock }) {
 
 export default function Index({ rawMaterials, filters }) {
     const toast = useToast();
+    const can = usePermission();
 
     const [search, setSearch] = useState(filters.search ?? '');
     const [status, setStatus] = useState(filters.status ?? '');
@@ -157,14 +159,16 @@ export default function Index({ rawMaterials, filters }) {
                         />
                         <span className="hidden sm:inline">Refresh</span>
                     </button>
-                    <button
-                        type="button"
-                        onClick={openCreateModal}
-                        className="flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-700"
-                    >
-                        <i className="fi fi-rr-add" />
-                        Tambah Bahan Baku
-                    </button>
+                    {can('raw-materials.create') && (
+                        <button
+                            type="button"
+                            onClick={openCreateModal}
+                            className="flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-700"
+                        >
+                            <i className="fi fi-rr-add" />
+                            Tambah Bahan Baku
+                        </button>
+                    )}
                 </div>
             </div>
 
@@ -239,24 +243,28 @@ export default function Index({ rawMaterials, filters }) {
                                     </td>
                                     <td className="px-6 py-4">
                                         <div className="flex items-center justify-end gap-1.5">
-                                            <button
-                                                type="button"
-                                                onClick={() =>
-                                                    openEditModal(rawMaterial)
-                                                }
-                                                className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 transition hover:bg-slate-100 hover:text-indigo-600"
-                                            >
-                                                <i className="fi fi-rr-pencil" />
-                                            </button>
-                                            <button
-                                                type="button"
-                                                onClick={() =>
-                                                    requestDelete(rawMaterial)
-                                                }
-                                                className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 transition hover:bg-rose-50 hover:text-rose-600"
-                                            >
-                                                <i className="fi fi-rr-trash" />
-                                            </button>
+                                            {can('raw-materials.edit') && (
+                                                <button
+                                                    type="button"
+                                                    onClick={() =>
+                                                        openEditModal(rawMaterial)
+                                                    }
+                                                    className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 transition hover:bg-slate-100 hover:text-indigo-600"
+                                                >
+                                                    <i className="fi fi-rr-pencil" />
+                                                </button>
+                                            )}
+                                            {can('raw-materials.delete') && (
+                                                <button
+                                                    type="button"
+                                                    onClick={() =>
+                                                        requestDelete(rawMaterial)
+                                                    }
+                                                    className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 transition hover:bg-rose-50 hover:text-rose-600"
+                                                >
+                                                    <i className="fi fi-rr-trash" />
+                                                </button>
+                                            )}
                                         </div>
                                     </td>
                                 </tr>
@@ -312,20 +320,24 @@ export default function Index({ rawMaterials, filters }) {
                             </div>
 
                             <div className="mt-3 flex items-center justify-end gap-1.5">
-                                <button
-                                    type="button"
-                                    onClick={() => openEditModal(rawMaterial)}
-                                    className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 transition hover:bg-slate-100 hover:text-indigo-600"
-                                >
-                                    <i className="fi fi-rr-pencil" />
-                                </button>
-                                <button
-                                    type="button"
-                                    onClick={() => requestDelete(rawMaterial)}
-                                    className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 transition hover:bg-rose-50 hover:text-rose-600"
-                                >
-                                    <i className="fi fi-rr-trash" />
-                                </button>
+                                {can('raw-materials.edit') && (
+                                    <button
+                                        type="button"
+                                        onClick={() => openEditModal(rawMaterial)}
+                                        className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 transition hover:bg-slate-100 hover:text-indigo-600"
+                                    >
+                                        <i className="fi fi-rr-pencil" />
+                                    </button>
+                                )}
+                                {can('raw-materials.delete') && (
+                                    <button
+                                        type="button"
+                                        onClick={() => requestDelete(rawMaterial)}
+                                        className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 transition hover:bg-rose-50 hover:text-rose-600"
+                                    >
+                                        <i className="fi fi-rr-trash" />
+                                    </button>
+                                )}
                             </div>
                         </div>
                     ))}

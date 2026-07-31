@@ -3,6 +3,7 @@ import ConfirmDialog from '@/Components/ConfirmDialog';
 import Select from '@/Components/Select';
 import { useToast } from '@/Contexts/ToastContext';
 import AdminLayout from '@/Layouts/AdminLayout';
+import usePermission from '@/Hooks/usePermission';
 import CategoryFormModal from '@/Pages/Tenant/Categories/CategoryFormModal';
 import { Head, router } from '@inertiajs/react';
 import { useEffect, useRef, useState } from 'react';
@@ -32,6 +33,7 @@ function StatusBadge({ active }) {
 
 export default function Index({ categories, filters }) {
     const toast = useToast();
+    const can = usePermission();
 
     const [search, setSearch] = useState(filters.search ?? '');
     const [status, setStatus] = useState(filters.status ?? '');
@@ -137,14 +139,16 @@ export default function Index({ categories, filters }) {
                         />
                         <span className="hidden sm:inline">Refresh</span>
                     </button>
-                    <button
-                        type="button"
-                        onClick={openCreateModal}
-                        className="flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-700"
-                    >
-                        <i className="fi fi-rr-add" />
-                        Tambah Kategori
-                    </button>
+                    {can('categories.create') && (
+                        <button
+                            type="button"
+                            onClick={openCreateModal}
+                            className="flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-700"
+                        >
+                            <i className="fi fi-rr-add" />
+                            Tambah Kategori
+                        </button>
+                    )}
                 </div>
             </div>
 
@@ -209,24 +213,28 @@ export default function Index({ categories, filters }) {
                                     </td>
                                     <td className="px-6 py-4">
                                         <div className="flex items-center justify-end gap-1.5">
-                                            <button
-                                                type="button"
-                                                onClick={() =>
-                                                    openEditModal(category)
-                                                }
-                                                className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 transition hover:bg-slate-100 hover:text-indigo-600"
-                                            >
-                                                <i className="fi fi-rr-pencil" />
-                                            </button>
-                                            <button
-                                                type="button"
-                                                onClick={() =>
-                                                    requestDelete(category)
-                                                }
-                                                className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 transition hover:bg-rose-50 hover:text-rose-600"
-                                            >
-                                                <i className="fi fi-rr-trash" />
-                                            </button>
+                                            {can('categories.edit') && (
+                                                <button
+                                                    type="button"
+                                                    onClick={() =>
+                                                        openEditModal(category)
+                                                    }
+                                                    className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 transition hover:bg-slate-100 hover:text-indigo-600"
+                                                >
+                                                    <i className="fi fi-rr-pencil" />
+                                                </button>
+                                            )}
+                                            {can('categories.delete') && (
+                                                <button
+                                                    type="button"
+                                                    onClick={() =>
+                                                        requestDelete(category)
+                                                    }
+                                                    className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 transition hover:bg-rose-50 hover:text-rose-600"
+                                                >
+                                                    <i className="fi fi-rr-trash" />
+                                                </button>
+                                            )}
                                         </div>
                                     </td>
                                 </tr>
@@ -273,20 +281,24 @@ export default function Index({ categories, filters }) {
                                 </div>
                             </div>
                             <div className="flex shrink-0 items-center gap-1.5">
-                                <button
-                                    type="button"
-                                    onClick={() => openEditModal(category)}
-                                    className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 transition hover:bg-slate-100 hover:text-indigo-600"
-                                >
-                                    <i className="fi fi-rr-pencil" />
-                                </button>
-                                <button
-                                    type="button"
-                                    onClick={() => requestDelete(category)}
-                                    className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 transition hover:bg-rose-50 hover:text-rose-600"
-                                >
-                                    <i className="fi fi-rr-trash" />
-                                </button>
+                                {can('categories.edit') && (
+                                    <button
+                                        type="button"
+                                        onClick={() => openEditModal(category)}
+                                        className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 transition hover:bg-slate-100 hover:text-indigo-600"
+                                    >
+                                        <i className="fi fi-rr-pencil" />
+                                    </button>
+                                )}
+                                {can('categories.delete') && (
+                                    <button
+                                        type="button"
+                                        onClick={() => requestDelete(category)}
+                                        className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 transition hover:bg-rose-50 hover:text-rose-600"
+                                    >
+                                        <i className="fi fi-rr-trash" />
+                                    </button>
+                                )}
                             </div>
                         </div>
                     ))}

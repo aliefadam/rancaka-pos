@@ -3,6 +3,7 @@ import ConfirmDialog from '@/Components/ConfirmDialog';
 import Pagination from '@/Components/Pagination';
 import { useToast } from '@/Contexts/ToastContext';
 import AdminLayout from '@/Layouts/AdminLayout';
+import usePermission from '@/Hooks/usePermission';
 import ExpenseFormModal from '@/Pages/Tenant/Expenses/ExpenseFormModal';
 import { Head, router } from '@inertiajs/react';
 import { useEffect, useRef, useState } from 'react';
@@ -32,6 +33,7 @@ export default function Index({
     monthlyTotal,
 }) {
     const toast = useToast();
+    const can = usePermission();
     const [search, setSearch] = useState(filters.search ?? '');
     const [refreshing, setRefreshing] = useState(false);
     const [modalOpen, setModalOpen] = useState(false);
@@ -128,14 +130,16 @@ export default function Index({
                         />
                         <span className="hidden sm:inline">Refresh</span>
                     </button>
-                    <button
-                        type="button"
-                        onClick={openCreateModal}
-                        className="flex flex-1 items-center justify-center gap-2 rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-700 sm:flex-none"
-                    >
-                        <i className="fi fi-rr-add" />
-                        Tambah Pengeluaran
-                    </button>
+                    {can('expenses.create') && (
+                        <button
+                            type="button"
+                            onClick={openCreateModal}
+                            className="flex flex-1 items-center justify-center gap-2 rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-700 sm:flex-none"
+                        >
+                            <i className="fi fi-rr-add" />
+                            Tambah Pengeluaran
+                        </button>
+                    )}
                 </div>
             </div>
 
@@ -193,6 +197,7 @@ export default function Index({
                                             expense={expense}
                                             onEdit={openEditModal}
                                             onDelete={setDeleteTarget}
+                                            can={can}
                                         />
                                     </td>
                                 </tr>
@@ -218,6 +223,7 @@ export default function Index({
                                     expense={expense}
                                     onEdit={openEditModal}
                                     onDelete={setDeleteTarget}
+                                    can={can}
                                 />
                             </div>
                             <p className="mt-3 text-sm text-slate-600">
@@ -262,7 +268,7 @@ export default function Index({
     );
 }
 
-function ExpenseActions({ expense, onEdit, onDelete }) {
+function ExpenseActions({ expense, onEdit, onDelete, can }) {
     return (
         <div className="flex items-center justify-end gap-1">
             <a
@@ -274,22 +280,26 @@ function ExpenseActions({ expense, onEdit, onDelete }) {
             >
                 <i className="fi fi-rr-picture" />
             </a>
-            <button
-                type="button"
-                title="Edit pengeluaran"
-                onClick={() => onEdit(expense)}
-                className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 transition hover:bg-slate-100 hover:text-indigo-600"
-            >
-                <i className="fi fi-rr-pencil" />
-            </button>
-            <button
-                type="button"
-                title="Hapus pengeluaran"
-                onClick={() => onDelete(expense)}
-                className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 transition hover:bg-rose-50 hover:text-rose-600"
-            >
-                <i className="fi fi-rr-trash" />
-            </button>
+            {can('expenses.edit') && (
+                <button
+                    type="button"
+                    title="Edit pengeluaran"
+                    onClick={() => onEdit(expense)}
+                    className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 transition hover:bg-slate-100 hover:text-indigo-600"
+                >
+                    <i className="fi fi-rr-pencil" />
+                </button>
+            )}
+            {can('expenses.delete') && (
+                <button
+                    type="button"
+                    title="Hapus pengeluaran"
+                    onClick={() => onDelete(expense)}
+                    className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 transition hover:bg-rose-50 hover:text-rose-600"
+                >
+                    <i className="fi fi-rr-trash" />
+                </button>
+            )}
         </div>
     );
 }

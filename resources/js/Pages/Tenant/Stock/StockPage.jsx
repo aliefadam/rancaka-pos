@@ -1,4 +1,5 @@
 import Breadcrumb from '@/Components/Breadcrumb';
+import usePermission from '@/Hooks/usePermission';
 import AdminLayout from '@/Layouts/AdminLayout';
 import StockAdjustmentModal from '@/Pages/Tenant/Stock/StockAdjustmentModal';
 import StockHistoryModal from '@/Pages/Tenant/Stock/StockHistoryModal';
@@ -58,8 +59,10 @@ export default function StockPage({
     subtitle,
     entityLabel,
     fieldName,
+    permissionKey,
     routes,
 }) {
+    const can = usePermission();
     const [search, setSearch] = useState(filters.search ?? '');
     const [refreshing, setRefreshing] = useState(false);
     const [inOpen, setInOpen] = useState(false);
@@ -164,22 +167,26 @@ export default function StockPage({
                         />
                         <span className="hidden sm:inline">Refresh</span>
                     </button>
-                    <button
-                        type="button"
-                        onClick={() => setInOpen(true)}
-                        className="flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-3.5 py-2.5 text-sm font-medium text-slate-600 transition hover:bg-slate-50"
-                    >
-                        <i className="fi fi-rr-box-open" />
-                        Stok Masuk
-                    </button>
-                    <button
-                        type="button"
-                        onClick={() => setAdjustOpen(true)}
-                        className="flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-3.5 py-2.5 text-sm font-medium text-slate-600 transition hover:bg-slate-50"
-                    >
-                        <i className="fi fi-rr-settings-sliders" />
-                        Penyesuaian
-                    </button>
+                    {can(`${permissionKey}.create`) && (
+                        <button
+                            type="button"
+                            onClick={() => setInOpen(true)}
+                            className="flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-3.5 py-2.5 text-sm font-medium text-slate-600 transition hover:bg-slate-50"
+                        >
+                            <i className="fi fi-rr-box-open" />
+                            Stok Masuk
+                        </button>
+                    )}
+                    {can(`${permissionKey}.edit`) && (
+                        <button
+                            type="button"
+                            onClick={() => setAdjustOpen(true)}
+                            className="flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-3.5 py-2.5 text-sm font-medium text-slate-600 transition hover:bg-slate-50"
+                        >
+                            <i className="fi fi-rr-settings-sliders" />
+                            Penyesuaian
+                        </button>
+                    )}
                     <button
                         type="button"
                         onClick={openHistory}

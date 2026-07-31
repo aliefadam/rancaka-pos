@@ -1,4 +1,5 @@
 import Modal from '@/Components/Modal';
+import Select from '@/Components/Select';
 import { useToast } from '@/Contexts/ToastContext';
 import { useForm } from '@inertiajs/react';
 import { useEffect } from 'react';
@@ -7,14 +8,23 @@ const emptyForm = {
     name: '',
     username: '',
     password: '',
+    employee_role_id: '',
 };
 
-export default function EmployeeFormModal({ show, onClose, employee }) {
+export default function EmployeeFormModal({ show, onClose, employee, roles = [] }) {
     const isEdit = Boolean(employee);
     const toast = useToast();
 
     const { data, setData, post, put, processing, errors, reset, clearErrors } =
         useForm(emptyForm);
+
+    const roleOptions = [
+        { value: '', label: 'Tanpa role (tidak ada akses menu)' },
+        ...roles.map((role) => ({
+            value: role.id,
+            label: role.name,
+        })),
+    ];
 
     useEffect(() => {
         if (!show) return;
@@ -25,6 +35,7 @@ export default function EmployeeFormModal({ show, onClose, employee }) {
                       name: employee.name,
                       username: employee.username,
                       password: '',
+                      employee_role_id: employee.employee_role_id ?? '',
                   }
                 : emptyForm,
         );
@@ -142,6 +153,29 @@ export default function EmployeeFormModal({ show, onClose, employee }) {
                             {errors.password && (
                                 <p className="mt-1.5 text-sm text-red-600">
                                     {errors.password}
+                                </p>
+                            )}
+                        </div>
+
+                        <div>
+                            <label className="mb-1.5 block text-sm font-medium text-slate-700">
+                                Role
+                            </label>
+                            <Select
+                                value={data.employee_role_id}
+                                onChange={(value) =>
+                                    setData('employee_role_id', value)
+                                }
+                                options={roleOptions}
+                                placeholder="Belum ada akses khusus"
+                            />
+                            <p className="mt-1.5 text-xs text-slate-400">
+                                Menentukan menu &amp; aksi yang bisa diakses
+                                karyawan ini.
+                            </p>
+                            {errors.employee_role_id && (
+                                <p className="mt-1.5 text-sm text-red-600">
+                                    {errors.employee_role_id}
                                 </p>
                             )}
                         </div>

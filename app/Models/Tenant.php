@@ -31,6 +31,11 @@ class Tenant extends Model
         return $this->hasMany(Category::class);
     }
 
+    public function roles(): HasMany
+    {
+        return $this->hasMany(Role::class);
+    }
+
     public function rawMaterials(): HasMany
     {
         return $this->hasMany(RawMaterial::class);

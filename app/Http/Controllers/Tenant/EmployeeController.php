@@ -22,6 +22,7 @@ class EmployeeController extends Controller
         $employees = User::query()
             ->where('tenant_id', $tenantId)
             ->where('role', UserRole::Employee)
+            ->with('employeeRole:id,name')
             ->when($search, function ($query, $search) {
                 $query->where(function ($query) use ($search) {
                     $query->where('name', 'like', "%{$search}%")
@@ -32,9 +33,12 @@ class EmployeeController extends Controller
             ->paginate(10)
             ->withQueryString();
 
+        $roles = $request->user()->tenant->roles()->orderBy('name')->get(['id', 'name']);
+
         return Inertia::render('Tenant/Employees/Index', [
             'employees' => $employees,
             'filters' => ['search' => $search],
+            'roles' => $roles,
         ]);
     }
 
@@ -47,6 +51,7 @@ class EmployeeController extends Controller
             'username' => $validated['username'],
             'password' => Hash::make($validated['password']),
             'role' => UserRole::Employee,
+            'employee_role_id' => $validated['employee_role_id'],
         ]);
 
         return redirect()->route('tenant.employees.index')->with('success', 'Karyawan berhasil ditambahkan.');
@@ -61,6 +66,7 @@ class EmployeeController extends Controller
         $employee->update([
             'name' => $validated['name'],
             'username' => $validated['username'],
+            'employee_role_id' => $validated['employee_role_id'],
             ...(empty($validated['password']) ? [] : ['password' => Hash::make($validated['password'])]),
         ]);
 
@@ -96,6 +102,10 @@ class EmployeeController extends Controller
                 Rule::unique('users', 'username')->ignore($employee?->id),
             ],
             'password' => [$employee ? 'nullable' : 'required', 'string', 'min:8'],
+            'employee_role_id' => [
+                'nullable',
+                Rule::exists('roles', 'id')->where('tenant_id', $request->user()->tenant_id),
+            ],
         ]);
     }
 }

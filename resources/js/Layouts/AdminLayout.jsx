@@ -116,6 +116,11 @@ const navigationByRole = {
                     href: "tenant.employees.index",
                     icon: "fi-rr-users",
                 },
+                {
+                    name: "Role & Hak Akses",
+                    href: "tenant.roles.index",
+                    icon: "fi-rr-shield-check",
+                },
             ],
         },
     ],
@@ -203,6 +208,61 @@ const navigationByRole = {
     ],
 };
 
+const SidebarContent = ({ navigation, onClose }) => (
+    <>
+        <div className="flex h-16 shrink-0 items-center justify-between gap-3 px-6">
+            <div className="flex items-center gap-3">
+                <img
+                    src="/logo.png"
+                    alt="Logo Rancaka"
+                    className="h-9 w-9 rounded-xl object-cover shadow-sm shadow-indigo-200"
+                />
+                <span className="text-lg font-bold text-slate-900">
+                    Rancaka
+                </span>
+            </div>
+            <button
+                type="button"
+                onClick={onClose}
+                className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 hover:bg-slate-50 hover:text-slate-600"
+            >
+                <i className="fi fi-rr-cross-small" />
+            </button>
+        </div>
+
+        <nav className="scrollbar-thin mt-4 min-h-0 flex-1 space-y-6 overflow-y-auto px-3 pb-4">
+            {navigation.map((section) => (
+                <div key={section.group}>
+                    <p className="px-3 text-xs font-semibold uppercase tracking-wider text-slate-400">
+                        {section.group}
+                    </p>
+                    <div className="mt-2 space-y-1">
+                        {section.items.map((item) => {
+                            const active = route().current(item.href);
+                            return (
+                                <Link
+                                    key={item.name}
+                                    href={route(item.href)}
+                                    className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition ${
+                                        active
+                                            ? "bg-indigo-50 text-indigo-700"
+                                            : "text-slate-500 hover:bg-slate-50 hover:text-slate-900"
+                                    }`}
+                                >
+                                    <i
+                                        className={`fi ${item.icon} ${active ? "text-indigo-600" : "text-slate-400"}`}
+                                    />
+                                    {item.name}
+                                </Link>
+                            );
+                        })}
+                    </div>
+                </div>
+            ))}
+        </nav>
+    </>
+);
+
 export default function AdminLayout({ header, children }) {
     const page = usePage();
     const { auth, flash } = page.props;
@@ -262,67 +322,6 @@ export default function AdminLayout({ header, children }) {
 
     const currentTime = now.toLocaleTimeString("id-ID", { hour12: false });
 
-    const SidebarContent = ({ onClose }) => (
-        <>
-            <div className="flex h-16 shrink-0 items-center justify-between gap-3 px-6">
-                <div className="flex items-center gap-3">
-                    <img
-                        src="/logo.png"
-                        alt="Logo Rancaka"
-                        className="h-9 w-9 rounded-xl object-cover shadow-sm shadow-indigo-200"
-                    />
-                    <span className="text-lg font-bold text-slate-900">
-                        Rancaka
-                    </span>
-                </div>
-                <button
-                    type="button"
-                    onClick={onClose}
-                    className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 hover:bg-slate-50 hover:text-slate-600"
-                >
-                    <i className="fi fi-rr-cross-small" />
-                </button>
-            </div>
-
-            <nav className="scrollbar-thin mt-4 min-h-0 flex-1 space-y-6 overflow-y-auto px-3 pb-4">
-                {navigation.map((section) => (
-                    <div key={section.group}>
-                        <p className="px-3 text-xs font-semibold uppercase tracking-wider text-slate-400">
-                            {section.group}
-                        </p>
-                        <div className="mt-2 space-y-1">
-                            {section.items.map((item) => {
-                                const active = route().current(item.href);
-                                return (
-                                    <Link
-                                        key={item.name}
-                                        href={route(item.href)}
-                                        className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition ${
-                                            active
-                                                ? "bg-indigo-50 text-indigo-700"
-                                                : "text-slate-500 hover:bg-slate-50 hover:text-slate-900"
-                                        }`}
-                                    >
-                                        <i
-                                            className={`fi ${item.icon} ${active ? "text-indigo-600" : "text-slate-400"}`}
-                                        />
-                                        {item.name}
-                                    </Link>
-                                );
-                            })}
-                        </div>
-                    </div>
-                ))}
-            </nav>
-
-            {/* <div className="px-3 pb-4">
-                <div className="rounded-xl bg-slate-50 px-3 py-3 text-xs text-slate-400">
-                    Rancaka Admin Panel
-                </div>
-            </div> */}
-        </>
-    );
-
     return (
         <div className="min-h-screen bg-slate-50">
             <aside
@@ -330,7 +329,10 @@ export default function AdminLayout({ header, children }) {
                     desktopSidebarOpen ? "lg:translate-x-0" : "lg:-translate-x-full"
                 }`}
             >
-                <SidebarContent onClose={() => setDesktopSidebarOpen(false)} />
+                <SidebarContent
+                    navigation={navigation}
+                    onClose={() => setDesktopSidebarOpen(false)}
+                />
             </aside>
 
             <Transition show={sidebarOpen} as={Fragment}>
@@ -360,7 +362,10 @@ export default function AdminLayout({ header, children }) {
                         leaveTo="-translate-x-full"
                     >
                         <aside className="fixed inset-y-0 left-0 flex w-64 flex-col border-r border-slate-200 bg-white shadow-xl">
-                            <SidebarContent onClose={() => setSidebarOpen(false)} />
+                            <SidebarContent
+                                navigation={navigation}
+                                onClose={() => setSidebarOpen(false)}
+                            />
                         </aside>
                     </Transition.Child>
                 </div>

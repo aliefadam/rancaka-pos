@@ -3,7 +3,7 @@ import Pagination from '@/Components/Pagination';
 import { useToast } from '@/Contexts/ToastContext';
 import AdminLayout from '@/Layouts/AdminLayout';
 import EmployeeFormModal from '@/Pages/Tenant/Employees/EmployeeFormModal';
-import { Head, router } from '@inertiajs/react';
+import { Head, Link, router } from '@inertiajs/react';
 import { useEffect, useRef, useState } from 'react';
 
 const formatDate = (value) =>
@@ -13,7 +13,7 @@ const formatDate = (value) =>
         year: 'numeric',
     });
 
-export default function Index({ employees, filters }) {
+export default function Index({ employees, filters, roles }) {
     const toast = useToast();
 
     const [search, setSearch] = useState(filters.search ?? '');
@@ -105,6 +105,13 @@ export default function Index({ employees, filters }) {
                 </div>
 
                 <div className="flex shrink-0 items-center gap-2.5">
+                    <Link
+                        href={route('tenant.roles.index')}
+                        className="flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-3.5 py-2.5 text-sm font-medium text-slate-600 transition hover:bg-slate-50"
+                    >
+                        <i className="fi fi-rr-shield-check" />
+                        <span className="hidden sm:inline">Role &amp; Hak Akses</span>
+                    </Link>
                     <button
                         type="button"
                         onClick={refresh}
@@ -153,6 +160,9 @@ export default function Index({ employees, filters }) {
                                     Username
                                 </th>
                                 <th className="px-6 py-3.5 font-semibold">
+                                    Role
+                                </th>
+                                <th className="px-6 py-3.5 font-semibold">
                                     Bergabung
                                 </th>
                                 <th className="px-6 py-3.5 text-right font-semibold">
@@ -180,6 +190,17 @@ export default function Index({ employees, filters }) {
                                     </td>
                                     <td className="px-6 py-4 text-slate-600">
                                         @{employee.username}
+                                    </td>
+                                    <td className="px-6 py-4">
+                                        {employee.employee_role ? (
+                                            <span className="inline-flex items-center rounded-full bg-indigo-50 px-2.5 py-1 text-xs font-medium text-indigo-700">
+                                                {employee.employee_role.name}
+                                            </span>
+                                        ) : (
+                                            <span className="text-xs text-slate-400">
+                                                Tanpa role
+                                            </span>
+                                        )}
                                     </td>
                                     <td className="whitespace-nowrap px-6 py-4 text-slate-500">
                                         {formatDate(employee.created_at)}
@@ -212,7 +233,7 @@ export default function Index({ employees, filters }) {
                             {employees.data.length === 0 && (
                                 <tr>
                                     <td
-                                        colSpan={4}
+                                        colSpan={5}
                                         className="px-6 py-20 text-center"
                                     >
                                         <span className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-slate-50 text-slate-400">
@@ -252,6 +273,20 @@ export default function Index({ employees, filters }) {
                             </div>
 
                             <dl className="mt-3 space-y-1.5 text-sm">
+                                <div className="flex items-center justify-between gap-3">
+                                    <dt className="text-slate-400">Role</dt>
+                                    <dd className="text-right text-slate-600">
+                                        {employee.employee_role ? (
+                                            <span className="inline-flex items-center rounded-full bg-indigo-50 px-2.5 py-1 text-xs font-medium text-indigo-700">
+                                                {employee.employee_role.name}
+                                            </span>
+                                        ) : (
+                                            <span className="text-xs text-slate-400">
+                                                Tanpa role
+                                            </span>
+                                        )}
+                                    </dd>
+                                </div>
                                 <div className="flex items-center justify-between gap-3">
                                     <dt className="text-slate-400">
                                         Bergabung
@@ -312,6 +347,7 @@ export default function Index({ employees, filters }) {
                 show={modalOpen}
                 onClose={closeModal}
                 employee={editingEmployee}
+                roles={roles}
             />
 
             <ConfirmDialog

@@ -3,6 +3,7 @@ import ConfirmDialog from '@/Components/ConfirmDialog';
 import Pagination from '@/Components/Pagination';
 import Select from '@/Components/Select';
 import { useToast } from '@/Contexts/ToastContext';
+import usePermission from '@/Hooks/usePermission';
 import AdminLayout from '@/Layouts/AdminLayout';
 import ReceiptModal from '@/Pages/Tenant/Reports/Transactions/ReceiptModal';
 import TransactionDetailModal from '@/Pages/Tenant/Reports/Transactions/TransactionDetailModal';
@@ -55,6 +56,7 @@ function StatusBadge({ status }) {
 
 export default function Index({ transactions, tenant, filters }) {
     const toast = useToast();
+    const can = usePermission();
 
     const [search, setSearch] = useState(filters.search ?? '');
     const [date, setDate] = useState(filters.date ?? '');
@@ -271,8 +273,8 @@ export default function Index({ transactions, tenant, filters }) {
                                             >
                                                 <i className="fi fi-rr-print" />
                                             </button>
-                                            {transaction.status ===
-                                                'completed' && (
+                                            {transaction.status === 'completed' &&
+                                                can('transactions.delete') && (
                                                 <button
                                                     type="button"
                                                     onClick={() =>
@@ -368,7 +370,8 @@ export default function Index({ transactions, tenant, filters }) {
                                 >
                                     <i className="fi fi-rr-print" />
                                 </button>
-                                {transaction.status === 'completed' && (
+                                {transaction.status === 'completed' &&
+                                    can('transactions.delete') && (
                                     <button
                                         type="button"
                                         onClick={() =>
