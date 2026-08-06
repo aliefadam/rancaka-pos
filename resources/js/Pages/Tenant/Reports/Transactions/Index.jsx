@@ -118,8 +118,11 @@ export default function Index({ transactions, tenant, filters }) {
             {},
             {
                 preserveScroll: true,
-                onError: () =>
-                    toast.error('Gagal membatalkan transaksi. Silakan coba lagi.'),
+                onError: (errors) =>
+                    toast.error(
+                        errors.transaction ??
+                            'Gagal membatalkan transaksi. Silakan coba lagi.',
+                    ),
                 onFinish: () => {
                     setVoiding(false);
                     setVoidTarget(null);
@@ -278,11 +281,15 @@ export default function Index({ transactions, tenant, filters }) {
                                                 <button
                                                     type="button"
                                                     onClick={() =>
-                                                        requestVoid(
-                                                            transaction,
-                                                        )
+                                                        requestVoid(transaction)
                                                     }
-                                                    className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 transition hover:bg-rose-50 hover:text-rose-600"
+                                                    disabled={!transaction.can_be_voided}
+                                                    title={
+                                                        transaction.can_be_voided
+                                                            ? 'Batalkan transaksi'
+                                                            : 'Batas pembatalan 1x24 jam telah lewat'
+                                                    }
+                                                    className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 transition enabled:hover:bg-rose-50 enabled:hover:text-rose-600 disabled:cursor-not-allowed disabled:opacity-35"
                                                 >
                                                     <i className="fi fi-rr-cross-circle" />
                                                 </button>
@@ -377,7 +384,13 @@ export default function Index({ transactions, tenant, filters }) {
                                         onClick={() =>
                                             requestVoid(transaction)
                                         }
-                                        className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 transition hover:bg-rose-50 hover:text-rose-600"
+                                        disabled={!transaction.can_be_voided}
+                                        title={
+                                            transaction.can_be_voided
+                                                ? 'Batalkan transaksi'
+                                                : 'Batas pembatalan 1x24 jam telah lewat'
+                                        }
+                                        className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 transition enabled:hover:bg-rose-50 enabled:hover:text-rose-600 disabled:cursor-not-allowed disabled:opacity-35"
                                     >
                                         <i className="fi fi-rr-cross-circle" />
                                     </button>
@@ -431,7 +444,7 @@ export default function Index({ transactions, tenant, filters }) {
                 title="Batalkan Transaksi"
                 message={
                     voidTarget &&
-                    `Yakin ingin membatalkan transaksi "${voidTarget.invoice_number}"? Stok produk akan dikembalikan.`
+                    `Yakin ingin membatalkan transaksi "${voidTarget.invoice_number}" milik kasir ${voidTarget.user?.name ?? '-'}? Stok akan dikembalikan.`
                 }
                 confirmText="Ya, Batalkan"
                 icon="fi-rr-cross-circle"

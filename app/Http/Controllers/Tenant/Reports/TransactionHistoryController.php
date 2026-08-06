@@ -9,6 +9,8 @@ use App\Models\Transaction;
 use App\Services\StockMovementService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -23,7 +25,7 @@ class TransactionHistoryController extends Controller
         $transactions = Transaction::query()
             ->where('tenant_id', $request->user()->tenant_id)
             ->whereIn('status', [TransactionStatus::Completed, TransactionStatus::Voided])
-            ->with(['user:id,name', 'items'])
+            ->with(['user:id,name', 'shift.user:id,name', 'items'])
             ->when($search, function ($query, $search) {
                 $query->where(function ($query) use ($search) {
                     $query->where('invoice_number', 'like', "%{$search}%")
@@ -36,6 +38,17 @@ class TransactionHistoryController extends Controller
             ->paginate(15)
             ->withQueryString();
 
+        $isOwner = $request->user()->isOwner();
+        $voidDeadline = now()->subDay();
+
+        $transactions->getCollection()->each(function (Transaction $transaction) use ($isOwner, $voidDeadline) {
+            $transaction->setAttribute(
+                'can_be_voided',
+                $transaction->status === TransactionStatus::Completed
+                    && ($isOwner || $transaction->created_at->greaterThanOrEqualTo($voidDeadline)),
+            );
+        });
+
         return Inertia::render('Tenant/Reports/Transactions/Index', [
             'transactions' => $transactions,
             'tenant' => $request->user()->tenant->only(['name', 'address', 'phone', 'logo_url', 'receipt_footer']),
@@ -46,23 +59,53 @@ class TransactionHistoryController extends Controller
     public function void(Request $request, Transaction $transaction): RedirectResponse
     {
         abort_unless($transaction->tenant_id === $request->user()->tenant_id, 403);
-        abort_unless($transaction->status === TransactionStatus::Completed, 403);
 
-        $transaction->load('items.product');
+        DB::transaction(function () use ($request, $transaction) {
+            $transaction = Transaction::query()
+                ->where('tenant_id', $request->user()->tenant_id)
+                ->lockForUpdate()
+                ->findOrFail($transaction->id);
 
-        foreach ($transaction->items as $item) {
-            if ($item->product && $item->product->track_stock) {
-                StockMovementService::record(
-                    $item->product,
-                    StockMovementType::Adjustment,
-                    $item->quantity,
-                    "Pembatalan transaksi {$transaction->invoice_number}",
-                    $request->user()->id,
-                );
+            abort_unless($transaction->status === TransactionStatus::Completed, 403);
+
+            if (! $request->user()->isOwner() && $transaction->created_at->lt(now()->subDay())) {
+                throw ValidationException::withMessages([
+                    'transaction' => 'Transaksi hanya dapat dibatalkan maksimal 1x24 jam. Hubungi owner untuk pembatalan setelah batas waktu.',
+                ]);
             }
-        }
 
-        $transaction->update(['status' => TransactionStatus::Voided]);
+            $transaction->load(['user:id,name', 'shift.user:id,name', 'items.product.rawMaterials']);
+            $cashierName = $transaction->user?->name ?? $transaction->shift?->user?->name ?? '-';
+            $note = "Pembatalan transaksi {$transaction->invoice_number} (Kasir: {$cashierName})";
+
+            foreach ($transaction->items as $item) {
+                if (! $item->product) {
+                    continue;
+                }
+
+                if ($item->product->track_stock) {
+                    StockMovementService::record(
+                        $item->product,
+                        StockMovementType::Adjustment,
+                        $item->quantity,
+                        $note,
+                        $request->user()->id,
+                    );
+                }
+
+                foreach ($item->product->rawMaterials as $rawMaterial) {
+                    StockMovementService::record(
+                        $rawMaterial,
+                        StockMovementType::Adjustment,
+                        $rawMaterial->pivot->quantity * $item->quantity,
+                        $note,
+                        $request->user()->id,
+                    );
+                }
+            }
+
+            $transaction->update(['status' => TransactionStatus::Voided]);
+        });
 
         return redirect()->route('tenant.reports.transactions.index')->with('success', 'Transaksi dibatalkan.');
     }
