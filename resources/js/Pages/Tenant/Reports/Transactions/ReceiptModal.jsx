@@ -146,6 +146,27 @@ export default function ReceiptModal({ show, onClose, transaction, tenant }) {
                                     transaction.payment_method}
                             </span>
                         </div>
+                        {transaction.payment_method === 'cash' &&
+                            transaction.amount_received !== null && (
+                                <>
+                                    <div className="flex items-center justify-between text-slate-500">
+                                        <span>Uang Diterima</span>
+                                        <span>
+                                            {formatRupiah(
+                                                transaction.amount_received,
+                                            )}
+                                        </span>
+                                    </div>
+                                    <div className="flex items-center justify-between font-semibold text-slate-800">
+                                        <span>Kembalian</span>
+                                        <span>
+                                            {formatRupiah(
+                                                transaction.change_amount,
+                                            )}
+                                        </span>
+                                    </div>
+                                </>
+                            )}
                     </div>
 
                     <div className="my-4 border-t border-dashed border-slate-200" />

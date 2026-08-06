@@ -26,6 +26,13 @@ function formatRupiah(value) {
     return `Rp ${Number(value || 0).toLocaleString('id-ID')}`;
 }
 
+function formatDifference(value) {
+    if (value === null) return '-';
+    if (value === 0) return 'Rp 0';
+
+    return `${value > 0 ? '+' : '-'}Rp ${Math.abs(value).toLocaleString('id-ID')}`;
+}
+
 function StatusBadge({ open }) {
     return (
         <span
@@ -114,7 +121,7 @@ export default function Index({ shifts, filters }) {
                 </div>
 
                 <div className="scrollbar-thin hidden overflow-x-auto md:block">
-                    <table className="w-full min-w-[900px] text-left text-sm">
+                    <table className="w-full min-w-[1320px] text-left text-sm">
                         <thead>
                             <tr className="border-b border-slate-100 text-xs font-semibold uppercase tracking-wider text-slate-400">
                                 <th className="px-6 py-3.5 font-semibold">
@@ -130,7 +137,19 @@ export default function Index({ shifts, filters }) {
                                     Modal Awal
                                 </th>
                                 <th className="px-6 py-3.5 font-semibold">
-                                    Modal Akhir
+                                    Penjualan Tunai
+                                </th>
+                                <th className="px-6 py-3.5 font-semibold">
+                                    Penjualan QRIS
+                                </th>
+                                <th className="px-6 py-3.5 font-semibold">
+                                    Modal Akhir Sistem
+                                </th>
+                                <th className="px-6 py-3.5 font-semibold">
+                                    Kas Aktual
+                                </th>
+                                <th className="px-6 py-3.5 font-semibold">
+                                    Selisih
                                 </th>
                                 <th className="px-6 py-3.5 font-semibold">
                                     Total Penjualan
@@ -162,9 +181,32 @@ export default function Index({ shifts, filters }) {
                                         {formatRupiah(shift.opening_cash)}
                                     </td>
                                     <td className="px-6 py-4 text-slate-700">
+                                        {formatRupiah(shift.cash_sales)}
+                                    </td>
+                                    <td className="px-6 py-4 text-slate-700">
+                                        {formatRupiah(shift.qris_sales)}
+                                    </td>
+                                    <td className="px-6 py-4 font-medium text-slate-800">
+                                        {formatRupiah(
+                                            shift.expected_closing_cash,
+                                        )}
+                                    </td>
+                                    <td className="px-6 py-4 text-slate-700">
                                         {shift.closing_cash !== null
                                             ? formatRupiah(shift.closing_cash)
                                             : '-'}
+                                    </td>
+                                    <td
+                                        className={`px-6 py-4 font-semibold ${
+                                            shift.cash_difference === null ||
+                                            shift.cash_difference === 0
+                                                ? 'text-slate-500'
+                                                : 'text-amber-600'
+                                        }`}
+                                    >
+                                        {formatDifference(
+                                            shift.cash_difference,
+                                        )}
                                     </td>
                                     <td className="px-6 py-4 font-semibold text-slate-900">
                                         {formatRupiah(shift.total_sales)}
@@ -183,7 +225,7 @@ export default function Index({ shifts, filters }) {
                             {shifts.data.length === 0 && (
                                 <tr>
                                     <td
-                                        colSpan={8}
+                                        colSpan={12}
                                         className="px-6 py-20 text-center"
                                     >
                                         <span className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-slate-50 text-slate-400">
@@ -233,12 +275,53 @@ export default function Index({ shifts, filters }) {
                                 </div>
                                 <div className="flex items-center justify-between gap-3">
                                     <dt className="text-slate-400">
-                                        Modal Akhir
+                                        Penjualan Tunai
+                                    </dt>
+                                    <dd className="text-right text-slate-600">
+                                        {formatRupiah(shift.cash_sales)}
+                                    </dd>
+                                </div>
+                                <div className="flex items-center justify-between gap-3">
+                                    <dt className="text-slate-400">
+                                        Penjualan QRIS
+                                    </dt>
+                                    <dd className="text-right text-slate-600">
+                                        {formatRupiah(shift.qris_sales)}
+                                    </dd>
+                                </div>
+                                <div className="flex items-center justify-between gap-3">
+                                    <dt className="text-slate-400">
+                                        Modal Akhir Sistem
+                                    </dt>
+                                    <dd className="text-right font-medium text-slate-700">
+                                        {formatRupiah(
+                                            shift.expected_closing_cash,
+                                        )}
+                                    </dd>
+                                </div>
+                                <div className="flex items-center justify-between gap-3">
+                                    <dt className="text-slate-400">
+                                        Kas Aktual
                                     </dt>
                                     <dd className="text-right text-slate-600">
                                         {shift.closing_cash !== null
                                             ? formatRupiah(shift.closing_cash)
                                             : '-'}
+                                    </dd>
+                                </div>
+                                <div className="flex items-center justify-between gap-3">
+                                    <dt className="text-slate-400">Selisih</dt>
+                                    <dd
+                                        className={`text-right font-semibold ${
+                                            shift.cash_difference === null ||
+                                            shift.cash_difference === 0
+                                                ? 'text-slate-600'
+                                                : 'text-amber-600'
+                                        }`}
+                                    >
+                                        {formatDifference(
+                                            shift.cash_difference,
+                                        )}
                                     </dd>
                                 </div>
                                 <div className="flex items-center justify-between gap-3">

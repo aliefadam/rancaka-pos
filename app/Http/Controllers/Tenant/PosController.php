@@ -156,13 +156,16 @@ class PosController extends Controller
     {
         $tenantId = $request->user()->tenant_id;
 
-        $activeShift = Shift::where('tenant_id', $tenantId)->whereNull('closed_at')->first();
+        return DB::transaction(function () use ($request, $data, $status, $tenantId) {
+            $activeShift = Shift::where('tenant_id', $tenantId)
+                ->whereNull('closed_at')
+                ->lockForUpdate()
+                ->first();
 
-        if (! $activeShift) {
-            throw ValidationException::withMessages(['items' => 'Shift belum dibuka.']);
-        }
+            if (! $activeShift) {
+                throw ValidationException::withMessages(['items' => 'Shift belum dibuka.']);
+            }
 
-        return DB::transaction(function () use ($request, $data, $status, $activeShift, $tenantId) {
             $productIds = collect($data['items'])->pluck('product_id')->unique();
 
             $products = Product::where('tenant_id', $tenantId)
@@ -238,7 +241,29 @@ class PosController extends Controller
             $additionalFee = $data['additional_fee'] ?? 0;
             $total = $subtotal + $taxAmount + $serviceChargeAmount + $additionalFee;
             $amountReceived = $data['amount_received'] ?? null;
-            $changeAmount = $amountReceived !== null ? max(0, $amountReceived - $total) : null;
+            $isCashPayment = $data['payment_method'] === PaymentMethod::Cash->value;
+
+            if ($status === TransactionStatus::Completed && $isCashPayment && $amountReceived === null) {
+                throw ValidationException::withMessages([
+                    'amount_received' => 'Jumlah uang yang diterima wajib diisi untuk pembayaran tunai.',
+                ]);
+            }
+
+            if ($status === TransactionStatus::Completed && $isCashPayment && $amountReceived < $total) {
+                $shortfall = $total - $amountReceived;
+
+                throw ValidationException::withMessages([
+                    'amount_received' => 'Uang yang diterima kurang Rp '.number_format($shortfall, 0, ',', '.').'.',
+                ]);
+            }
+
+            if (! $isCashPayment) {
+                $amountReceived = null;
+            }
+
+            $changeAmount = $isCashPayment && $amountReceived !== null
+                ? $amountReceived - $total
+                : null;
 
             $invoiceNumber = $status === TransactionStatus::Completed
                 ? $this->generateInvoiceNumber($tenantId)

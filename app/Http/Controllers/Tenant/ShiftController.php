@@ -2,10 +2,13 @@
 
 namespace App\Http\Controllers\Tenant;
 
+use App\Enums\PaymentMethod;
+use App\Enums\TransactionStatus;
 use App\Http\Controllers\Controller;
 use App\Models\Shift;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class ShiftController extends Controller
 {
@@ -34,19 +37,28 @@ class ShiftController extends Controller
     public function close(Request $request): RedirectResponse
     {
         $validated = $request->validate([
-            'closing_cash' => ['nullable', 'integer', 'min:0'],
+            'closing_cash' => ['required', 'integer', 'min:0'],
         ]);
 
-        $shift = Shift::where('tenant_id', $request->user()->tenant_id)
-            ->whereNull('closed_at')
-            ->first();
+        DB::transaction(function () use ($request, $validated) {
+            $shift = Shift::where('tenant_id', $request->user()->tenant_id)
+                ->whereNull('closed_at')
+                ->lockForUpdate()
+                ->first();
 
-        abort_unless($shift, 404);
+            abort_unless($shift, 404);
 
-        $shift->update([
-            'closing_cash' => $validated['closing_cash'] ?? null,
-            'closed_at' => now(),
-        ]);
+            $shift->transactions()
+                ->where('status', TransactionStatus::Completed)
+                ->where('payment_method', PaymentMethod::Cash)
+                ->lockForUpdate()
+                ->get();
+
+            $shift->update([
+                'closing_cash' => $validated['closing_cash'],
+                'closed_at' => now(),
+            ]);
+        });
 
         return redirect()->route('tenant.pos.index')->with('success', 'Shift berhasil ditutup.');
     }

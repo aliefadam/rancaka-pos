@@ -367,6 +367,7 @@ export default function Index({
                 toast.error(
                     errors.items ??
                         errors.stock ??
+                        errors.amount_received ??
                         'Gagal memproses pembayaran.',
                 ),
             onFinish: () => setProcessing(false),

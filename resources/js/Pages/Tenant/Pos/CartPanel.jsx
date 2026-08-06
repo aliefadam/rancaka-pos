@@ -309,7 +309,13 @@ export default function CartPanel({
                 <button
                     type="button"
                     onClick={onPay}
-                    disabled={items.length === 0 || processing}
+                    disabled={
+                        items.length === 0 ||
+                        processing ||
+                        (paymentMethod === 'cash' &&
+                            (receivedAmount === null ||
+                                receivedAmount < total))
+                    }
                     className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-indigo-600 px-4 py-3 text-sm font-semibold text-white shadow-sm shadow-indigo-200 transition hover:bg-indigo-700 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50"
                 >
                     {processing ? (

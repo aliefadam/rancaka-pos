@@ -72,6 +72,7 @@ class RawMaterialStockController extends Controller
 
         $validated = $request->validate([
             'raw_material_id' => ['required', Rule::exists('raw_materials', 'id')->where('tenant_id', $tenantId)],
+            'direction' => ['required', Rule::in(['increase', 'decrease'])],
             'quantity' => ['required', 'numeric', 'min:0.01'],
             'reason' => ['required', 'string', 'max:255'],
         ]);
@@ -81,17 +82,22 @@ class RawMaterialStockController extends Controller
                 ->lockForUpdate()
                 ->findOrFail($validated['raw_material_id']);
 
-            if ($validated['quantity'] > $rawMaterial->stock) {
+            $isDecrease = $validated['direction'] === 'decrease';
+
+            if ($isDecrease && $validated['quantity'] > $rawMaterial->stock) {
                 throw ValidationException::withMessages([
                     'quantity' => "Jumlah melebihi stok saat ini ({$rawMaterial->stock}).",
                 ]);
             }
 
+            $quantity = $isDecrease ? -$validated['quantity'] : $validated['quantity'];
+            $notePrefix = $isDecrease ? 'Pengurangan' : 'Penambahan';
+
             StockMovementService::record(
                 $rawMaterial,
                 StockMovementType::Adjustment,
-                -$validated['quantity'],
-                $validated['reason'],
+                $quantity,
+                "{$notePrefix}: {$validated['reason']}",
                 $request->user()->id,
             );
         });

@@ -120,11 +120,14 @@ class ExpenseController extends Controller
     private function validated(Request $request, bool $updating = false): array
     {
         return $request->validate([
-            'expense_date' => ['required', 'date'],
+            'expense_date' => ['required', 'date_format:Y-m-d', 'before_or_equal:today'],
             'category' => ['required', Rule::in(self::CATEGORIES)],
             'amount' => ['required', 'integer', 'min:1', 'max:999999999999'],
             'description' => ['required', 'string', 'max:1000'],
             'receipt' => [$updating ? 'nullable' : 'required', 'file', 'mimes:jpg,jpeg,png,webp,pdf', 'max:2048'],
+        ], [
+            'expense_date.date_format' => 'Format tanggal pengeluaran tidak valid.',
+            'expense_date.before_or_equal' => 'Tanggal pengeluaran tidak boleh melewati hari ini.',
         ]);
     }
 

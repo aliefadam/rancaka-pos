@@ -100,6 +100,7 @@ export default function ExpenseFormModal({
                         >
                             <input
                                 type="date"
+                                max={today}
                                 value={data.expense_date}
                                 onChange={(event) =>
                                     setData(

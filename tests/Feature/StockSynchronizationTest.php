@@ -55,6 +55,28 @@ class StockSynchronizationTest extends TestCase
         $this->assertSame('7.00', $rawMaterial->fresh()->stock);
         $this->assertDatabaseCount('transactions', 1);
         $this->assertDatabaseCount('stock_movements', 2);
+        $this->assertDatabaseHas('transactions', [
+            'amount_received' => 100000,
+            'change_amount' => 70000,
+        ]);
+    }
+
+    public function test_cash_checkout_rejects_insufficient_payment(): void
+    {
+        [$user, $category] = $this->inventory();
+        $product = $this->product($category, 'Kopi Hitam', 5);
+        $payload = $this->payload([
+            ['product_id' => $product->id, 'quantity' => 1],
+        ]);
+        $payload['amount_received'] = 10000;
+
+        $this->actingAs($user)
+            ->post(route('tenant.pos.checkout'), $payload)
+            ->assertSessionHasErrors('amount_received');
+
+        $this->assertSame(5, $product->fresh()->stock);
+        $this->assertDatabaseCount('transactions', 0);
+        $this->assertDatabaseCount('stock_movements', 0);
     }
 
     public function test_pos_availability_uses_the_most_limited_stock_source(): void
@@ -89,6 +111,67 @@ class StockSynchronizationTest extends TestCase
 
         $this->assertSame(1, $product->fresh()->stock);
         $this->assertDatabaseCount('stock_movements', 0);
+    }
+
+    public function test_found_product_can_be_added_back_through_stock_adjustment(): void
+    {
+        [$user, $category] = $this->inventory();
+        $product = $this->product($category, 'Basreng Daun Jeruk', 14);
+
+        $this->actingAs($user)
+            ->post(route('tenant.stock.products.adjustment'), [
+                'product_id' => $product->id,
+                'direction' => 'increase',
+                'quantity' => 3,
+                'reason' => 'Barang ditemukan',
+            ])
+            ->assertRedirect(route('tenant.stock.products.index'));
+
+        $this->assertSame(17, $product->fresh()->stock);
+        $this->assertDatabaseHas('stock_movements', [
+            'stockable_type' => Product::class,
+            'stockable_id' => $product->id,
+            'type' => StockMovementType::Adjustment,
+            'quantity' => 3,
+            'note' => 'Penambahan: Barang ditemukan',
+        ]);
+    }
+
+    public function test_raw_material_adjustment_can_add_or_subtract_stock(): void
+    {
+        [$user, , $rawMaterial] = $this->inventory(rawMaterialStock: 10);
+
+        $this->actingAs($user)
+            ->post(route('tenant.stock.raw-materials.adjustment'), [
+                'raw_material_id' => $rawMaterial->id,
+                'direction' => 'increase',
+                'quantity' => 2.5,
+                'reason' => 'Koreksi stok opname',
+            ])
+            ->assertRedirect(route('tenant.stock.raw-materials.index'));
+
+        $this->actingAs($user)
+            ->post(route('tenant.stock.raw-materials.adjustment'), [
+                'raw_material_id' => $rawMaterial->id,
+                'direction' => 'decrease',
+                'quantity' => 1.25,
+                'reason' => 'Selisih stok opname',
+            ])
+            ->assertRedirect(route('tenant.stock.raw-materials.index'));
+
+        $this->assertSame('11.25', $rawMaterial->fresh()->stock);
+        $this->assertDatabaseHas('stock_movements', [
+            'stockable_type' => RawMaterial::class,
+            'stockable_id' => $rawMaterial->id,
+            'quantity' => 2.5,
+            'note' => 'Penambahan: Koreksi stok opname',
+        ]);
+        $this->assertDatabaseHas('stock_movements', [
+            'stockable_type' => RawMaterial::class,
+            'stockable_id' => $rawMaterial->id,
+            'quantity' => -1.25,
+            'note' => 'Pengurangan: Selisih stok opname',
+        ]);
     }
 
     /**
