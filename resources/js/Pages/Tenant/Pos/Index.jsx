@@ -27,7 +27,7 @@ function restoreCartDraft(activeShift, products) {
 
             if (!product) return [];
 
-            const maxQty = product.track_stock ? product.stock : Infinity;
+            const maxQty = product.available_quantity ?? Infinity;
             const quantity = Math.min(
                 Math.max(Number(item.quantity) || 1, 1),
                 maxQty,
@@ -44,6 +44,7 @@ function restoreCartDraft(activeShift, products) {
                     note: typeof item.note === 'string' ? item.note : '',
                     track_stock: product.track_stock,
                     stock: product.stock,
+                    available_quantity: product.available_quantity,
                 },
             ];
         });
@@ -85,7 +86,8 @@ function formatDateTime(value) {
 }
 
 function ProductCard({ product, quantityInCart, onAdd }) {
-    const outOfStock = product.track_stock && product.stock <= 0;
+    const tracksAvailability = product.available_quantity !== null;
+    const outOfStock = tracksAvailability && product.available_quantity <= 0;
 
     return (
         <button
@@ -100,18 +102,18 @@ function ProductCard({ product, quantityInCart, onAdd }) {
         >
             <span
                 className={`absolute left-3 top-3 rounded-full px-2 py-1 text-[10px] font-semibold ${
-                    !product.track_stock
+                    !tracksAvailability
                         ? 'bg-white/70 text-slate-500'
                         : outOfStock
                           ? 'bg-white/70 text-slate-600'
                           : 'bg-emerald-100 text-emerald-700'
                 }`}
             >
-                {!product.track_stock
+                {!tracksAvailability
                     ? 'Tanpa stok'
                     : outOfStock
                       ? 'Habis'
-                      : `${product.stock} pcs`}
+                      : `${product.available_quantity} tersedia`}
             </span>
 
             {quantityInCart > 0 && (
@@ -257,7 +259,9 @@ export default function Index({
     const addToCart = (product) => {
         setCart((current) => {
             const existing = current.find((i) => i.product_id === product.id);
-            const maxQty = product.track_stock ? product.stock : Infinity;
+            const maxQty = product.available_quantity ?? Infinity;
+
+            if (maxQty <= 0) return current;
 
             if (existing) {
                 if (existing.quantity >= maxQty) return current;
@@ -278,6 +282,7 @@ export default function Index({
                     note: '',
                     track_stock: product.track_stock,
                     stock: product.stock,
+                    available_quantity: product.available_quantity,
                 },
             ];
         });
@@ -287,7 +292,7 @@ export default function Index({
         setCart((current) =>
             current.map((i) => {
                 if (i.product_id !== productId) return i;
-                const maxQty = i.track_stock ? i.stock : Infinity;
+                const maxQty = i.available_quantity ?? Infinity;
                 if (i.quantity >= maxQty) return i;
                 return { ...i, quantity: i.quantity + 1 };
             }),
@@ -359,7 +364,11 @@ export default function Index({
                 toast.success('Pembayaran berhasil.');
             },
             onError: (errors) =>
-                toast.error(errors.items ?? 'Gagal memproses pembayaran.'),
+                toast.error(
+                    errors.items ??
+                        errors.stock ??
+                        'Gagal memproses pembayaran.',
+                ),
             onFinish: () => setProcessing(false),
         });
     };
@@ -375,6 +384,7 @@ export default function Index({
                 note: item.note || '',
                 track_stock: product ? product.track_stock : false,
                 stock: product ? product.stock : 0,
+                available_quantity: product?.available_quantity ?? null,
             };
         });
 

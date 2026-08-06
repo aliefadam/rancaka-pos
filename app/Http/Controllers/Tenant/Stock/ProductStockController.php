@@ -9,6 +9,7 @@ use App\Models\StockMovement;
 use App\Services\StockMovementService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
@@ -75,21 +76,25 @@ class ProductStockController extends Controller
             'reason' => ['required', 'string', 'max:255'],
         ]);
 
-        $product = Product::where('tenant_id', $tenantId)->findOrFail($validated['product_id']);
+        DB::transaction(function () use ($request, $tenantId, $validated) {
+            $product = Product::where('tenant_id', $tenantId)
+                ->lockForUpdate()
+                ->findOrFail($validated['product_id']);
 
-        if ($validated['quantity'] > $product->stock) {
-            throw ValidationException::withMessages([
-                'quantity' => "Jumlah melebihi stok saat ini ({$product->stock}).",
-            ]);
-        }
+            if ($validated['quantity'] > $product->stock) {
+                throw ValidationException::withMessages([
+                    'quantity' => "Jumlah melebihi stok saat ini ({$product->stock}).",
+                ]);
+            }
 
-        StockMovementService::record(
-            $product,
-            StockMovementType::Adjustment,
-            -$validated['quantity'],
-            $validated['reason'],
-            $request->user()->id,
-        );
+            StockMovementService::record(
+                $product,
+                StockMovementType::Adjustment,
+                -$validated['quantity'],
+                $validated['reason'],
+                $request->user()->id,
+            );
+        });
 
         return redirect()->route('tenant.stock.products.index')->with('success', 'Penyesuaian stok berhasil disimpan.');
     }

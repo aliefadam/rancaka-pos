@@ -9,6 +9,7 @@ use App\Models\StockMovement;
 use App\Services\StockMovementService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
@@ -75,21 +76,25 @@ class RawMaterialStockController extends Controller
             'reason' => ['required', 'string', 'max:255'],
         ]);
 
-        $rawMaterial = RawMaterial::where('tenant_id', $tenantId)->findOrFail($validated['raw_material_id']);
+        DB::transaction(function () use ($request, $tenantId, $validated) {
+            $rawMaterial = RawMaterial::where('tenant_id', $tenantId)
+                ->lockForUpdate()
+                ->findOrFail($validated['raw_material_id']);
 
-        if ($validated['quantity'] > $rawMaterial->stock) {
-            throw ValidationException::withMessages([
-                'quantity' => "Jumlah melebihi stok saat ini ({$rawMaterial->stock}).",
-            ]);
-        }
+            if ($validated['quantity'] > $rawMaterial->stock) {
+                throw ValidationException::withMessages([
+                    'quantity' => "Jumlah melebihi stok saat ini ({$rawMaterial->stock}).",
+                ]);
+            }
 
-        StockMovementService::record(
-            $rawMaterial,
-            StockMovementType::Adjustment,
-            -$validated['quantity'],
-            $validated['reason'],
-            $request->user()->id,
-        );
+            StockMovementService::record(
+                $rawMaterial,
+                StockMovementType::Adjustment,
+                -$validated['quantity'],
+                $validated['reason'],
+                $request->user()->id,
+            );
+        });
 
         return redirect()->route('tenant.stock.raw-materials.index')->with('success', 'Penyesuaian stok berhasil disimpan.');
     }
