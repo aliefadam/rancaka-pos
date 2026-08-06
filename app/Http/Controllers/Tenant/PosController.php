@@ -34,7 +34,6 @@ class PosController extends Controller
 
         if ($activeShift) {
             $heldTransactions = Transaction::where('tenant_id', $tenantId)
-                ->where('shift_id', $activeShift->id)
                 ->where('status', TransactionStatus::Held)
                 ->with('items')
                 ->latest()
@@ -49,6 +48,7 @@ class PosController extends Controller
 
             $shiftSummary = [
                 'transaction_count' => $transactionCount,
+                'opening_cash' => $activeShift->opening_cash,
                 'cash_sales' => $cashSales,
                 'qris_sales' => $qrisSales,
                 'total_sales' => $cashSales + $qrisSales,
@@ -122,13 +122,16 @@ class PosController extends Controller
     {
         $tenantId = $request->user()->tenant_id;
 
-        $activeShift = Shift::where('tenant_id', $tenantId)->whereNull('closed_at')->first();
+        return DB::transaction(function () use ($request, $data, $status, $tenantId) {
+            $activeShift = Shift::where('tenant_id', $tenantId)
+                ->whereNull('closed_at')
+                ->lockForUpdate()
+                ->first();
 
-        if (! $activeShift) {
-            throw ValidationException::withMessages(['items' => 'Shift belum dibuka.']);
-        }
+            if (! $activeShift) {
+                throw ValidationException::withMessages(['items' => 'Shift belum dibuka.']);
+            }
 
-        return DB::transaction(function () use ($request, $data, $status, $activeShift, $tenantId) {
             $productIds = collect($data['items'])->pluck('product_id')->unique();
 
             $products = Product::where('tenant_id', $tenantId)

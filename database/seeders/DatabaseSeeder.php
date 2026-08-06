@@ -52,6 +52,8 @@ class DatabaseSeeder extends Seeder
             'tenant_id' => $demoTenant->id,
         ]);
 
+        $this->call(CashierSeeder::class);
+
         // Tenant::factory(23)->create();
 
         $categories = Category::factory()->createMany([

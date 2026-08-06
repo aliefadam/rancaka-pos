@@ -2,10 +2,14 @@
 
 namespace App\Http\Controllers\Tenant;
 
+use App\Enums\TransactionStatus;
 use App\Http\Controllers\Controller;
 use App\Models\Shift;
+use App\Models\Transaction;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 
 class ShiftController extends Controller
 {
@@ -34,19 +38,46 @@ class ShiftController extends Controller
     public function close(Request $request): RedirectResponse
     {
         $validated = $request->validate([
-            'closing_cash' => ['nullable', 'integer', 'min:0'],
+            'closing_cash' => ['required', 'integer', 'min:0'],
         ]);
 
-        $shift = Shift::where('tenant_id', $request->user()->tenant_id)
-            ->whereNull('closed_at')
-            ->first();
+        DB::transaction(function () use ($request, $validated) {
+            $shift = Shift::where('tenant_id', $request->user()->tenant_id)
+                ->whereNull('closed_at')
+                ->lockForUpdate()
+                ->first();
 
-        abort_unless($shift, 404);
+            abort_unless($shift, 404);
 
-        $shift->update([
-            'closing_cash' => $validated['closing_cash'] ?? null,
-            'closed_at' => now(),
-        ]);
+            $heldCount = Transaction::where('tenant_id', $request->user()->tenant_id)
+                ->where('status', TransactionStatus::Held)
+                ->count();
+
+            if ($heldCount > 0) {
+                throw ValidationException::withMessages([
+                    'closing_cash' => "Shift tidak dapat ditutup karena masih ada {$heldCount} transaksi ditahan. Selesaikan atau batalkan transaksi tersebut terlebih dahulu.",
+                ]);
+            }
+
+            $cashSales = (int) $shift->transactions()
+                ->where('status', TransactionStatus::Completed)
+                ->where('payment_method', 'cash')
+                ->sum('total');
+            $expectedCash = $shift->opening_cash + $cashSales;
+
+            if ((int) $validated['closing_cash'] !== $expectedCash) {
+                $formattedExpectedCash = number_format($expectedCash, 0, ',', '.');
+
+                throw ValidationException::withMessages([
+                    'closing_cash' => "Modal akhir harus sama dengan saldo awal + penjualan tunai, yaitu Rp {$formattedExpectedCash}.",
+                ]);
+            }
+
+            $shift->update([
+                'closing_cash' => $validated['closing_cash'],
+                'closed_at' => now(),
+            ]);
+        });
 
         return redirect()->route('tenant.pos.index')->with('success', 'Shift berhasil ditutup.');
     }
