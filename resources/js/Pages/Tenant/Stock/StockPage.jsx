@@ -1,4 +1,5 @@
 import Breadcrumb from '@/Components/Breadcrumb';
+import usePermission from '@/Hooks/usePermission';
 import AdminLayout from '@/Layouts/AdminLayout';
 import StockAdjustmentModal from '@/Pages/Tenant/Stock/StockAdjustmentModal';
 import StockHistoryModal from '@/Pages/Tenant/Stock/StockHistoryModal';
@@ -58,8 +59,10 @@ export default function StockPage({
     subtitle,
     entityLabel,
     fieldName,
+    permissionKey,
     routes,
 }) {
+    const can = usePermission();
     const [search, setSearch] = useState(filters.search ?? '');
     const [refreshing, setRefreshing] = useState(false);
     const [inOpen, setInOpen] = useState(false);
@@ -160,26 +163,30 @@ export default function StockPage({
                         className="flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-3.5 py-2.5 text-sm font-medium text-slate-600 transition hover:bg-slate-50"
                     >
                         <i
-                            className={`fi fi-sr-refresh ${refreshing ? 'animate-spin' : ''}`}
+                            className={`fi fi-rr-refresh ${refreshing ? 'animate-spin' : ''}`}
                         />
                         <span className="hidden sm:inline">Refresh</span>
                     </button>
-                    <button
-                        type="button"
-                        onClick={() => setInOpen(true)}
-                        className="flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-3.5 py-2.5 text-sm font-medium text-slate-600 transition hover:bg-slate-50"
-                    >
-                        <i className="fi fi-rr-box-open" />
-                        Stok Masuk
-                    </button>
-                    <button
-                        type="button"
-                        onClick={() => setAdjustOpen(true)}
-                        className="flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-3.5 py-2.5 text-sm font-medium text-slate-600 transition hover:bg-slate-50"
-                    >
-                        <i className="fi fi-rr-settings-sliders" />
-                        Penyesuaian
-                    </button>
+                    {can(`${permissionKey}.create`) && (
+                        <button
+                            type="button"
+                            onClick={() => setInOpen(true)}
+                            className="flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-3.5 py-2.5 text-sm font-medium text-slate-600 transition hover:bg-slate-50"
+                        >
+                            <i className="fi fi-rr-box-open" />
+                            Stok Masuk
+                        </button>
+                    )}
+                    {can(`${permissionKey}.edit`) && (
+                        <button
+                            type="button"
+                            onClick={() => setAdjustOpen(true)}
+                            className="flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-3.5 py-2.5 text-sm font-medium text-slate-600 transition hover:bg-slate-50"
+                        >
+                            <i className="fi fi-rr-settings-sliders" />
+                            Penyesuaian
+                        </button>
+                    )}
                     <button
                         type="button"
                         onClick={openHistory}
@@ -227,7 +234,7 @@ export default function StockPage({
                 {items.length === 0 && (
                     <div className="col-span-full flex flex-col items-center justify-center py-16 text-center">
                         <span className="flex h-12 w-12 items-center justify-center rounded-full bg-slate-50 text-slate-400">
-                            <i className="fi fi-sr-box-open text-xl" />
+                            <i className="fi fi-rr-box-open text-xl" />
                         </span>
                         <p className="mt-4 text-sm font-medium text-slate-600">
                             {entityLabel} tidak ditemukan

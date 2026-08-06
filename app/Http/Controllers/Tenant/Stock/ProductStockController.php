@@ -9,6 +9,7 @@ use App\Models\StockMovement;
 use App\Services\StockMovementService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
@@ -71,25 +72,35 @@ class ProductStockController extends Controller
 
         $validated = $request->validate([
             'product_id' => ['required', Rule::exists('products', 'id')->where('tenant_id', $tenantId)],
+            'direction' => ['required', Rule::in(['increase', 'decrease'])],
             'quantity' => ['required', 'integer', 'min:1'],
             'reason' => ['required', 'string', 'max:255'],
         ]);
 
-        $product = Product::where('tenant_id', $tenantId)->findOrFail($validated['product_id']);
+        DB::transaction(function () use ($request, $tenantId, $validated) {
+            $product = Product::where('tenant_id', $tenantId)
+                ->lockForUpdate()
+                ->findOrFail($validated['product_id']);
 
-        if ($validated['quantity'] > $product->stock) {
-            throw ValidationException::withMessages([
-                'quantity' => "Jumlah melebihi stok saat ini ({$product->stock}).",
-            ]);
-        }
+            $isDecrease = $validated['direction'] === 'decrease';
 
-        StockMovementService::record(
-            $product,
-            StockMovementType::Adjustment,
-            -$validated['quantity'],
-            $validated['reason'],
-            $request->user()->id,
-        );
+            if ($isDecrease && $validated['quantity'] > $product->stock) {
+                throw ValidationException::withMessages([
+                    'quantity' => "Jumlah melebihi stok saat ini ({$product->stock}).",
+                ]);
+            }
+
+            $quantity = $isDecrease ? -$validated['quantity'] : $validated['quantity'];
+            $notePrefix = $isDecrease ? 'Pengurangan' : 'Penambahan';
+
+            StockMovementService::record(
+                $product,
+                StockMovementType::Adjustment,
+                $quantity,
+                "{$notePrefix}: {$validated['reason']}",
+                $request->user()->id,
+            );
+        });
 
         return redirect()->route('tenant.stock.products.index')->with('success', 'Penyesuaian stok berhasil disimpan.');
     }

@@ -10,6 +10,7 @@ export default function Index({ items, filters, history }) {
             subtitle="Pantau jumlah stok bahan baku saat ini."
             entityLabel="Bahan Baku"
             fieldName="raw_material_id"
+            permissionKey="stock-raw-materials"
             routes={{
                 index: 'tenant.stock.raw-materials.index',
                 in: 'tenant.stock.raw-materials.in',

@@ -100,6 +100,7 @@ export default function ExpenseFormModal({
                         >
                             <input
                                 type="date"
+                                max={today}
                                 value={data.expense_date}
                                 onChange={(event) =>
                                     setData(
@@ -205,7 +206,7 @@ export default function ExpenseFormModal({
                         className="flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-70"
                     >
                         {processing && (
-                            <i className="fi fi-sr-spinner animate-spin" />
+                            <i className="fi fi-rr-spinner animate-spin" />
                         )}
                         {isEdit ? 'Simpan Perubahan' : 'Tambah'}
                     </button>

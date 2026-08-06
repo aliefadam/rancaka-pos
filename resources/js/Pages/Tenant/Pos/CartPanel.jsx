@@ -30,6 +30,10 @@ export default function CartPanel({
     amountReceived,
     onAmountReceivedChange,
     subtotal,
+    taxAmount,
+    taxPercentage,
+    serviceChargeAmount,
+    serviceChargePercentage,
     total,
     processing,
     onClear,
@@ -100,7 +104,7 @@ export default function CartPanel({
                                                 }
                                                 className="shrink-0 text-slate-300 transition hover:text-rose-500"
                                             >
-                                                <i className="fi fi-sr-trash text-xs" />
+                                                <i className="fi fi-rr-trash text-xs" />
                                             </button>
                                         </div>
                                         <p className="text-xs text-slate-400">
@@ -268,6 +272,18 @@ export default function CartPanel({
                             <span>Subtotal</span>
                             <span>{formatRupiah(subtotal)}</span>
                         </div>
+                        {taxPercentage > 0 && (
+                            <div className="flex items-center justify-between text-slate-500">
+                                <span>Pajak ({taxPercentage}%)</span>
+                                <span>{formatRupiah(taxAmount)}</span>
+                            </div>
+                        )}
+                        {serviceChargePercentage > 0 && (
+                            <div className="flex items-center justify-between text-slate-500">
+                                <span>Biaya Layanan ({serviceChargePercentage}%)</span>
+                                <span>{formatRupiah(serviceChargeAmount)}</span>
+                            </div>
+                        )}
                         <div className="flex items-center justify-between text-slate-500">
                             <span>Biaya tambahan</span>
                             <span>{formatRupiah(additionalFee)}</span>
@@ -293,11 +309,17 @@ export default function CartPanel({
                 <button
                     type="button"
                     onClick={onPay}
-                    disabled={items.length === 0 || processing}
+                    disabled={
+                        items.length === 0 ||
+                        processing ||
+                        (paymentMethod === 'cash' &&
+                            (receivedAmount === null ||
+                                receivedAmount < total))
+                    }
                     className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-indigo-600 px-4 py-3 text-sm font-semibold text-white shadow-sm shadow-indigo-200 transition hover:bg-indigo-700 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50"
                 >
                     {processing ? (
-                        <i className="fi fi-sr-spinner animate-spin" />
+                        <i className="fi fi-rr-spinner animate-spin" />
                     ) : (
                         <i className="fi fi-rr-check" />
                     )}

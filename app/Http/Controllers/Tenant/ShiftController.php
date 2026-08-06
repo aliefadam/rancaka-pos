@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Tenant;
 
+use App\Enums\PaymentMethod;
 use App\Enums\TransactionStatus;
 use App\Http\Controllers\Controller;
 use App\Models\Shift;
@@ -49,9 +50,12 @@ class ShiftController extends Controller
 
             abort_unless($shift, 404);
 
-            $heldCount = Transaction::where('tenant_id', $request->user()->tenant_id)
+            $heldTransactions = Transaction::where('tenant_id', $request->user()->tenant_id)
                 ->where('status', TransactionStatus::Held)
-                ->count();
+                ->lockForUpdate()
+                ->get();
+
+            $heldCount = $heldTransactions->count();
 
             if ($heldCount > 0) {
                 throw ValidationException::withMessages([
@@ -59,10 +63,13 @@ class ShiftController extends Controller
                 ]);
             }
 
-            $cashSales = (int) $shift->transactions()
+            $cashTransactions = $shift->transactions()
                 ->where('status', TransactionStatus::Completed)
-                ->where('payment_method', 'cash')
-                ->sum('total');
+                ->where('payment_method', PaymentMethod::Cash)
+                ->lockForUpdate()
+                ->get();
+
+            $cashSales = (int) $cashTransactions->sum('total');
             $expectedCash = $shift->opening_cash + $cashSales;
 
             if ((int) $validated['closing_cash'] !== $expectedCash) {
@@ -72,7 +79,6 @@ class ShiftController extends Controller
                     'closing_cash' => "Modal akhir harus sama dengan saldo awal + penjualan tunai, yaitu Rp {$formattedExpectedCash}.",
                 ]);
             }
-
             $shift->update([
                 'closing_cash' => $validated['closing_cash'],
                 'closed_at' => now(),

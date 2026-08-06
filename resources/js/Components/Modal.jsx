@@ -56,7 +56,7 @@ export default function Modal({
                                         onClick={onClose}
                                         className="absolute right-4 top-4 z-10 flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 transition hover:bg-slate-100 hover:text-slate-600"
                                     >
-                                        <i className="fi fi-sr-cross-small" />
+                                        <i className="fi fi-rr-cross-small" />
                                     </button>
                                 )}
                                 {children}

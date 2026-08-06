@@ -7,15 +7,15 @@ let idCounter = 0;
 
 const variantConfig = {
     success: {
-        icon: 'fi-sr-check-circle',
+        icon: 'fi-rr-check-circle',
         iconClass: 'bg-emerald-50 text-emerald-600',
     },
     error: {
-        icon: 'fi-sr-cross-circle',
+        icon: 'fi-rr-cross-circle',
         iconClass: 'bg-rose-50 text-rose-600',
     },
     info: {
-        icon: 'fi-sr-info',
+        icon: 'fi-rr-info',
         iconClass: 'bg-indigo-50 text-indigo-600',
     },
 };
@@ -104,7 +104,7 @@ function Toast({ variant, message, show, onDismiss, onLeaveComplete }) {
                     onClick={onDismiss}
                     className="flex h-6 w-6 shrink-0 items-center justify-center rounded-lg text-slate-400 transition hover:bg-slate-100 hover:text-slate-600"
                 >
-                    <i className="fi fi-sr-cross-small text-xs" />
+                    <i className="fi fi-rr-cross-small text-xs" />
                 </button>
             </div>
         </Transition>

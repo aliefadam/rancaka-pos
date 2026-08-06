@@ -9,6 +9,7 @@ use App\Models\StockMovement;
 use App\Services\StockMovementService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
@@ -71,25 +72,35 @@ class RawMaterialStockController extends Controller
 
         $validated = $request->validate([
             'raw_material_id' => ['required', Rule::exists('raw_materials', 'id')->where('tenant_id', $tenantId)],
+            'direction' => ['required', Rule::in(['increase', 'decrease'])],
             'quantity' => ['required', 'numeric', 'min:0.01'],
             'reason' => ['required', 'string', 'max:255'],
         ]);
 
-        $rawMaterial = RawMaterial::where('tenant_id', $tenantId)->findOrFail($validated['raw_material_id']);
+        DB::transaction(function () use ($request, $tenantId, $validated) {
+            $rawMaterial = RawMaterial::where('tenant_id', $tenantId)
+                ->lockForUpdate()
+                ->findOrFail($validated['raw_material_id']);
 
-        if ($validated['quantity'] > $rawMaterial->stock) {
-            throw ValidationException::withMessages([
-                'quantity' => "Jumlah melebihi stok saat ini ({$rawMaterial->stock}).",
-            ]);
-        }
+            $isDecrease = $validated['direction'] === 'decrease';
 
-        StockMovementService::record(
-            $rawMaterial,
-            StockMovementType::Adjustment,
-            -$validated['quantity'],
-            $validated['reason'],
-            $request->user()->id,
-        );
+            if ($isDecrease && $validated['quantity'] > $rawMaterial->stock) {
+                throw ValidationException::withMessages([
+                    'quantity' => "Jumlah melebihi stok saat ini ({$rawMaterial->stock}).",
+                ]);
+            }
+
+            $quantity = $isDecrease ? -$validated['quantity'] : $validated['quantity'];
+            $notePrefix = $isDecrease ? 'Pengurangan' : 'Penambahan';
+
+            StockMovementService::record(
+                $rawMaterial,
+                StockMovementType::Adjustment,
+                $quantity,
+                "{$notePrefix}: {$validated['reason']}",
+                $request->user()->id,
+            );
+        });
 
         return redirect()->route('tenant.stock.raw-materials.index')->with('success', 'Penyesuaian stok berhasil disimpan.');
     }

@@ -9,13 +9,13 @@ import { Fragment, useMemo, useState } from 'react';
 
 export const CATEGORY_ICONS = [
     'fi-rr-bowl-rice',
-    'fi-rr-cup',
+    'fi-rr-cup-togo',
     'fi-rr-cookie',
     'fi-rr-coffee',
     'fi-rr-ice-cream',
-    'fi-rr-milkshake',
+    'fi-rr-drink-alt',
     'fi-rr-pizza-slice',
-    'fi-rr-burger',
+    'fi-rr-hamburger',
     'fi-rr-hotdog',
     'fi-rr-bread-slice',
     'fi-rr-cheese',
@@ -27,12 +27,12 @@ export const CATEGORY_ICONS = [
     'fi-rr-fish',
     'fi-rr-drumstick',
     'fi-rr-candy',
-    'fi-rr-wine-glass',
+    'fi-rr-wine-bottle',
     'fi-rr-beer',
     'fi-rr-shopping-bag',
     'fi-rr-box',
     'fi-rr-tags',
-    'fi-rr-shapes',
+    'fi-rr-square',
 ];
 
 export default function IconPicker({
@@ -70,7 +70,7 @@ export default function IconPicker({
                                 {value || placeholder}
                             </span>
                         </span>
-                        <i className="fi fi-sr-angle-small-down shrink-0 text-xs text-slate-400" />
+                        <i className="fi fi-rr-angle-small-down shrink-0 text-xs text-slate-400" />
                     </ListboxButton>
 
                     <Transition
@@ -136,7 +136,7 @@ export default function IconPicker({
                                                 {icon}
                                             </span>
                                             {selected && (
-                                                <i className="fi fi-sr-check ml-auto text-indigo-600" />
+                                                <i className="fi fi-rr-check ml-auto text-indigo-600" />
                                             )}
                                         </>
                                     )}

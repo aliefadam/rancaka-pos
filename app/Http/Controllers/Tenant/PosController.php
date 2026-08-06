@@ -7,6 +7,7 @@ use App\Enums\StockMovementType;
 use App\Enums\TransactionStatus;
 use App\Http\Controllers\Controller;
 use App\Models\Product;
+use App\Models\RawMaterial;
 use App\Models\Shift;
 use App\Models\Transaction;
 use App\Services\StockMovementService;
@@ -56,16 +57,48 @@ class PosController extends Controller
             ];
         }
 
+        $tenant = $request->user()->tenant;
+
+        $products = Product::where('tenant_id', $tenantId)
+            ->where('is_active', true)
+            ->with(['category:id,name', 'rawMaterials:id,name,stock'])
+            ->orderBy('name')
+            ->get();
+
+        $products->each(function (Product $product) {
+            $limits = collect();
+
+            if ($product->track_stock) {
+                $limits->push((int) $product->stock);
+            }
+
+            foreach ($product->rawMaterials as $rawMaterial) {
+                $recipeQuantity = (float) $rawMaterial->pivot->quantity;
+
+                if ($recipeQuantity > 0) {
+                    $limits->push((int) floor(((float) $rawMaterial->stock + 0.000001) / $recipeQuantity));
+                }
+            }
+
+            $product->setAttribute('available_quantity', $limits->isEmpty() ? null : max(0, $limits->min()));
+            $product->unsetRelation('rawMaterials');
+        });
+
         return Inertia::render('Tenant/Pos/Index', [
             'activeShift' => $activeShift,
-            'products' => Product::where('tenant_id', $tenantId)
-                ->where('is_active', true)
-                ->with('category:id,name')
-                ->orderBy('name')
-                ->get(),
-            'categories' => $request->user()->tenant->categories()->where('is_active', true)->orderBy('name')->get(['id', 'name', 'icon']),
+            'products' => $products,
+            'categories' => $tenant->categories()->where('is_active', true)->orderBy('name')->get(['id', 'name', 'icon']),
             'heldTransactions' => $heldTransactions,
             'shiftSummary' => $shiftSummary,
+            'storeSettings' => [
+                'name' => $tenant->name,
+                'address' => $tenant->address,
+                'phone' => $tenant->phone,
+                'logo_url' => $tenant->logo_url,
+                'receipt_footer' => $tenant->receipt_footer,
+                'tax_percentage' => (float) $tenant->tax_percentage,
+                'service_charge_percentage' => (float) $tenant->service_charge_percentage,
+            ],
         ]);
     }
 
@@ -108,6 +141,7 @@ class PosController extends Controller
             'items' => ['required', 'array', 'min:1'],
             'items.*.product_id' => [
                 'required',
+                'distinct',
                 Rule::exists('products', 'id')->where('tenant_id', $tenantId),
             ],
             'items.*.quantity' => ['required', 'integer', 'min:1'],
@@ -136,8 +170,30 @@ class PosController extends Controller
 
             $products = Product::where('tenant_id', $tenantId)
                 ->whereIn('id', $productIds)
+                ->orderBy('id')
                 ->when($status === TransactionStatus::Completed, fn ($query) => $query->lockForUpdate())
                 ->with('rawMaterials')
+                ->get()
+                ->keyBy('id');
+
+            $rawMaterialRequirements = collect();
+
+            if ($status === TransactionStatus::Completed) {
+                foreach ($data['items'] as $item) {
+                    $product = $products->get($item['product_id']);
+
+                    foreach ($product->rawMaterials as $rawMaterial) {
+                        $required = (float) $rawMaterial->pivot->quantity * (int) $item['quantity'];
+                        $rawMaterialRequirements[$rawMaterial->id] = ($rawMaterialRequirements[$rawMaterial->id] ?? 0) + $required;
+                    }
+                }
+            }
+
+            $rawMaterials = RawMaterial::query()
+                ->where('tenant_id', $tenantId)
+                ->whereIn('id', $rawMaterialRequirements->keys())
+                ->orderBy('id')
+                ->when($status === TransactionStatus::Completed, fn ($query) => $query->lockForUpdate())
                 ->get()
                 ->keyBy('id');
 
@@ -165,10 +221,49 @@ class PosController extends Controller
                 ];
             }
 
+            foreach ($rawMaterialRequirements as $rawMaterialId => $required) {
+                $rawMaterial = $rawMaterials->get($rawMaterialId);
+
+                if (! $rawMaterial || (float) $rawMaterial->stock + 0.000001 < $required) {
+                    $name = $rawMaterial?->name ?? 'bahan baku';
+                    $available = $rawMaterial?->stock ?? 0;
+
+                    throw ValidationException::withMessages([
+                        'items' => "Stok bahan baku {$name} tidak cukup (butuh {$required}, tersisa {$available}).",
+                    ]);
+                }
+            }
+
+            $tenant = $request->user()->tenant;
+            $taxAmount = (int) round($subtotal * ((float) $tenant->tax_percentage / 100));
+            $serviceChargeAmount = (int) round($subtotal * ((float) $tenant->service_charge_percentage / 100));
+
             $additionalFee = $data['additional_fee'] ?? 0;
-            $total = $subtotal + $additionalFee;
+            $total = $subtotal + $taxAmount + $serviceChargeAmount + $additionalFee;
             $amountReceived = $data['amount_received'] ?? null;
-            $changeAmount = $amountReceived !== null ? max(0, $amountReceived - $total) : null;
+            $isCashPayment = $data['payment_method'] === PaymentMethod::Cash->value;
+
+            if ($status === TransactionStatus::Completed && $isCashPayment && $amountReceived === null) {
+                throw ValidationException::withMessages([
+                    'amount_received' => 'Jumlah uang yang diterima wajib diisi untuk pembayaran tunai.',
+                ]);
+            }
+
+            if ($status === TransactionStatus::Completed && $isCashPayment && $amountReceived < $total) {
+                $shortfall = $total - $amountReceived;
+
+                throw ValidationException::withMessages([
+                    'amount_received' => 'Uang yang diterima kurang Rp '.number_format($shortfall, 0, ',', '.').'.',
+                ]);
+            }
+
+            if (! $isCashPayment) {
+                $amountReceived = null;
+            }
+
+            $changeAmount = $isCashPayment && $amountReceived !== null
+                ? $amountReceived - $total
+                : null;
 
             $invoiceNumber = $status === TransactionStatus::Completed
                 ? $this->generateInvoiceNumber($tenantId)
@@ -182,6 +277,8 @@ class PosController extends Controller
                 'status' => $status,
                 'payment_method' => $data['payment_method'],
                 'subtotal' => $subtotal,
+                'tax_amount' => $taxAmount,
+                'service_charge_amount' => $serviceChargeAmount,
                 'additional_fee' => $additionalFee,
                 'total' => $total,
                 'amount_received' => $amountReceived,
@@ -214,7 +311,7 @@ class PosController extends Controller
                     foreach ($product->rawMaterials as $rawMaterial) {
                         $consumed = $rawMaterial->pivot->quantity * $entry['quantity'];
                         StockMovementService::record(
-                            $rawMaterial,
+                            $rawMaterials->get($rawMaterial->id),
                             StockMovementType::Sale,
                             -$consumed,
                             "Terjual di transaksi {$invoiceNumber}",

@@ -27,7 +27,7 @@ function restoreCartDraft(activeShift, products) {
 
             if (!product) return [];
 
-            const maxQty = product.track_stock ? product.stock : Infinity;
+            const maxQty = product.available_quantity ?? Infinity;
             const quantity = Math.min(
                 Math.max(Number(item.quantity) || 1, 1),
                 maxQty,
@@ -44,6 +44,7 @@ function restoreCartDraft(activeShift, products) {
                     note: typeof item.note === 'string' ? item.note : '',
                     track_stock: product.track_stock,
                     stock: product.stock,
+                    available_quantity: product.available_quantity,
                 },
             ];
         });
@@ -85,7 +86,8 @@ function formatDateTime(value) {
 }
 
 function ProductCard({ product, quantityInCart, onAdd }) {
-    const outOfStock = product.track_stock && product.stock <= 0;
+    const tracksAvailability = product.available_quantity !== null;
+    const outOfStock = tracksAvailability && product.available_quantity <= 0;
 
     return (
         <button
@@ -100,18 +102,18 @@ function ProductCard({ product, quantityInCart, onAdd }) {
         >
             <span
                 className={`absolute left-3 top-3 rounded-full px-2 py-1 text-[10px] font-semibold ${
-                    !product.track_stock
+                    !tracksAvailability
                         ? 'bg-white/70 text-slate-500'
                         : outOfStock
                           ? 'bg-white/70 text-slate-600'
                           : 'bg-emerald-100 text-emerald-700'
                 }`}
             >
-                {!product.track_stock
+                {!tracksAvailability
                     ? 'Tanpa stok'
                     : outOfStock
                       ? 'Habis'
-                      : `${product.stock} pcs`}
+                      : `${product.available_quantity} tersedia`}
             </span>
 
             {quantityInCart > 0 && (
@@ -153,6 +155,7 @@ export default function Index({
     categories,
     heldTransactions,
     shiftSummary,
+    storeSettings,
 }) {
     const toast = useToast();
     const restoredDraft = useMemo(
@@ -221,7 +224,14 @@ export default function Index({
         (sum, item) => sum + item.price * item.quantity,
         0,
     );
-    const total = subtotal + Number(additionalFee || 0);
+    const taxAmount = Math.round(
+        subtotal * (storeSettings.tax_percentage / 100),
+    );
+    const serviceChargeAmount = Math.round(
+        subtotal * (storeSettings.service_charge_percentage / 100),
+    );
+    const total =
+        subtotal + taxAmount + serviceChargeAmount + Number(additionalFee || 0);
 
     const clearCart = () => {
         if (activeShift && typeof window !== 'undefined') {
@@ -249,7 +259,9 @@ export default function Index({
     const addToCart = (product) => {
         setCart((current) => {
             const existing = current.find((i) => i.product_id === product.id);
-            const maxQty = product.track_stock ? product.stock : Infinity;
+            const maxQty = product.available_quantity ?? Infinity;
+
+            if (maxQty <= 0) return current;
 
             if (existing) {
                 if (existing.quantity >= maxQty) return current;
@@ -270,6 +282,7 @@ export default function Index({
                     note: '',
                     track_stock: product.track_stock,
                     stock: product.stock,
+                    available_quantity: product.available_quantity,
                 },
             ];
         });
@@ -279,7 +292,7 @@ export default function Index({
         setCart((current) =>
             current.map((i) => {
                 if (i.product_id !== productId) return i;
-                const maxQty = i.track_stock ? i.stock : Infinity;
+                const maxQty = i.available_quantity ?? Infinity;
                 if (i.quantity >= maxQty) return i;
                 return { ...i, quantity: i.quantity + 1 };
             }),
@@ -351,7 +364,12 @@ export default function Index({
                 toast.success('Pembayaran berhasil.');
             },
             onError: (errors) =>
-                toast.error(errors.items ?? 'Gagal memproses pembayaran.'),
+                toast.error(
+                    errors.items ??
+                        errors.stock ??
+                        errors.amount_received ??
+                        'Gagal memproses pembayaran.',
+                ),
             onFinish: () => setProcessing(false),
         });
     };
@@ -367,6 +385,7 @@ export default function Index({
                 note: item.note || '',
                 track_stock: product ? product.track_stock : false,
                 stock: product ? product.stock : 0,
+                available_quantity: product?.available_quantity ?? null,
             };
         });
 
@@ -458,7 +477,7 @@ export default function Index({
                                 className="mt-5 flex w-full items-center justify-center gap-2 rounded-xl bg-indigo-600 px-4 py-3 text-sm font-semibold text-white shadow-sm shadow-indigo-200 transition hover:bg-indigo-700 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-70"
                             >
                                 {openShiftForm.processing ? (
-                                    <i className="fi fi-sr-spinner animate-spin" />
+                                    <i className="fi fi-rr-spinner animate-spin" />
                                 ) : (
                                     <i className="fi fi-rr-unlock" />
                                 )}
@@ -484,6 +503,10 @@ export default function Index({
         amountReceived,
         onAmountReceivedChange: setAmountReceived,
         subtotal,
+        taxAmount,
+        taxPercentage: storeSettings.tax_percentage,
+        serviceChargeAmount,
+        serviceChargePercentage: storeSettings.service_charge_percentage,
         total,
         processing,
         onClear: () => setClearCartConfirmOpen(true),
@@ -510,7 +533,7 @@ export default function Index({
 
                     <div className="mt-3 flex flex-wrap items-center gap-2">
                         <span className="flex items-center gap-1.5 rounded-full bg-emerald-50 px-3 py-1.5 text-xs font-semibold text-emerald-700">
-                            <i className="fi fi-sr-shop" />
+                            <i className="fi fi-rr-shop" />
                             Shift aktif sejak{' '}
                             {formatDateTime(activeShift.opened_at)}
                         </span>
@@ -598,7 +621,7 @@ export default function Index({
                         {filteredProducts.length === 0 && (
                             <div className="col-span-full flex flex-col items-center justify-center py-16 text-center">
                                 <span className="flex h-12 w-12 items-center justify-center rounded-full bg-slate-50 text-slate-400">
-                                    <i className="fi fi-sr-shopping-bag text-xl" />
+                                    <i className="fi fi-rr-shopping-bag text-xl" />
                                 </span>
                                 <p className="mt-4 text-sm font-medium text-slate-600">
                                     Produk tidak ditemukan
@@ -666,7 +689,7 @@ export default function Index({
                                     onClick={() => setMobileCartOpen(false)}
                                     className="absolute right-4 top-4 flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 transition hover:bg-slate-100 hover:text-slate-600"
                                 >
-                                    <i className="fi fi-sr-cross-small" />
+                                    <i className="fi fi-rr-cross-small" />
                                 </button>
                                 <CartPanel {...cartPanelProps} />
                             </Dialog.Panel>

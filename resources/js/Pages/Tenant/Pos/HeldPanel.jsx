@@ -75,7 +75,7 @@ export default function HeldPanel({ show, onClose, heldTransactions, onResume, o
                                         onClick={() => onDiscard(held)}
                                         className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 transition hover:bg-rose-50 hover:text-rose-600"
                                     >
-                                        <i className="fi fi-sr-trash text-xs" />
+                                        <i className="fi fi-rr-trash text-xs" />
                                     </button>
                                 </div>
                             </div>

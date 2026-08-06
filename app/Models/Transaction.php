@@ -13,7 +13,8 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 #[Fillable([
     'tenant_id', 'shift_id', 'user_id', 'invoice_number', 'status', 'payment_method',
-    'subtotal', 'additional_fee', 'total', 'amount_received', 'change_amount',
+    'subtotal', 'tax_amount', 'service_charge_amount', 'additional_fee', 'total',
+    'amount_received', 'change_amount',
 ])]
 class Transaction extends Model
 {

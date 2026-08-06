@@ -77,4 +77,52 @@ class ExpenseManagementTest extends TestCase
 
         $this->assertDatabaseHas('expenses', ['id' => $expense->id]);
     }
+
+    public function test_future_expense_date_is_rejected_when_creating_and_updating(): void
+    {
+        Storage::fake('public');
+        $tenant = Tenant::factory()->create();
+        $owner = User::factory()->create([
+            'tenant_id' => $tenant->id,
+            'role' => UserRole::Owner,
+        ]);
+        $futureDate = today()->addDay()->toDateString();
+
+        $this->actingAs($owner)
+            ->post(route('tenant.expenses.store'), [
+                'expense_date' => $futureDate,
+                'category' => 'Belanja Bahan',
+                'amount' => 50000,
+                'description' => 'Pengeluaran masa depan',
+                'receipt' => UploadedFile::fake()->create('nota.pdf', 100, 'application/pdf'),
+            ])
+            ->assertSessionHasErrors([
+                'expense_date' => 'Tanggal pengeluaran tidak boleh melewati hari ini.',
+            ]);
+
+        $this->assertDatabaseCount('expenses', 0);
+
+        $expense = Expense::create([
+            'tenant_id' => $tenant->id,
+            'user_id' => $owner->id,
+            'expense_date' => today(),
+            'category' => 'Belanja Bahan',
+            'amount' => 50000,
+            'description' => 'Pengeluaran hari ini',
+            'receipt_path' => 'expenses/test/nota.pdf',
+        ]);
+
+        $this->actingAs($owner)
+            ->put(route('tenant.expenses.update', $expense), [
+                'expense_date' => $futureDate,
+                'category' => 'Belanja Bahan',
+                'amount' => 50000,
+                'description' => 'Diubah ke masa depan',
+            ])
+            ->assertSessionHasErrors([
+                'expense_date' => 'Tanggal pengeluaran tidak boleh melewati hari ini.',
+            ]);
+
+        $this->assertSame(today()->toDateString(), $expense->fresh()->expense_date->toDateString());
+    }
 }

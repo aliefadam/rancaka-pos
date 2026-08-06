@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Tenant\Reports;
 
+use App\Enums\PaymentMethod;
 use App\Enums\TransactionStatus;
 use App\Http\Controllers\Controller;
 use App\Models\Shift;
@@ -25,6 +26,14 @@ class ShiftHistoryController extends Controller
             ->withSum(['transactions as total_sales' => function ($query) {
                 $query->where('status', TransactionStatus::Completed);
             }], 'total')
+            ->withSum(['transactions as cash_sales' => function ($query) {
+                $query->where('status', TransactionStatus::Completed)
+                    ->where('payment_method', PaymentMethod::Cash);
+            }], 'total')
+            ->withSum(['transactions as qris_sales' => function ($query) {
+                $query->where('status', TransactionStatus::Completed)
+                    ->where('payment_method', PaymentMethod::Qris);
+            }], 'total')
             ->when($search, function ($query, $search) {
                 $query->whereHas('user', fn ($q) => $q->where('name', 'like', "%{$search}%"));
             })
@@ -33,6 +42,22 @@ class ShiftHistoryController extends Controller
             ->latest('opened_at')
             ->paginate(15)
             ->withQueryString();
+
+        $shifts->getCollection()->each(function (Shift $shift) {
+            $cashSales = (int) ($shift->cash_sales ?? 0);
+            $expectedClosingCash = (int) $shift->opening_cash + $cashSales;
+
+            $shift->setAttribute('cash_sales', $cashSales);
+            $shift->setAttribute('qris_sales', (int) ($shift->qris_sales ?? 0));
+            $shift->setAttribute('total_sales', (int) ($shift->total_sales ?? 0));
+            $shift->setAttribute('expected_closing_cash', $expectedClosingCash);
+            $shift->setAttribute(
+                'cash_difference',
+                $shift->closing_cash !== null
+                    ? (int) $shift->closing_cash - $expectedClosingCash
+                    : null,
+            );
+        });
 
         return Inertia::render('Tenant/Reports/Shifts/Index', [
             'shifts' => $shifts,

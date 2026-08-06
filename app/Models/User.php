@@ -12,7 +12,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
-#[Fillable(['name', 'username', 'password', 'role', 'tenant_id'])]
+#[Fillable(['name', 'username', 'password', 'role', 'tenant_id', 'employee_role_id'])]
 #[Hidden(['password', 'remember_token'])]
 class User extends Authenticatable
 {
@@ -37,6 +37,11 @@ class User extends Authenticatable
         return $this->belongsTo(Tenant::class);
     }
 
+    public function employeeRole(): BelongsTo
+    {
+        return $this->belongsTo(Role::class, 'employee_role_id');
+    }
+
     public function isSuperadmin(): bool
     {
         return $this->role === UserRole::Superadmin;
@@ -50,5 +55,14 @@ class User extends Authenticatable
     public function isEmployee(): bool
     {
         return $this->role === UserRole::Employee;
+    }
+
+    public function hasPermission(string $permission): bool
+    {
+        if ($this->isOwner() || $this->isSuperadmin()) {
+            return true;
+        }
+
+        return $this->employeeRole?->hasPermission($permission) ?? false;
     }
 }

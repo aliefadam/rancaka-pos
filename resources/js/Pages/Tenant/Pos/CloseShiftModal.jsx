@@ -12,10 +12,15 @@ export default function CloseShiftModal({ show, onClose, summary, heldCount = 0 
 
     useEffect(() => {
         if (!show) return;
-        setData('closing_cash', '');
+        setData('closing_cash', String(summary?.expected_cash ?? ''));
         clearErrors();
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [show]);
+    }, [show, summary?.expected_cash]);
+
+    const cashDifference =
+        data.closing_cash === '' || !summary
+            ? null
+            : Number(data.closing_cash) - summary.expected_cash;
 
     const submit = (e) => {
         e.preventDefault();
@@ -117,7 +122,8 @@ export default function CloseShiftModal({ show, onClose, summary, heldCount = 0 
                                 htmlFor="closing_cash"
                                 className="mb-1.5 block text-sm font-medium text-slate-700"
                             >
-                                Modal Akhir Kas (Rp)
+                                Kas Aktual di Laci (Rp){' '}
+                                <span className="text-rose-500">*</span>
                             </label>
                             <input
                                 id="closing_cash"
@@ -144,12 +150,32 @@ export default function CloseShiftModal({ show, onClose, summary, heldCount = 0 
                                     Kas sesuai dengan saldo sistem
                                 </div>
                             )}
+                            <p className="mt-1.5 text-xs text-slate-400">
+                                Hitung uang tunai fisik di laci. Modal akhir sistem
+                                hanya berasal dari modal awal + penjualan tunai.
+                            </p>
                             {errors.closing_cash && (
                                 <p className="mt-1.5 text-sm text-red-600">
                                     {errors.closing_cash}
                                 </p>
                             )}
                         </div>
+
+                        {cashDifference !== null && (
+                            <div
+                                className={`flex items-center justify-between rounded-xl px-4 py-3 text-sm font-semibold ${
+                                    cashDifference === 0
+                                        ? 'bg-emerald-50 text-emerald-700'
+                                        : 'bg-amber-50 text-amber-700'
+                                }`}
+                            >
+                                <span>Selisih Kas</span>
+                                <span>
+                                    {cashDifference > 0 ? '+' : ''}
+                                    {formatRupiah(cashDifference)}
+                                </span>
+                            </div>
+                        )}
                     </div>
                 </Modal.Body>
 
@@ -167,7 +193,7 @@ export default function CloseShiftModal({ show, onClose, summary, heldCount = 0 
                         className="flex items-center gap-2 rounded-lg bg-rose-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-rose-700 disabled:cursor-not-allowed disabled:opacity-70"
                     >
                         {processing && (
-                            <i className="fi fi-sr-spinner animate-spin" />
+                            <i className="fi fi-rr-spinner animate-spin" />
                         )}
                         {heldCount > 0
                             ? 'Selesaikan Transaksi Ditahan'

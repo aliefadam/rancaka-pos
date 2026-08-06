@@ -36,6 +36,13 @@ export default function ReceiptModal({ show, onClose, transaction, tenant }) {
             <Modal.Body>
                 <div className="font-mono text-sm">
                     <div className="text-center">
+                        {tenant.logo_url && (
+                            <img
+                                src={tenant.logo_url}
+                                alt={tenant.name}
+                                className="mx-auto mb-2 h-12 w-12 rounded-lg object-cover"
+                            />
+                        )}
                         <p className="font-bold text-slate-900">
                             {tenant.name}
                         </p>
@@ -117,6 +124,30 @@ export default function ReceiptModal({ show, onClose, transaction, tenant }) {
                             <span>Subtotal</span>
                             <span>{formatRupiah(transaction.subtotal)}</span>
                         </div>
+                        {transaction.tax_amount > 0 && (
+                            <div className="flex items-center justify-between text-slate-500">
+                                <span>Pajak</span>
+                                <span>{formatRupiah(transaction.tax_amount)}</span>
+                            </div>
+                        )}
+                        {transaction.service_charge_amount > 0 && (
+                            <div className="flex items-center justify-between text-slate-500">
+                                <span>Biaya Layanan</span>
+                                <span>
+                                    {formatRupiah(
+                                        transaction.service_charge_amount,
+                                    )}
+                                </span>
+                            </div>
+                        )}
+                        {transaction.additional_fee > 0 && (
+                            <div className="flex items-center justify-between text-slate-500">
+                                <span>Biaya Tambahan</span>
+                                <span>
+                                    {formatRupiah(transaction.additional_fee)}
+                                </span>
+                            </div>
+                        )}
                         <div className="flex items-center justify-between text-base font-bold text-slate-900">
                             <span>TOTAL</span>
                             <span>{formatRupiah(transaction.total)}</span>
@@ -128,6 +159,27 @@ export default function ReceiptModal({ show, onClose, transaction, tenant }) {
                                     transaction.payment_method}
                             </span>
                         </div>
+                        {transaction.payment_method === 'cash' &&
+                            transaction.amount_received !== null && (
+                                <>
+                                    <div className="flex items-center justify-between text-slate-500">
+                                        <span>Uang Diterima</span>
+                                        <span>
+                                            {formatRupiah(
+                                                transaction.amount_received,
+                                            )}
+                                        </span>
+                                    </div>
+                                    <div className="flex items-center justify-between font-semibold text-slate-800">
+                                        <span>Kembalian</span>
+                                        <span>
+                                            {formatRupiah(
+                                                transaction.change_amount,
+                                            )}
+                                        </span>
+                                    </div>
+                                </>
+                            )}
                     </div>
 
                     <div className="my-4 border-t border-dashed border-slate-200" />
@@ -139,7 +191,8 @@ export default function ReceiptModal({ show, onClose, transaction, tenant }) {
                     >
                         {isVoided
                             ? 'Transaksi ini telah dibatalkan.'
-                            : 'Terima kasih atas kunjungan Anda!'}
+                            : tenant.receipt_footer ||
+                              'Terima kasih atas kunjungan Anda!'}
                     </p>
                 </div>
             </Modal.Body>

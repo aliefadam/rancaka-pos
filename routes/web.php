@@ -4,6 +4,7 @@ use App\Enums\UserRole;
 use App\Http\Controllers\Admin\TenantController;
 use App\Http\Controllers\Tenant\CategoryController as TenantCategoryController;
 use App\Http\Controllers\Tenant\DashboardController as TenantDashboardController;
+use App\Http\Controllers\Tenant\EmployeeController as TenantEmployeeController;
 use App\Http\Controllers\Tenant\ExpenseController as TenantExpenseController;
 use App\Http\Controllers\Tenant\PosController as TenantPosController;
 use App\Http\Controllers\Tenant\ProductController as TenantProductController;
@@ -11,6 +12,8 @@ use App\Http\Controllers\Tenant\RawMaterialController as TenantRawMaterialContro
 use App\Http\Controllers\Tenant\Reports\FinancialReportController as TenantFinancialReportController;
 use App\Http\Controllers\Tenant\Reports\ShiftHistoryController as TenantShiftHistoryController;
 use App\Http\Controllers\Tenant\Reports\TransactionHistoryController as TenantTransactionHistoryController;
+use App\Http\Controllers\Tenant\RoleController as TenantRoleController;
+use App\Http\Controllers\Tenant\SettingsController as TenantSettingsController;
 use App\Http\Controllers\Tenant\ShiftController as TenantShiftController;
 use App\Http\Controllers\Tenant\Stock\ProductStockController as TenantProductStockController;
 use App\Http\Controllers\Tenant\Stock\RawMaterialStockController as TenantRawMaterialStockController;
@@ -44,20 +47,45 @@ Route::middleware(['auth', 'role:owner,employee'])->prefix('tenant')->name('tena
 
     Route::resource('categories', TenantCategoryController::class)
         ->only(['index', 'store', 'update', 'destroy'])
-        ->names('categories');
+        ->names('categories')
+        ->middlewareFor('store', 'permission:categories.create')
+        ->middlewareFor('update', 'permission:categories.edit')
+        ->middlewareFor('destroy', 'permission:categories.delete');
 
     Route::resource('raw-materials', TenantRawMaterialController::class)
         ->only(['index', 'store', 'update', 'destroy'])
         ->names('raw-materials')
-        ->parameters(['raw-materials' => 'rawMaterial']);
+        ->parameters(['raw-materials' => 'rawMaterial'])
+        ->middlewareFor('store', 'permission:raw-materials.create')
+        ->middlewareFor('update', 'permission:raw-materials.edit')
+        ->middlewareFor('destroy', 'permission:raw-materials.delete');
 
     Route::resource('products', TenantProductController::class)
         ->only(['index', 'store', 'update', 'destroy'])
-        ->names('products');
+        ->names('products')
+        ->middlewareFor('store', 'permission:products.create')
+        ->middlewareFor('update', 'permission:products.edit')
+        ->middlewareFor('destroy', 'permission:products.delete');
 
     Route::resource('expenses', TenantExpenseController::class)
         ->only(['index', 'store', 'update', 'destroy'])
-        ->names('expenses');
+        ->names('expenses')
+        ->middlewareFor('store', 'permission:expenses.create')
+        ->middlewareFor('update', 'permission:expenses.edit')
+        ->middlewareFor('destroy', 'permission:expenses.delete');
+
+    Route::middleware('role:owner')->group(function () {
+        Route::resource('employees', TenantEmployeeController::class)
+            ->only(['index', 'store', 'update', 'destroy'])
+            ->names('employees');
+
+        Route::resource('roles', TenantRoleController::class)
+            ->only(['index', 'store', 'update', 'destroy'])
+            ->names('roles');
+
+        Route::get('/settings', [TenantSettingsController::class, 'edit'])->name('settings.edit');
+        Route::put('/settings', [TenantSettingsController::class, 'update'])->name('settings.update');
+    });
 
     Route::post('/shift/open', [TenantShiftController::class, 'open'])->name('shift.open');
     Route::post('/shift/close', [TenantShiftController::class, 'close'])->name('shift.close');
@@ -75,17 +103,27 @@ Route::middleware(['auth', 'role:owner,employee'])->prefix('tenant')->name('tena
         Route::get('/shifts', [TenantShiftHistoryController::class, 'index'])->name('shifts.index');
 
         Route::get('/transactions', [TenantTransactionHistoryController::class, 'index'])->name('transactions.index');
-        Route::patch('/transactions/{transaction}/void', [TenantTransactionHistoryController::class, 'void'])->name('transactions.void');
+        Route::patch('/transactions/{transaction}/void', [TenantTransactionHistoryController::class, 'void'])
+            ->name('transactions.void')
+            ->middleware('permission:transactions.delete');
     });
 
     Route::prefix('stock')->name('stock.')->group(function () {
         Route::get('/products', [TenantProductStockController::class, 'index'])->name('products.index');
-        Route::post('/products/in', [TenantProductStockController::class, 'storeIn'])->name('products.in');
-        Route::post('/products/adjustment', [TenantProductStockController::class, 'storeAdjustment'])->name('products.adjustment');
+        Route::post('/products/in', [TenantProductStockController::class, 'storeIn'])
+            ->name('products.in')
+            ->middleware('permission:stock-products.create');
+        Route::post('/products/adjustment', [TenantProductStockController::class, 'storeAdjustment'])
+            ->name('products.adjustment')
+            ->middleware('permission:stock-products.edit');
 
         Route::get('/raw-materials', [TenantRawMaterialStockController::class, 'index'])->name('raw-materials.index');
-        Route::post('/raw-materials/in', [TenantRawMaterialStockController::class, 'storeIn'])->name('raw-materials.in');
-        Route::post('/raw-materials/adjustment', [TenantRawMaterialStockController::class, 'storeAdjustment'])->name('raw-materials.adjustment');
+        Route::post('/raw-materials/in', [TenantRawMaterialStockController::class, 'storeIn'])
+            ->name('raw-materials.in')
+            ->middleware('permission:stock-raw-materials.create');
+        Route::post('/raw-materials/adjustment', [TenantRawMaterialStockController::class, 'storeAdjustment'])
+            ->name('raw-materials.adjustment')
+            ->middleware('permission:stock-raw-materials.edit');
     });
 });
 

@@ -10,6 +10,7 @@ export default function Index({ items, filters, history }) {
             subtitle="Pantau jumlah stok produk saat ini."
             entityLabel="Produk"
             fieldName="product_id"
+            permissionKey="stock-products"
             routes={{
                 index: 'tenant.stock.products.index',
                 in: 'tenant.stock.products.in',

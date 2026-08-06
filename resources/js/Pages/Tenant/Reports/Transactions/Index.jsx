@@ -3,6 +3,7 @@ import ConfirmDialog from '@/Components/ConfirmDialog';
 import Pagination from '@/Components/Pagination';
 import Select from '@/Components/Select';
 import { useToast } from '@/Contexts/ToastContext';
+import usePermission from '@/Hooks/usePermission';
 import AdminLayout from '@/Layouts/AdminLayout';
 import ReceiptModal from '@/Pages/Tenant/Reports/Transactions/ReceiptModal';
 import TransactionDetailModal from '@/Pages/Tenant/Reports/Transactions/TransactionDetailModal';
@@ -55,6 +56,7 @@ function StatusBadge({ status }) {
 
 export default function Index({ transactions, tenant, filters }) {
     const toast = useToast();
+    const can = usePermission();
 
     const [search, setSearch] = useState(filters.search ?? '');
     const [date, setDate] = useState(filters.date ?? '');
@@ -116,8 +118,11 @@ export default function Index({ transactions, tenant, filters }) {
             {},
             {
                 preserveScroll: true,
-                onError: () =>
-                    toast.error('Gagal membatalkan transaksi. Silakan coba lagi.'),
+                onError: (errors) =>
+                    toast.error(
+                        errors.transaction ??
+                            'Gagal membatalkan transaksi. Silakan coba lagi.',
+                    ),
                 onFinish: () => {
                     setVoiding(false);
                     setVoidTarget(null);
@@ -155,7 +160,7 @@ export default function Index({ transactions, tenant, filters }) {
                     className="flex shrink-0 items-center gap-2 rounded-lg border border-slate-200 bg-white px-3.5 py-2.5 text-sm font-medium text-slate-600 transition hover:bg-slate-50"
                 >
                     <i
-                        className={`fi fi-sr-refresh ${refreshing ? 'animate-spin' : ''}`}
+                        className={`fi fi-rr-refresh ${refreshing ? 'animate-spin' : ''}`}
                     />
                     <span className="hidden sm:inline">Refresh</span>
                 </button>
@@ -271,16 +276,20 @@ export default function Index({ transactions, tenant, filters }) {
                                             >
                                                 <i className="fi fi-rr-print" />
                                             </button>
-                                            {transaction.status ===
-                                                'completed' && (
+                                            {transaction.status === 'completed' &&
+                                                can('transactions.delete') && (
                                                 <button
                                                     type="button"
                                                     onClick={() =>
-                                                        requestVoid(
-                                                            transaction,
-                                                        )
+                                                        requestVoid(transaction)
                                                     }
-                                                    className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 transition hover:bg-rose-50 hover:text-rose-600"
+                                                    disabled={!transaction.can_be_voided}
+                                                    title={
+                                                        transaction.can_be_voided
+                                                            ? 'Batalkan transaksi'
+                                                            : 'Batas pembatalan 1x24 jam telah lewat'
+                                                    }
+                                                    className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 transition enabled:hover:bg-rose-50 enabled:hover:text-rose-600 disabled:cursor-not-allowed disabled:opacity-35"
                                                 >
                                                     <i className="fi fi-rr-cross-circle" />
                                                 </button>
@@ -297,7 +306,7 @@ export default function Index({ transactions, tenant, filters }) {
                                         className="px-6 py-20 text-center"
                                     >
                                         <span className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-slate-50 text-slate-400">
-                                            <i className="fi fi-sr-receipt text-xl" />
+                                            <i className="fi fi-rr-receipt text-xl" />
                                         </span>
                                         <p className="mt-4 text-sm font-medium text-slate-600">
                                             Belum ada transaksi
@@ -368,13 +377,20 @@ export default function Index({ transactions, tenant, filters }) {
                                 >
                                     <i className="fi fi-rr-print" />
                                 </button>
-                                {transaction.status === 'completed' && (
+                                {transaction.status === 'completed' &&
+                                    can('transactions.delete') && (
                                     <button
                                         type="button"
                                         onClick={() =>
                                             requestVoid(transaction)
                                         }
-                                        className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 transition hover:bg-rose-50 hover:text-rose-600"
+                                        disabled={!transaction.can_be_voided}
+                                        title={
+                                            transaction.can_be_voided
+                                                ? 'Batalkan transaksi'
+                                                : 'Batas pembatalan 1x24 jam telah lewat'
+                                        }
+                                        className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 transition enabled:hover:bg-rose-50 enabled:hover:text-rose-600 disabled:cursor-not-allowed disabled:opacity-35"
                                     >
                                         <i className="fi fi-rr-cross-circle" />
                                     </button>
@@ -386,7 +402,7 @@ export default function Index({ transactions, tenant, filters }) {
                     {transactions.data.length === 0 && (
                         <div className="px-6 py-16 text-center">
                             <span className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-slate-50 text-slate-400">
-                                <i className="fi fi-sr-receipt text-xl" />
+                                <i className="fi fi-rr-receipt text-xl" />
                             </span>
                             <p className="mt-4 text-sm font-medium text-slate-600">
                                 Belum ada transaksi
@@ -428,7 +444,7 @@ export default function Index({ transactions, tenant, filters }) {
                 title="Batalkan Transaksi"
                 message={
                     voidTarget &&
-                    `Yakin ingin membatalkan transaksi "${voidTarget.invoice_number}"? Stok produk akan dikembalikan.`
+                    `Yakin ingin membatalkan transaksi "${voidTarget.invoice_number}" milik kasir ${voidTarget.user?.name ?? '-'}? Stok akan dikembalikan.`
                 }
                 confirmText="Ya, Batalkan"
                 icon="fi-rr-cross-circle"

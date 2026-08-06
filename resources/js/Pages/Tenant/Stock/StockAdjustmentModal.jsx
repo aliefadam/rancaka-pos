@@ -4,13 +4,32 @@ import { useToast } from '@/Contexts/ToastContext';
 import { useForm } from '@inertiajs/react';
 import { useEffect } from 'react';
 
-const reasonOptions = [
+const directionOptions = [
+    { value: 'decrease', label: 'Kurangi stok' },
+    { value: 'increase', label: 'Tambah stok' },
+];
+
+const decreaseReasonOptions = [
     { value: 'Barang rusak', label: 'Barang rusak' },
     { value: 'Kadaluarsa', label: 'Kadaluarsa' },
     { value: 'Hilang', label: 'Hilang' },
     { value: 'Selisih stok opname', label: 'Selisih stok opname' },
     { value: 'Lainnya', label: 'Lainnya' },
 ];
+
+const increaseReasonOptions = [
+    { value: 'Barang ditemukan', label: 'Barang ditemukan' },
+    { value: 'Koreksi stok opname', label: 'Koreksi stok opname' },
+    { value: 'Retur masuk', label: 'Retur masuk' },
+    { value: 'Lainnya', label: 'Lainnya' },
+];
+
+const emptyAdjustment = (fieldName) => ({
+    [fieldName]: '',
+    direction: 'decrease',
+    quantity: '',
+    reason: 'Barang rusak',
+});
 
 export default function StockAdjustmentModal({
     show,
@@ -23,11 +42,11 @@ export default function StockAdjustmentModal({
     const toast = useToast();
 
     const { data, setData, post, processing, errors, reset, clearErrors } =
-        useForm({ [fieldName]: '', quantity: '', reason: 'Barang rusak' });
+        useForm(emptyAdjustment(fieldName));
 
     useEffect(() => {
         if (!show) return;
-        setData({ [fieldName]: '', quantity: '', reason: 'Barang rusak' });
+        setData(emptyAdjustment(fieldName));
         clearErrors();
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [show]);
@@ -41,6 +60,19 @@ export default function StockAdjustmentModal({
         (item) => String(item.id) === data[fieldName],
     );
     const unit = selectedItem?.unit ?? 'pcs';
+    const isIncrease = data.direction === 'increase';
+    const reasonOptions = isIncrease
+        ? increaseReasonOptions
+        : decreaseReasonOptions;
+
+    const changeDirection = (direction) => {
+        setData({
+            ...data,
+            direction,
+            reason:
+                direction === 'increase' ? 'Barang ditemukan' : 'Barang rusak',
+        });
+    };
 
     const submit = (e) => {
         e.preventDefault();
@@ -90,6 +122,23 @@ export default function StockAdjustmentModal({
                         </div>
 
                         <div>
+                            <label className="mb-1.5 block text-sm font-medium text-slate-700">
+                                Jenis Penyesuaian{' '}
+                                <span className="text-rose-500">*</span>
+                            </label>
+                            <Select
+                                value={data.direction}
+                                onChange={changeDirection}
+                                options={directionOptions}
+                            />
+                            {errors.direction && (
+                                <p className="mt-1.5 text-sm text-red-600">
+                                    {errors.direction}
+                                </p>
+                            )}
+                        </div>
+
+                        <div>
                             <label
                                 htmlFor="quantity"
                                 className="mb-1.5 block text-sm font-medium text-slate-700"
@@ -109,7 +158,7 @@ export default function StockAdjustmentModal({
                                 className="block w-full rounded-lg border border-slate-200 px-3 py-2.5 text-sm text-slate-900 placeholder-slate-400 focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-100"
                             />
                             <p className="mt-1.5 text-xs text-slate-400">
-                                Jumlah ini akan dikurangkan dari stok saat ini.
+                                Jumlah ini akan {isIncrease ? 'ditambahkan ke' : 'dikurangkan dari'} stok saat ini.
                             </p>
                             {errors.quantity && (
                                 <p className="mt-1.5 text-sm text-red-600">
@@ -153,7 +202,7 @@ export default function StockAdjustmentModal({
                         className="flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-70"
                     >
                         {processing && (
-                            <i className="fi fi-sr-spinner animate-spin" />
+                            <i className="fi fi-rr-spinner animate-spin" />
                         )}
                         Simpan
                     </button>
