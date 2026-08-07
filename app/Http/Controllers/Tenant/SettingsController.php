@@ -28,6 +28,8 @@ class SettingsController extends Controller
             'address' => ['nullable', 'string', 'max:500'],
             'logo' => ['nullable', 'image', 'max:2048'],
             'receipt_footer' => ['nullable', 'string', 'max:255'],
+            'receipt_size' => ['required', 'in:58mm,80mm'],
+            'auto_print_receipt' => ['nullable', 'boolean'],
             'tax_percentage' => ['required', 'numeric', 'min:0', 'max:100'],
             'service_charge_percentage' => ['required', 'numeric', 'min:0', 'max:100'],
         ]);
@@ -41,6 +43,7 @@ class SettingsController extends Controller
         }
 
         unset($validated['logo']);
+        $validated['auto_print_receipt'] = (bool) ($validated['auto_print_receipt'] ?? false);
 
         $tenant->update($validated);
 

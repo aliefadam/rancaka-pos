@@ -14,6 +14,7 @@ use App\Services\StockMovementService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\URL;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
@@ -96,6 +97,8 @@ class PosController extends Controller
                 'phone' => $tenant->phone,
                 'logo_url' => $tenant->logo_url,
                 'receipt_footer' => $tenant->receipt_footer,
+                'receipt_size' => $tenant->receipt_size ?? '58mm',
+                'auto_print_receipt' => (bool) ($tenant->auto_print_receipt ?? false),
                 'tax_percentage' => (float) $tenant->tax_percentage,
                 'service_charge_percentage' => (float) $tenant->service_charge_percentage,
             ],
@@ -108,7 +111,16 @@ class PosController extends Controller
 
         $transaction = $this->createSale($request, $data, TransactionStatus::Completed);
 
-        return redirect()->route('tenant.pos.index')->with('success', "Transaksi {$transaction->invoice_number} berhasil.");
+        return redirect()->route('tenant.pos.index')->with([
+            'success' => "Transaksi {$transaction->invoice_number} berhasil.",
+            'transaction_id' => $transaction->id,
+            'receipt_url' => route('tenant.transactions.receipt', $transaction),
+            'bridge_receipt_url' => URL::temporarySignedRoute(
+                'bridge.receipts.show',
+                now()->addMinutes(30),
+                $transaction,
+            ),
+        ]);
     }
 
     public function hold(Request $request): RedirectResponse

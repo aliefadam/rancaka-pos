@@ -42,6 +42,9 @@ class HandleInertiaRequests extends Middleware
             'flash' => [
                 'success' => fn () => $request->session()->get('success'),
                 'error' => fn () => $request->session()->get('error'),
+                'transaction_id' => fn () => $request->session()->get('transaction_id'),
+                'receipt_url' => fn () => $request->session()->get('receipt_url'),
+                'bridge_receipt_url' => fn () => $request->session()->get('bridge_receipt_url'),
             ],
         ];
     }

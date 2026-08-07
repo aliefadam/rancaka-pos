@@ -2,6 +2,7 @@
 
 use App\Enums\UserRole;
 use App\Http\Controllers\Admin\TenantController;
+use App\Http\Controllers\BridgeReceiptController;
 use App\Http\Controllers\Tenant\CategoryController as TenantCategoryController;
 use App\Http\Controllers\Tenant\DashboardController as TenantDashboardController;
 use App\Http\Controllers\Tenant\EmployeeController as TenantEmployeeController;
@@ -9,6 +10,7 @@ use App\Http\Controllers\Tenant\ExpenseController as TenantExpenseController;
 use App\Http\Controllers\Tenant\PosController as TenantPosController;
 use App\Http\Controllers\Tenant\ProductController as TenantProductController;
 use App\Http\Controllers\Tenant\RawMaterialController as TenantRawMaterialController;
+use App\Http\Controllers\Tenant\ReceiptController as TenantReceiptController;
 use App\Http\Controllers\Tenant\Reports\FinancialReportController as TenantFinancialReportController;
 use App\Http\Controllers\Tenant\Reports\ShiftHistoryController as TenantShiftHistoryController;
 use App\Http\Controllers\Tenant\Reports\TransactionHistoryController as TenantTransactionHistoryController;
@@ -97,6 +99,19 @@ Route::middleware(['auth', 'role:owner,employee'])->prefix('tenant')->name('tena
         Route::delete('/held/{transaction}', [TenantPosController::class, 'destroyHeld'])->name('held.destroy');
     });
 
+    Route::get('/transactions/{transaction}/receipt', [TenantReceiptController::class, 'show'])
+        ->name('transactions.receipt');
+
+    Route::get('/printer/download', function () {
+        $path = base_path('print-bridge-android/printer-rancaka.apk');
+
+        abort_unless(file_exists($path), 404, 'APK Rancaka Print belum dibangun.');
+
+        return response()->download($path, 'printer-rancaka.apk', [
+            'Content-Type' => 'application/vnd.android.package-archive',
+        ]);
+    })->name('printer.download');
+
     Route::prefix('reports')->name('reports.')->group(function () {
         Route::get('/financial', [TenantFinancialReportController::class, 'index'])->name('financial.index');
 
@@ -126,5 +141,9 @@ Route::middleware(['auth', 'role:owner,employee'])->prefix('tenant')->name('tena
             ->middleware('permission:stock-raw-materials.edit');
     });
 });
+
+Route::get('/bridge/receipts/{transaction}', [BridgeReceiptController::class, 'show'])
+    ->middleware('signed')
+    ->name('bridge.receipts.show');
 
 require __DIR__.'/auth.php';

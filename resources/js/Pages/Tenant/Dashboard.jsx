@@ -65,6 +65,13 @@ export default function Dashboard() {
                 </div>
 
                 <div className="flex items-center gap-2">
+                    <a
+                        href={route('tenant.printer.download')}
+                        className="flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-600 shadow-sm transition hover:bg-slate-50"
+                    >
+                        <i className="fi fi-rr-download" />
+                        <span className="hidden sm:inline">Download Printer</span>
+                    </a>
                     <button
                         type="button"
                         onClick={refresh}

@@ -15,6 +15,8 @@ export default function Edit({ tenant }) {
         address: tenant.address ?? '',
         logo: null,
         receipt_footer: tenant.receipt_footer ?? '',
+        receipt_size: tenant.receipt_size ?? '58mm',
+        auto_print_receipt: Boolean(tenant.auto_print_receipt),
         tax_percentage: tenant.tax_percentage ?? 0,
         service_charge_percentage: tenant.service_charge_percentage ?? 0,
     });
@@ -229,6 +231,23 @@ export default function Edit({ tenant }) {
                     </p>
 
                     <div className="mt-5">
+                        <div className="mb-4">
+                            <label className="mb-1.5 block text-sm font-medium text-slate-700">
+                                Ukuran Struk <span className="text-rose-500">*</span>
+                            </label>
+                            <select
+                                value={data.receipt_size}
+                                onChange={(e) => setData('receipt_size', e.target.value)}
+                                className="block w-full rounded-lg border border-slate-200 px-3 py-2.5 text-sm text-slate-900 focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-100 sm:max-w-xs"
+                            >
+                                <option value="58mm">58mm</option>
+                                <option value="80mm">80mm</option>
+                            </select>
+                            {errors.receipt_size && (
+                                <p className="mt-1.5 text-sm text-red-600">{errors.receipt_size}</p>
+                            )}
+                        </div>
+
                         <textarea
                             rows={2}
                             value={data.receipt_footer}
@@ -243,6 +262,23 @@ export default function Edit({ tenant }) {
                                 {errors.receipt_footer}
                             </p>
                         )}
+
+                        <label className="mt-4 flex items-start gap-3 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3">
+                            <input
+                                type="checkbox"
+                                checked={data.auto_print_receipt}
+                                onChange={(e) => setData('auto_print_receipt', e.target.checked)}
+                                className="mt-0.5 h-4 w-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
+                            />
+                            <span>
+                                <span className="block text-sm font-semibold text-slate-800">
+                                    Auto cetak setelah transaksi berhasil
+                                </span>
+                                <span className="mt-0.5 block text-xs text-slate-500">
+                                    POS otomatis membuka Rancaka Print setelah pembayaran sukses.
+                                </span>
+                            </span>
+                        </label>
                     </div>
                 </section>
 

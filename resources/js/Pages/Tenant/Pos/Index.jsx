@@ -5,8 +5,8 @@ import CartPanel from '@/Pages/Tenant/Pos/CartPanel';
 import CloseShiftModal from '@/Pages/Tenant/Pos/CloseShiftModal';
 import HeldPanel from '@/Pages/Tenant/Pos/HeldPanel';
 import { Dialog, Transition } from '@headlessui/react';
-import { Head, router, useForm } from '@inertiajs/react';
-import { Fragment, useEffect, useMemo, useState } from 'react';
+import { Head, router, useForm, usePage } from '@inertiajs/react';
+import { Fragment, useEffect, useMemo, useRef, useState } from 'react';
 
 const cartStorageKey = (shiftId) => `pos-cart-draft:${shiftId}`;
 
@@ -158,6 +158,7 @@ export default function Index({
     storeSettings,
 }) {
     const toast = useToast();
+    const { flash } = usePage().props;
     const restoredDraft = useMemo(
         () => restoreCartDraft(activeShift, products),
         [activeShift, products],
@@ -180,8 +181,64 @@ export default function Index({
     const [heldPanelOpen, setHeldPanelOpen] = useState(false);
     const [mobileCartOpen, setMobileCartOpen] = useState(false);
     const [clearCartConfirmOpen, setClearCartConfirmOpen] = useState(false);
+    const [showSuccessModal, setShowSuccessModal] = useState(false);
+    const [autoPrintMessage, setAutoPrintMessage] = useState('');
+    const lastAutoPrintUrl = useRef('');
 
     const openShiftForm = useForm({ opening_cash: '' });
+
+    const buildPrintBridgeUrl = () => {
+        if (!flash?.bridge_receipt_url) return '';
+
+        const receiptUrl = encodeURIComponent(flash.bridge_receipt_url);
+        const fallbackUrl = encodeURIComponent(
+            flash.receipt_url || window.location.href,
+        );
+        const isAndroid = /Android/i.test(window.navigator.userAgent);
+
+        return isAndroid
+            ? `intent://print?receipt_url=${receiptUrl}#Intent;scheme=rancaka-print;package=id.rancaka.printbridge;S.browser_fallback_url=${fallbackUrl};end`
+            : `rancaka-print://print?receipt_url=${receiptUrl}`;
+    };
+
+    const openPrintBridge = ({ auto = false } = {}) => {
+        const printBridgeUrl = buildPrintBridgeUrl();
+
+        if (!printBridgeUrl) {
+            toast.error('Link cetak Rancaka Print belum tersedia.');
+            return;
+        }
+
+        if (auto) {
+            setAutoPrintMessage('Mencoba membuka Rancaka Print otomatis...');
+        }
+
+        const link = document.createElement('a');
+        link.href = printBridgeUrl;
+        link.style.display = 'none';
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+    };
+
+    useEffect(() => {
+        if (!flash?.receipt_url) return;
+
+        setShowSuccessModal(true);
+        setAutoPrintMessage('');
+    }, [flash?.receipt_url]);
+
+    useEffect(() => {
+        if (!flash?.bridge_receipt_url || !storeSettings.auto_print_receipt) {
+            return;
+        }
+
+        if (lastAutoPrintUrl.current === flash.bridge_receipt_url) return;
+
+        lastAutoPrintUrl.current = flash.bridge_receipt_url;
+        openPrintBridge({ auto: true });
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [flash?.bridge_receipt_url, storeSettings.auto_print_receipt]);
 
     useEffect(() => {
         if (!activeShift || typeof window === 'undefined') return;
@@ -517,6 +574,95 @@ export default function Index({
     return (
         <AdminLayout header="Transaksi Baru">
             <Head title="Transaksi Baru" />
+
+            <Transition appear show={showSuccessModal} as={Fragment}>
+                <Dialog
+                    as="div"
+                    className="relative z-50"
+                    onClose={() => setShowSuccessModal(false)}
+                >
+                    <Transition.Child
+                        as={Fragment}
+                        enter="ease-out duration-200"
+                        enterFrom="opacity-0"
+                        enterTo="opacity-100"
+                        leave="ease-in duration-150"
+                        leaveFrom="opacity-100"
+                        leaveTo="opacity-0"
+                    >
+                        <div className="fixed inset-0 bg-slate-950/55 backdrop-blur-sm" />
+                    </Transition.Child>
+
+                    <div className="fixed inset-0 overflow-y-auto">
+                        <div className="flex min-h-full items-center justify-center p-4">
+                            <Transition.Child
+                                as={Fragment}
+                                enter="ease-out duration-200"
+                                enterFrom="opacity-0 scale-95 translate-y-2"
+                                enterTo="opacity-100 scale-100 translate-y-0"
+                                leave="ease-in duration-150"
+                                leaveFrom="opacity-100 scale-100"
+                                leaveTo="opacity-0 scale-95"
+                            >
+                                <Dialog.Panel className="w-full max-w-sm rounded-2xl bg-white p-6 text-center shadow-2xl">
+                                    <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-emerald-50">
+                                        <div className="relative flex h-11 w-11 items-center justify-center rounded-full bg-emerald-500 text-white">
+                                            <span className="absolute inset-0 animate-ping rounded-full bg-emerald-300 opacity-30" />
+                                            <i className="fi fi-rr-check text-xl" />
+                                        </div>
+                                    </div>
+                                    <Dialog.Title className="mt-4 text-lg font-bold text-slate-900">
+                                        Transaksi Selesai!
+                                    </Dialog.Title>
+                                    <p className="mt-1 text-sm text-slate-500">
+                                        {storeSettings.auto_print_receipt
+                                            ? 'Struk sedang dikirim ke Rancaka Print secara otomatis.'
+                                            : 'Buka struk atau cetak menggunakan Rancaka Print.'}
+                                    </p>
+
+                                    <div className="mt-5 space-y-2.5">
+                                        {autoPrintMessage && (
+                                            <div className="rounded-xl border border-sky-200 bg-sky-50 px-3 py-2.5 text-left text-xs font-medium text-sky-700">
+                                                {autoPrintMessage}
+                                            </div>
+                                        )}
+
+                                        <button
+                                            type="button"
+                                            onClick={() => openPrintBridge()}
+                                            className="flex w-full items-center justify-center gap-2 rounded-xl bg-slate-900 py-3 text-sm font-semibold text-white transition hover:bg-slate-800"
+                                        >
+                                            <i className="fi fi-rr-print" />
+                                            {storeSettings.auto_print_receipt
+                                                ? 'Cetak ulang via Rancaka Print'
+                                                : 'Cetak via Rancaka Print'}
+                                        </button>
+
+                                        {flash?.receipt_url && (
+                                            <button
+                                                type="button"
+                                                onClick={() => window.open(flash.receipt_url, '_blank')}
+                                                className="flex w-full items-center justify-center gap-2 rounded-xl bg-indigo-600 py-3 text-sm font-semibold text-white transition hover:bg-indigo-700"
+                                            >
+                                                <i className="fi fi-rr-receipt" />
+                                                Buka Struk
+                                            </button>
+                                        )}
+
+                                        <button
+                                            type="button"
+                                            onClick={() => setShowSuccessModal(false)}
+                                            className="w-full rounded-xl border border-slate-200 py-2.5 text-sm font-medium text-slate-600 transition hover:bg-slate-50"
+                                        >
+                                            Tutup
+                                        </button>
+                                    </div>
+                                </Dialog.Panel>
+                            </Transition.Child>
+                        </div>
+                    </div>
+                </Dialog>
+            </Transition>
 
             <div className="flex flex-col gap-6 lg:flex-row lg:items-start">
                 <div className="min-w-0 flex-1">

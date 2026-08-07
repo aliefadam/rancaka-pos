@@ -5,7 +5,6 @@ import Select from '@/Components/Select';
 import { useToast } from '@/Contexts/ToastContext';
 import usePermission from '@/Hooks/usePermission';
 import AdminLayout from '@/Layouts/AdminLayout';
-import ReceiptModal from '@/Pages/Tenant/Reports/Transactions/ReceiptModal';
 import TransactionDetailModal from '@/Pages/Tenant/Reports/Transactions/TransactionDetailModal';
 import { Head, router } from '@inertiajs/react';
 import { useEffect, useRef, useState } from 'react';
@@ -54,7 +53,7 @@ function StatusBadge({ status }) {
     );
 }
 
-export default function Index({ transactions, tenant, filters }) {
+export default function Index({ transactions, filters }) {
     const toast = useToast();
     const can = usePermission();
 
@@ -63,7 +62,6 @@ export default function Index({ transactions, tenant, filters }) {
     const [status, setStatus] = useState(filters.status ?? '');
     const [refreshing, setRefreshing] = useState(false);
     const [detailTransaction, setDetailTransaction] = useState(null);
-    const [receiptTransaction, setReceiptTransaction] = useState(null);
     const [voidTarget, setVoidTarget] = useState(null);
     const [voiding, setVoiding] = useState(false);
     const isFirstRun = useRef(true);
@@ -133,7 +131,7 @@ export default function Index({ transactions, tenant, filters }) {
 
     const openReceiptFrom = (transaction) => {
         setDetailTransaction(null);
-        setReceiptTransaction(transaction);
+        router.visit(route('tenant.transactions.receipt', transaction.id));
     };
 
     return (
@@ -267,11 +265,7 @@ export default function Index({ transactions, tenant, filters }) {
                                             </button>
                                             <button
                                                 type="button"
-                                                onClick={() =>
-                                                    setReceiptTransaction(
-                                                        transaction,
-                                                    )
-                                                }
+                                                onClick={() => openReceiptFrom(transaction)}
                                                 className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 transition hover:bg-slate-100 hover:text-indigo-600"
                                             >
                                                 <i className="fi fi-rr-print" />
@@ -370,9 +364,7 @@ export default function Index({ transactions, tenant, filters }) {
                                 </button>
                                 <button
                                     type="button"
-                                    onClick={() =>
-                                        setReceiptTransaction(transaction)
-                                    }
+                                    onClick={() => openReceiptFrom(transaction)}
                                     className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 transition hover:bg-slate-100 hover:text-indigo-600"
                                 >
                                     <i className="fi fi-rr-print" />
@@ -427,13 +419,6 @@ export default function Index({ transactions, tenant, filters }) {
                 onClose={() => setDetailTransaction(null)}
                 transaction={detailTransaction}
                 onPrint={openReceiptFrom}
-            />
-
-            <ReceiptModal
-                show={Boolean(receiptTransaction)}
-                onClose={() => setReceiptTransaction(null)}
-                transaction={receiptTransaction}
-                tenant={tenant}
             />
 
             <ConfirmDialog

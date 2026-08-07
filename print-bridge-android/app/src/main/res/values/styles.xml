@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="AppTheme" parent="android:Theme.Material.Light.NoActionBar">
+        <item name="android:fontFamily">sans</item>
+        <item name="android:windowLightStatusBar">true</item>
+        <item name="android:colorAccent">#2563eb</item>
+        <item name="android:colorPrimary">#2563eb</item>
+        <item name="android:windowBackground">#f8fafc</item>
+    </style>
+
+    <style name="PrinterCard">
+        <item name="android:background">@drawable/card_background</item>
+        <item name="android:padding">20dp</item>
+    </style>
+
+    <style name="PrimaryButton" parent="@android:style/Widget.Material.Button">
+        <item name="android:background">@drawable/button_primary</item>
+        <item name="android:textColor">#ffffff</item>
+        <item name="android:textSize">15sp</item>
+        <item name="android:fontFamily">sans-serif-medium</item>
+        <item name="android:paddingTop">14dp</item>
+        <item name="android:paddingBottom">14dp</item>
+    </style>
+
+    <style name="SecondaryButton" parent="@android:style/Widget.Material.Button">
+        <item name="android:background">@drawable/button_secondary</item>
+        <item name="android:textColor">#475569</item>
+        <item name="android:textSize">14sp</item>
+        <item name="android:fontFamily">sans-serif-medium</item>
+        <item name="android:paddingTop">12dp</item>
+        <item name="android:paddingBottom">12dp</item>
+    </style>
+
+    <style name="SuccessButton" parent="@android:style/Widget.Material.Button">
+        <item name="android:background">@drawable/button_success</item>
+        <item name="android:textColor">#ffffff</item>
+        <item name="android:textSize">15sp</item>
+        <item name="android:fontFamily">sans-serif-medium</item>
+        <item name="android:paddingTop">14dp</item>
+        <item name="android:paddingBottom">14dp</item>
+    </style>
+</resources>

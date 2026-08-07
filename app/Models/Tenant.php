@@ -14,7 +14,8 @@ use Illuminate\Support\Facades\Storage;
 
 #[Fillable([
     'name', 'email', 'phone', 'address', 'status',
-    'logo_path', 'receipt_footer', 'tax_percentage', 'service_charge_percentage',
+    'logo_path', 'receipt_footer', 'receipt_size', 'auto_print_receipt',
+    'tax_percentage', 'service_charge_percentage',
 ])]
 class Tenant extends Model
 {
@@ -26,6 +27,7 @@ class Tenant extends Model
     protected function casts(): array
     {
         return [
+            'auto_print_receipt' => 'boolean',
             'tax_percentage' => 'decimal:2',
             'service_charge_percentage' => 'decimal:2',
         ];

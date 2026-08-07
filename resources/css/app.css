@@ -144,6 +144,44 @@
     background-color: #475569;
 }
 
+.dark .receipt-page,
+.dark .receipt-page .bg-white {
+    background-color: #fff !important;
+    color: #000 !important;
+}
+
+.dark .receipt-page .text-slate-900 {
+    color: #0f172a !important;
+}
+
+.dark .receipt-page .text-slate-700,
+.dark .receipt-page .text-slate-600 {
+    color: #475569 !important;
+}
+
+.dark .receipt-page .border-slate-300 {
+    border-color: #cbd5e1 !important;
+}
+
+@media print {
+    @page {
+        margin: 2mm;
+        size: auto;
+    }
+
+    html,
+    body,
+    #app,
+    .receipt-page {
+        min-height: 0 !important;
+        background: #fff !important;
+    }
+
+    .receipt-page {
+        padding: 0 !important;
+    }
+}
+
 @layer utilities {
     .scrollbar-thin {
         scrollbar-width: thin;
