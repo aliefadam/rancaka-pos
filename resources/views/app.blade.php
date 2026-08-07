@@ -8,6 +8,17 @@
         <link rel="icon" type="image/png" href="{{ asset('logo.png') }}">
         <link rel="apple-touch-icon" href="{{ asset('logo.png') }}">
 
+        <script>
+            (() => {
+                const savedTheme = localStorage.getItem('rancaka-theme');
+                const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+                document.documentElement.classList.toggle(
+                    'dark',
+                    savedTheme ? savedTheme === 'dark' : prefersDark,
+                );
+            })();
+        </script>
+
         <!-- Fonts -->
         <link rel="preconnect" href="https://fonts.bunny.net">
         <link href="https://fonts.bunny.net/css?family=plus-jakarta-sans:400,500,600,700,800&display=swap" rel="stylesheet" />

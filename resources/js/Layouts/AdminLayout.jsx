@@ -1,4 +1,5 @@
 import Dropdown from "@/Components/Dropdown";
+import BrandLogo from "@/Components/BrandLogo";
 import { useToast } from "@/Contexts/ToastContext";
 import { Transition } from "@headlessui/react";
 import { Link, router, usePage } from "@inertiajs/react";
@@ -222,11 +223,7 @@ const SidebarContent = ({ navigation, onClose }) => (
     <>
         <div className="flex h-16 shrink-0 items-center justify-between gap-3 px-6">
             <div className="flex items-center gap-3">
-                <img
-                    src="/logo.png"
-                    alt="Logo Rancaka"
-                    className="h-9 w-9 rounded-xl object-cover shadow-sm shadow-indigo-200"
-                />
+                <BrandLogo className="h-11 w-11" />
                 <span className="text-lg font-bold text-slate-900">
                     Rancaka
                 </span>
@@ -282,7 +279,23 @@ export default function AdminLayout({ header, children }) {
     const [desktopSidebarOpen, setDesktopSidebarOpen] = useState(true);
     const [searchQuery, setSearchQuery] = useState("");
     const [searchOpen, setSearchOpen] = useState(false);
+    const [darkMode, setDarkMode] = useState(() => {
+        if (typeof window === "undefined") return false;
+
+        const savedTheme = window.localStorage.getItem("rancaka-theme");
+        if (savedTheme) return savedTheme === "dark";
+
+        return window.matchMedia("(prefers-color-scheme: dark)").matches;
+    });
     const toast = useToast();
+
+    useEffect(() => {
+        document.documentElement.classList.toggle("dark", darkMode);
+        window.localStorage.setItem(
+            "rancaka-theme",
+            darkMode ? "dark" : "light",
+        );
+    }, [darkMode]);
 
     const searchableItems = useMemo(
         () =>
@@ -333,7 +346,7 @@ export default function AdminLayout({ header, children }) {
     const currentTime = now.toLocaleTimeString("id-ID", { hour12: false });
 
     return (
-        <div className="min-h-screen bg-slate-50">
+        <div className="min-h-screen bg-slate-50 transition-colors duration-300">
             <aside
                 className={`fixed inset-y-0 left-0 z-30 hidden w-64 flex-col border-r border-slate-200 bg-white transition-transform duration-300 xl:flex ${
                     desktopSidebarOpen ? "xl:translate-x-0" : "xl:-translate-x-full"
@@ -466,10 +479,22 @@ export default function AdminLayout({ header, children }) {
                         </div>
                     </div>
 
-                    <div className="flex items-center gap-4">
-                        <span className="hidden font-mono text-sm tabular-nums text-slate-500 sm:inline">
+                    <div className="flex items-center gap-2 sm:gap-3">
+                        <span className="font-digital hidden min-w-[7.8rem] items-center justify-center rounded-lg border border-slate-200 bg-slate-50 px-3 py-1 text-xl font-bold tabular-nums tracking-[0.12em] text-slate-700 sm:inline-flex">
                             {currentTime}
                         </span>
+
+                        <button
+                            type="button"
+                            onClick={() => setDarkMode((enabled) => !enabled)}
+                            className="flex h-10 w-10 items-center justify-center rounded-xl text-slate-500 transition hover:bg-slate-50 hover:text-indigo-600"
+                            aria-label={darkMode ? "Gunakan mode terang" : "Gunakan mode gelap"}
+                            title={darkMode ? "Mode terang" : "Mode gelap"}
+                        >
+                            <i
+                                className={`fi ${darkMode ? "fi-rr-brightness" : "fi-rr-moon"} text-lg`}
+                            />
+                        </button>
 
                         <Dropdown>
                         <Dropdown.Trigger>

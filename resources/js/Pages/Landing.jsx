@@ -1,4 +1,5 @@
 import { Head, Link } from '@inertiajs/react';
+import BrandLogo from '@/Components/BrandLogo';
 import { useEffect, useRef, useState } from 'react';
 import { Area, AreaChart, ResponsiveContainer } from 'recharts';
 
@@ -253,11 +254,7 @@ export default function Landing() {
                 <header className="sticky top-0 z-20 border-b border-slate-200 bg-white/80 backdrop-blur">
                     <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
                         <div className="flex items-center gap-2.5">
-                            <img
-                                src="/logo.png"
-                                alt="Logo Rancaka"
-                                className="h-9 w-9 rounded-lg object-cover shadow-sm shadow-indigo-200"
-                            />
+                            <BrandLogo className="h-10 w-10" />
                             <span className="text-lg font-bold tracking-tight">
                                 Rancaka
                             </span>
@@ -580,11 +577,7 @@ export default function Landing() {
                 <footer className="border-t border-slate-200">
                     <div className="mx-auto flex max-w-6xl flex-col items-center gap-4 px-6 py-10 text-center sm:flex-row sm:justify-between sm:text-left">
                         <div className="flex items-center gap-2.5">
-                            <img
-                                src="/logo.png"
-                                alt="Logo Rancaka"
-                                className="h-8 w-8 rounded-lg object-cover"
-                            />
+                            <BrandLogo className="h-8 w-8" />
                             <span className="text-sm font-semibold text-slate-700">
                                 Rancaka
                             </span>
