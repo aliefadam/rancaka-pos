@@ -6,9 +6,11 @@ use App\Enums\PaymentMethod;
 use App\Enums\TransactionStatus;
 use App\Http\Controllers\Controller;
 use App\Models\Shift;
+use App\Models\Transaction;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 
 class ShiftController extends Controller
 {
@@ -48,12 +50,35 @@ class ShiftController extends Controller
 
             abort_unless($shift, 404);
 
-            $shift->transactions()
+            $heldTransactions = Transaction::where('tenant_id', $request->user()->tenant_id)
+                ->where('status', TransactionStatus::Held)
+                ->lockForUpdate()
+                ->get();
+
+            $heldCount = $heldTransactions->count();
+
+            if ($heldCount > 0) {
+                throw ValidationException::withMessages([
+                    'closing_cash' => "Shift tidak dapat ditutup karena masih ada {$heldCount} transaksi ditahan. Selesaikan atau batalkan transaksi tersebut terlebih dahulu.",
+                ]);
+            }
+
+            $cashTransactions = $shift->transactions()
                 ->where('status', TransactionStatus::Completed)
                 ->where('payment_method', PaymentMethod::Cash)
                 ->lockForUpdate()
                 ->get();
 
+            $cashSales = (int) $cashTransactions->sum('total');
+            $expectedCash = $shift->opening_cash + $cashSales;
+
+            if ((int) $validated['closing_cash'] !== $expectedCash) {
+                $formattedExpectedCash = number_format($expectedCash, 0, ',', '.');
+
+                throw ValidationException::withMessages([
+                    'closing_cash' => "Modal akhir harus sama dengan saldo awal + penjualan tunai, yaitu Rp {$formattedExpectedCash}.",
+                ]);
+            }
             $shift->update([
                 'closing_cash' => $validated['closing_cash'],
                 'closed_at' => now(),

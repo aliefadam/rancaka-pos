@@ -201,6 +201,7 @@ export default function ProductFormModal({
                                     id="price"
                                     type="number"
                                     min="0"
+                                    max="999999999999"
                                     value={data.price}
                                     onChange={(e) =>
                                         setData('price', e.target.value)

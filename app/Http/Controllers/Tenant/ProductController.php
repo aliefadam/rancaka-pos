@@ -95,7 +95,7 @@ class ProductController extends Controller
                 'required',
                 Rule::exists('categories', 'id')->where('tenant_id', $tenantId),
             ],
-            'price' => ['required', 'integer', 'min:0'],
+            'price' => ['required', 'integer', 'min:0', 'max:999999999999'],
             'track_stock' => ['boolean'],
             'stock' => ['nullable', 'integer', 'min:0'],
             'is_active' => ['boolean'],

@@ -22,13 +22,14 @@ const paymentLabels = {
 export default function ReceiptModal({ show, onClose, transaction, tenant }) {
     if (!transaction) return null;
 
+    const isVoided = transaction.status === 'voided';
     const print = () => window.print();
 
     return (
         <Modal show={show} onClose={onClose} maxWidth="sm">
             <Modal.Header>
                 <h2 className="text-lg font-semibold text-slate-900">
-                    Struk Transaksi
+                    {isVoided ? 'Struk Pembatalan' : 'Struk Transaksi'}
                 </h2>
             </Modal.Header>
 
@@ -56,6 +57,18 @@ export default function ReceiptModal({ show, onClose, transaction, tenant }) {
                             </p>
                         )}
                     </div>
+
+                    {isVoided && (
+                        <div className="mt-4 border-y-2 border-dashed border-rose-500 bg-rose-50 px-3 py-3 text-center text-rose-700">
+                            <p className="text-base font-black tracking-widest">
+                                TRANSAKSI DIBATALKAN
+                            </p>
+                            <p className="mt-1 text-[11px] font-medium">
+                                Struk ini tidak berlaku sebagai bukti transaksi
+                                penjualan
+                            </p>
+                        </div>
+                    )}
 
                     <div className="my-4 border-t border-dashed border-slate-200" />
 
@@ -171,9 +184,15 @@ export default function ReceiptModal({ show, onClose, transaction, tenant }) {
 
                     <div className="my-4 border-t border-dashed border-slate-200" />
 
-                    <p className="text-center text-xs italic text-slate-400">
-                        {tenant.receipt_footer ||
-                            'Terima kasih atas kunjungan Anda!'}
+                    <p
+                        className={`text-center text-xs italic ${
+                            isVoided ? 'font-semibold text-rose-600' : 'text-slate-400'
+                        }`}
+                    >
+                        {isVoided
+                            ? 'Transaksi ini telah dibatalkan.'
+                            : tenant.receipt_footer ||
+                              'Terima kasih atas kunjungan Anda!'}
                     </p>
                 </div>
             </Modal.Body>

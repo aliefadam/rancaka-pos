@@ -43,9 +43,15 @@ class ShiftReconciliationTest extends TestCase
 
         $this->actingAs($owner)
             ->post(route('tenant.shift.close'), ['closing_cash' => 104400])
+            ->assertSessionHasErrors('closing_cash');
+
+        $this->assertNull($shift->fresh()->closed_at);
+
+        $this->actingAs($owner)
+            ->post(route('tenant.shift.close'), ['closing_cash' => 104500])
             ->assertRedirect(route('tenant.pos.index'));
 
-        $this->assertSame(104400, $shift->fresh()->closing_cash);
+        $this->assertSame(104500, $shift->fresh()->closing_cash);
         $this->assertNotNull($shift->fresh()->closed_at);
 
         $this->actingAs($owner)
@@ -55,8 +61,8 @@ class ShiftReconciliationTest extends TestCase
                 ->where('shifts.data.0.qris_sales', 50000)
                 ->where('shifts.data.0.total_sales', 154000)
                 ->where('shifts.data.0.expected_closing_cash', 104500)
-                ->where('shifts.data.0.closing_cash', 104400)
-                ->where('shifts.data.0.cash_difference', -100)
+                ->where('shifts.data.0.closing_cash', 104500)
+                ->where('shifts.data.0.cash_difference', 0)
                 ->where('shifts.data.0.transaction_count', 2));
     }
 

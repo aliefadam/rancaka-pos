@@ -702,6 +702,7 @@ export default function Index({
                 show={closeShiftOpen}
                 onClose={() => setCloseShiftOpen(false)}
                 summary={shiftSummary}
+                heldCount={heldTransactions.length}
             />
 
             <HeldPanel

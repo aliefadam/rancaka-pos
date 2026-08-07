@@ -35,7 +35,6 @@ class PosController extends Controller
 
         if ($activeShift) {
             $heldTransactions = Transaction::where('tenant_id', $tenantId)
-                ->where('shift_id', $activeShift->id)
                 ->where('status', TransactionStatus::Held)
                 ->with('items')
                 ->latest()
@@ -50,6 +49,7 @@ class PosController extends Controller
 
             $shiftSummary = [
                 'transaction_count' => $transactionCount,
+                'opening_cash' => $activeShift->opening_cash,
                 'cash_sales' => $cashSales,
                 'qris_sales' => $qrisSales,
                 'total_sales' => $cashSales + $qrisSales,
