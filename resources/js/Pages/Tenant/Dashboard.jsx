@@ -161,19 +161,25 @@ export default function Dashboard() {
                                 </defs>
                                 <CartesianGrid
                                     strokeDasharray="4 6"
-                                    stroke="#e2e8f0"
+                                    stroke="var(--chart-grid)"
                                     vertical={false}
                                 />
                                 <XAxis
                                     dataKey="day"
                                     axisLine={false}
                                     tickLine={false}
-                                    tick={{ fill: "#94a3b8", fontSize: 12 }}
+                                    tick={{
+                                        fill: "var(--chart-tick)",
+                                        fontSize: 12,
+                                    }}
                                 />
                                 <YAxis
                                     axisLine={false}
                                     tickLine={false}
-                                    tick={{ fill: "#94a3b8", fontSize: 12 }}
+                                    tick={{
+                                        fill: "var(--chart-tick)",
+                                        fontSize: 12,
+                                    }}
                                     tickFormatter={formatCompact}
                                 />
                                 <Tooltip
@@ -186,9 +192,17 @@ export default function Dashboard() {
                                     ]}
                                     contentStyle={{
                                         borderRadius: 12,
-                                        borderColor: "#e2e8f0",
+                                        backgroundColor:
+                                            "var(--chart-tooltip-bg)",
+                                        borderColor:
+                                            "var(--chart-tooltip-border)",
+                                        color: "var(--chart-tooltip-text)",
                                         fontSize: 12,
                                     }}
+                                    labelStyle={{
+                                        color: "var(--chart-tooltip-text)",
+                                    }}
+                                    cursor={{ stroke: "var(--chart-grid)" }}
                                 />
                                 <Area
                                     type="monotone"

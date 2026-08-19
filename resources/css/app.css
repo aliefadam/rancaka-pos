@@ -5,10 +5,20 @@
 @layer base {
     html {
         color-scheme: light;
+        --chart-grid: #e2e8f0;
+        --chart-tick: #94a3b8;
+        --chart-tooltip-bg: #ffffff;
+        --chart-tooltip-border: #e2e8f0;
+        --chart-tooltip-text: #334155;
     }
 
     html.dark {
         color-scheme: dark;
+        --chart-grid: #334155;
+        --chart-tick: #94a3b8;
+        --chart-tooltip-bg: #0f172a;
+        --chart-tooltip-border: #475569;
+        --chart-tooltip-text: #e2e8f0;
     }
 
     html,
@@ -42,6 +52,7 @@
 }
 
 .dark .bg-white,
+.dark .bg-white\/70,
 .dark .bg-white\/80 {
     background-color: #111827 !important;
 }
@@ -59,12 +70,25 @@
     background-color: #334155 !important;
 }
 
-.dark .bg-indigo-50 {
+.dark .bg-indigo-50,
+.dark .bg-indigo-50\/60 {
     background-color: rgb(49 46 129 / 0.35) !important;
 }
 
 .dark .bg-emerald-50 {
     background-color: rgb(6 78 59 / 0.35) !important;
+}
+
+.dark .bg-emerald-100 {
+    background-color: rgb(6 78 59 / 0.52) !important;
+}
+
+.dark .bg-emerald-300 {
+    background-color: #34d399 !important;
+}
+
+.dark .bg-sky-50 {
+    background-color: rgb(12 74 110 / 0.34) !important;
 }
 
 .dark .bg-rose-50,
@@ -104,10 +128,21 @@
     color: #475569 !important;
 }
 
+.dark .text-sky-900,
+.dark .text-sky-700,
+.dark .text-sky-600 {
+    color: #7dd3fc !important;
+}
+
 .dark .border-slate-100,
 .dark .border-slate-200,
+.dark .border-slate-200\/70,
 .dark .border-slate-300 {
     border-color: #334155 !important;
+}
+
+.dark .border-sky-200 {
+    border-color: rgb(14 165 233 / 0.42) !important;
 }
 
 .dark .divide-slate-100 > :not([hidden]) ~ :not([hidden]) {
@@ -170,6 +205,20 @@
 
 .dark .hover\:bg-indigo-50\/40:hover {
     background-color: rgb(49 46 129 / 0.3) !important;
+}
+
+.dark .hover\:bg-indigo-50:hover,
+.dark .hover\:bg-indigo-100:hover {
+    background-color: rgb(49 46 129 / 0.42) !important;
+}
+
+.dark .hover\:bg-rose-50:hover,
+.dark .enabled\:hover\:bg-rose-50:enabled:hover {
+    background-color: rgb(127 29 29 / 0.36) !important;
+}
+
+.dark .focus\:bg-white:focus {
+    background-color: #0f172a !important;
 }
 
 .dark .hover\:text-slate-900:hover,

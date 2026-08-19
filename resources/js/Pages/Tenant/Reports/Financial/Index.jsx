@@ -208,7 +208,7 @@ export default function Index({
                             </defs>
                             <CartesianGrid
                                 strokeDasharray="4 6"
-                                stroke="#e2e8f0"
+                                stroke="var(--chart-grid)"
                                 vertical={false}
                             />
                             <XAxis
@@ -216,13 +216,19 @@ export default function Index({
                                 axisLine={false}
                                 tickLine={false}
                                 minTickGap={18}
-                                tick={{ fill: '#94a3b8', fontSize: 11 }}
+                                tick={{
+                                    fill: 'var(--chart-tick)',
+                                    fontSize: 11,
+                                }}
                             />
                             <YAxis
                                 axisLine={false}
                                 tickLine={false}
                                 width={58}
-                                tick={{ fill: '#94a3b8', fontSize: 11 }}
+                                tick={{
+                                    fill: 'var(--chart-tick)',
+                                    fontSize: 11,
+                                }}
                                 tickFormatter={compactCurrency}
                             />
                             <Tooltip
@@ -235,9 +241,17 @@ export default function Index({
                                 ]}
                                 contentStyle={{
                                     borderRadius: 12,
-                                    borderColor: '#e2e8f0',
+                                    backgroundColor:
+                                        'var(--chart-tooltip-bg)',
+                                    borderColor:
+                                        'var(--chart-tooltip-border)',
+                                    color: 'var(--chart-tooltip-text)',
                                     fontSize: 12,
                                 }}
+                                labelStyle={{
+                                    color: 'var(--chart-tooltip-text)',
+                                }}
+                                cursor={{ stroke: 'var(--chart-grid)' }}
                             />
                             <Legend
                                 iconType="circle"
