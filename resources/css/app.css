@@ -50,6 +50,11 @@
     background-color: #1e293b !important;
 }
 
+.dark .bg-slate-50\/60,
+.dark .bg-slate-50\/95 {
+    background-color: #0f172a !important;
+}
+
 .dark .bg-slate-200 {
     background-color: #334155 !important;
 }
@@ -158,8 +163,13 @@
 }
 
 .dark .hover\:bg-slate-50:hover,
+.dark .hover\:bg-slate-50\/60:hover,
 .dark .hover\:bg-slate-100:hover {
     background-color: #1e293b !important;
+}
+
+.dark .hover\:bg-indigo-50\/40:hover {
+    background-color: rgb(49 46 129 / 0.3) !important;
 }
 
 .dark .hover\:text-slate-900:hover,
