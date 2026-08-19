@@ -50,6 +50,7 @@ Route::middleware(['auth', 'role:owner,employee'])->prefix('tenant')->name('tena
     Route::resource('categories', TenantCategoryController::class)
         ->only(['index', 'store', 'update', 'destroy'])
         ->names('categories')
+        ->middlewareFor('index', 'permission:categories.view')
         ->middlewareFor('store', 'permission:categories.create')
         ->middlewareFor('update', 'permission:categories.edit')
         ->middlewareFor('destroy', 'permission:categories.delete');
@@ -58,6 +59,7 @@ Route::middleware(['auth', 'role:owner,employee'])->prefix('tenant')->name('tena
         ->only(['index', 'store', 'update', 'destroy'])
         ->names('raw-materials')
         ->parameters(['raw-materials' => 'rawMaterial'])
+        ->middlewareFor('index', 'permission:raw-materials.view')
         ->middlewareFor('store', 'permission:raw-materials.create')
         ->middlewareFor('update', 'permission:raw-materials.edit')
         ->middlewareFor('destroy', 'permission:raw-materials.delete');
@@ -65,6 +67,7 @@ Route::middleware(['auth', 'role:owner,employee'])->prefix('tenant')->name('tena
     Route::resource('products', TenantProductController::class)
         ->only(['index', 'store', 'update', 'destroy'])
         ->names('products')
+        ->middlewareFor('index', 'permission:products.view')
         ->middlewareFor('store', 'permission:products.create')
         ->middlewareFor('update', 'permission:products.edit')
         ->middlewareFor('destroy', 'permission:products.delete');
@@ -72,6 +75,7 @@ Route::middleware(['auth', 'role:owner,employee'])->prefix('tenant')->name('tena
     Route::resource('expenses', TenantExpenseController::class)
         ->only(['index', 'store', 'update', 'destroy'])
         ->names('expenses')
+        ->middlewareFor('index', 'permission:expenses.view')
         ->middlewareFor('store', 'permission:expenses.create')
         ->middlewareFor('update', 'permission:expenses.edit')
         ->middlewareFor('destroy', 'permission:expenses.delete');
@@ -117,14 +121,18 @@ Route::middleware(['auth', 'role:owner,employee'])->prefix('tenant')->name('tena
 
         Route::get('/shifts', [TenantShiftHistoryController::class, 'index'])->name('shifts.index');
 
-        Route::get('/transactions', [TenantTransactionHistoryController::class, 'index'])->name('transactions.index');
+        Route::get('/transactions', [TenantTransactionHistoryController::class, 'index'])
+            ->name('transactions.index')
+            ->middleware('permission:transactions.view');
         Route::patch('/transactions/{transaction}/void', [TenantTransactionHistoryController::class, 'void'])
             ->name('transactions.void')
             ->middleware('permission:transactions.delete');
     });
 
     Route::prefix('stock')->name('stock.')->group(function () {
-        Route::get('/products', [TenantProductStockController::class, 'index'])->name('products.index');
+        Route::get('/products', [TenantProductStockController::class, 'index'])
+            ->name('products.index')
+            ->middleware('permission:stock-products.view');
         Route::post('/products/in', [TenantProductStockController::class, 'storeIn'])
             ->name('products.in')
             ->middleware('permission:stock-products.create');
@@ -132,7 +140,9 @@ Route::middleware(['auth', 'role:owner,employee'])->prefix('tenant')->name('tena
             ->name('products.adjustment')
             ->middleware('permission:stock-products.edit');
 
-        Route::get('/raw-materials', [TenantRawMaterialStockController::class, 'index'])->name('raw-materials.index');
+        Route::get('/raw-materials', [TenantRawMaterialStockController::class, 'index'])
+            ->name('raw-materials.index')
+            ->middleware('permission:stock-raw-materials.view');
         Route::post('/raw-materials/in', [TenantRawMaterialStockController::class, 'storeIn'])
             ->name('raw-materials.in')
             ->middleware('permission:stock-raw-materials.create');

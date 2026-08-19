@@ -16,6 +16,7 @@ class PermissionCatalog
                 'key' => 'categories',
                 'label' => 'Kategori',
                 'actions' => [
+                    ['key' => 'view', 'label' => 'Lihat'],
                     ['key' => 'create', 'label' => 'Tambah'],
                     ['key' => 'edit', 'label' => 'Ubah'],
                     ['key' => 'delete', 'label' => 'Hapus'],
@@ -25,6 +26,7 @@ class PermissionCatalog
                 'key' => 'products',
                 'label' => 'Produk',
                 'actions' => [
+                    ['key' => 'view', 'label' => 'Lihat'],
                     ['key' => 'create', 'label' => 'Tambah'],
                     ['key' => 'edit', 'label' => 'Ubah'],
                     ['key' => 'delete', 'label' => 'Hapus'],
@@ -34,6 +36,7 @@ class PermissionCatalog
                 'key' => 'raw-materials',
                 'label' => 'Bahan Baku',
                 'actions' => [
+                    ['key' => 'view', 'label' => 'Lihat'],
                     ['key' => 'create', 'label' => 'Tambah'],
                     ['key' => 'edit', 'label' => 'Ubah'],
                     ['key' => 'delete', 'label' => 'Hapus'],
@@ -43,6 +46,7 @@ class PermissionCatalog
                 'key' => 'expenses',
                 'label' => 'Pengeluaran',
                 'actions' => [
+                    ['key' => 'view', 'label' => 'Lihat'],
                     ['key' => 'create', 'label' => 'Tambah'],
                     ['key' => 'edit', 'label' => 'Ubah'],
                     ['key' => 'delete', 'label' => 'Hapus'],
@@ -52,6 +56,7 @@ class PermissionCatalog
                 'key' => 'stock-products',
                 'label' => 'Stok Produk',
                 'actions' => [
+                    ['key' => 'view', 'label' => 'Lihat'],
                     ['key' => 'create', 'label' => 'Stok Masuk'],
                     ['key' => 'edit', 'label' => 'Penyesuaian'],
                 ],
@@ -60,6 +65,7 @@ class PermissionCatalog
                 'key' => 'stock-raw-materials',
                 'label' => 'Stok Bahan Baku',
                 'actions' => [
+                    ['key' => 'view', 'label' => 'Lihat'],
                     ['key' => 'create', 'label' => 'Stok Masuk'],
                     ['key' => 'edit', 'label' => 'Penyesuaian'],
                 ],
@@ -68,6 +74,7 @@ class PermissionCatalog
                 'key' => 'transactions',
                 'label' => 'Riwayat Transaksi',
                 'actions' => [
+                    ['key' => 'view', 'label' => 'Lihat'],
                     ['key' => 'delete', 'label' => 'Batalkan (Void)'],
                 ],
             ],

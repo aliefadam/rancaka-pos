@@ -166,7 +166,7 @@ class TransactionVoidTest extends TestCase
         $role = Role::create([
             'tenant_id' => $tenant->id,
             'name' => 'Supervisor',
-            'permissions' => ['transactions.delete'],
+            'permissions' => ['transactions.view', 'transactions.delete'],
         ]);
 
         return User::factory()->create([

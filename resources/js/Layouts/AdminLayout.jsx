@@ -51,6 +51,7 @@ const navigationByRole = {
                     name: "Pengeluaran",
                     href: "tenant.expenses.index",
                     icon: "fi-rr-money-bill-wave",
+                    permission: "expenses.view",
                 },
             ],
         },
@@ -61,16 +62,19 @@ const navigationByRole = {
                     name: "Kategori",
                     href: "tenant.categories.index",
                     icon: "fi-rr-tags",
+                    permission: "categories.view",
                 },
                 {
                     name: "Produk",
                     href: "tenant.products.index",
                     icon: "fi-rr-shopping-bag",
+                    permission: "products.view",
                 },
                 {
                     name: "Bahan Baku",
                     href: "tenant.raw-materials.index",
                     icon: "fi-rr-box-open",
+                    permission: "raw-materials.view",
                 },
             ],
         },
@@ -81,11 +85,13 @@ const navigationByRole = {
                     name: "Stok Produk",
                     href: "tenant.stock.products.index",
                     icon: "fi-rr-box-open",
+                    permission: "stock-products.view",
                 },
                 {
                     name: "Stok Bahan Baku",
                     href: "tenant.stock.raw-materials.index",
                     icon: "fi-rr-boxes",
+                    permission: "stock-raw-materials.view",
                 },
             ],
         },
@@ -101,6 +107,7 @@ const navigationByRole = {
                     name: "Riwayat Transaksi",
                     href: "tenant.reports.transactions.index",
                     icon: "fi-rr-receipt",
+                    permission: "transactions.view",
                 },
                 {
                     name: "Riwayat Shift",
@@ -158,6 +165,7 @@ const navigationByRole = {
                     name: "Pengeluaran",
                     href: "tenant.expenses.index",
                     icon: "fi-rr-money-bill-wave",
+                    permission: "expenses.view",
                 },
             ],
         },
@@ -168,16 +176,19 @@ const navigationByRole = {
                     name: "Kategori",
                     href: "tenant.categories.index",
                     icon: "fi-rr-tags",
+                    permission: "categories.view",
                 },
                 {
                     name: "Produk",
                     href: "tenant.products.index",
                     icon: "fi-rr-shopping-bag",
+                    permission: "products.view",
                 },
                 {
                     name: "Bahan Baku",
                     href: "tenant.raw-materials.index",
                     icon: "fi-rr-box-open",
+                    permission: "raw-materials.view",
                 },
             ],
         },
@@ -188,11 +199,13 @@ const navigationByRole = {
                     name: "Stok Produk",
                     href: "tenant.stock.products.index",
                     icon: "fi-rr-box-open",
+                    permission: "stock-products.view",
                 },
                 {
                     name: "Stok Bahan Baku",
                     href: "tenant.stock.raw-materials.index",
                     icon: "fi-rr-boxes",
+                    permission: "stock-raw-materials.view",
                 },
             ],
         },
@@ -208,6 +221,7 @@ const navigationByRole = {
                     name: "Riwayat Transaksi",
                     href: "tenant.reports.transactions.index",
                     icon: "fi-rr-receipt",
+                    permission: "transactions.view",
                 },
                 {
                     name: "Riwayat Shift",
@@ -274,7 +288,23 @@ export default function AdminLayout({ header, children }) {
     const page = usePage();
     const { auth, flash } = page.props;
     const user = auth.user;
-    const navigation = navigationByRole[user.role] ?? [];
+    const navigation = useMemo(() => {
+        const sections = navigationByRole[user.role] ?? [];
+
+        if (user.role !== "employee") return sections;
+
+        const permissions = auth.permissions ?? [];
+
+        return sections
+            .map((section) => ({
+                ...section,
+                items: section.items.filter(
+                    (item) =>
+                        !item.permission || permissions.includes(item.permission),
+                ),
+            }))
+            .filter((section) => section.items.length > 0);
+    }, [auth.permissions, user.role]);
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const [desktopSidebarOpen, setDesktopSidebarOpen] = useState(true);
     const [searchQuery, setSearchQuery] = useState("");
