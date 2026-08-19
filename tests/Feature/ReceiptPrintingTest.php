@@ -28,6 +28,7 @@ class ReceiptPrintingTest extends TestCase
             ->assertInertia(fn (Assert $page) => $page
                 ->component('Tenant/Receipts/Show')
                 ->where('sale.invoice_number', 'TRX-PRINT-001')
+                ->where('sale.discount_total', 2000)
                 ->where('store.receipt_size', '80mm')
                 ->where('sale.items.0.product_name', 'Kopi Susu'));
     }
@@ -64,6 +65,7 @@ class ReceiptPrintingTest extends TestCase
             ->assertJsonPath('store.name', 'Kedai Rancaka')
             ->assertJsonPath('store.receipt_size', '80mm')
             ->assertJsonPath('sale.invoice_number', 'TRX-PRINT-001')
+            ->assertJsonPath('sale.discount_total', 2000)
             ->assertJsonPath('sale.payment.method', 'cash')
             ->assertJsonPath('sale.items.0.name', 'Kopi Susu');
     }
@@ -94,12 +96,15 @@ class ReceiptPrintingTest extends TestCase
             'status' => TransactionStatus::Completed,
             'payment_method' => PaymentMethod::Cash,
             'subtotal' => 20000,
-            'tax_amount' => 2000,
-            'service_charge_amount' => 1000,
+            'discount_type' => 'percentage',
+            'discount_value' => 10,
+            'discount_amount' => 2000,
+            'tax_amount' => 1800,
+            'service_charge_amount' => 900,
             'additional_fee' => 0,
-            'total' => 23000,
+            'total' => 20700,
             'amount_received' => 50000,
-            'change_amount' => 27000,
+            'change_amount' => 29300,
         ]);
         $transaction->items()->create([
             'product_name' => 'Kopi Susu',

@@ -79,6 +79,57 @@ class StockSynchronizationTest extends TestCase
         $this->assertDatabaseCount('stock_movements', 0);
     }
 
+    public function test_checkout_applies_percentage_discount_before_tax_and_service_charge(): void
+    {
+        [$user, $category] = $this->inventory();
+        $user->tenant->update([
+            'tax_percentage' => 10,
+            'service_charge_percentage' => 5,
+        ]);
+        $product = $this->product($category, 'Kopi Hitam', 5);
+        $payload = $this->payload([
+            ['product_id' => $product->id, 'quantity' => 2],
+        ]);
+        $payload['discount_type'] = 'percentage';
+        $payload['discount_value'] = 10;
+        $payload['additional_fee'] = 500;
+
+        $this->actingAs($user)
+            ->post(route('tenant.pos.checkout'), $payload)
+            ->assertRedirect(route('tenant.pos.index'));
+
+        $this->assertDatabaseHas('transactions', [
+            'subtotal' => 30000,
+            'discount_type' => 'percentage',
+            'discount_value' => 10,
+            'discount_amount' => 3000,
+            'tax_amount' => 2700,
+            'service_charge_amount' => 1350,
+            'additional_fee' => 500,
+            'total' => 31550,
+            'amount_received' => 100000,
+            'change_amount' => 68450,
+        ]);
+    }
+
+    public function test_checkout_rejects_discount_greater_than_subtotal(): void
+    {
+        [$user, $category] = $this->inventory();
+        $product = $this->product($category, 'Kopi Hitam', 5);
+        $payload = $this->payload([
+            ['product_id' => $product->id, 'quantity' => 1],
+        ]);
+        $payload['discount_type'] = 'fixed';
+        $payload['discount_value'] = 15001;
+
+        $this->actingAs($user)
+            ->post(route('tenant.pos.checkout'), $payload)
+            ->assertSessionHasErrors('discount_value');
+
+        $this->assertDatabaseCount('transactions', 0);
+        $this->assertSame(5, $product->fresh()->stock);
+    }
+
     public function test_pos_availability_uses_the_most_limited_stock_source(): void
     {
         [$user, $category, $rawMaterial] = $this->inventory(rawMaterialStock: 5);

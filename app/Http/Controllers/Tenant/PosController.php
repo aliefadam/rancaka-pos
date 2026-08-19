@@ -171,6 +171,8 @@ class PosController extends Controller
             'items.*.quantity' => ['required', 'integer', 'min:1'],
             'items.*.note' => ['nullable', 'string', 'max:255'],
             'payment_method' => ['required', Rule::in(['cash', 'qris'])],
+            'discount_type' => ['nullable', Rule::in(['fixed', 'percentage'])],
+            'discount_value' => ['nullable', 'integer', 'min:0'],
             'additional_fee' => ['nullable', 'integer', 'min:0'],
             'amount_received' => ['nullable', 'integer', 'min:0'],
         ]);
@@ -259,11 +261,39 @@ class PosController extends Controller
             }
 
             $tenant = $request->user()->tenant;
-            $taxAmount = (int) round($subtotal * ((float) $tenant->tax_percentage / 100));
-            $serviceChargeAmount = (int) round($subtotal * ((float) $tenant->service_charge_percentage / 100));
+            $discountType = $data['discount_type'] ?? null;
+            $discountValue = (int) ($data['discount_value'] ?? 0);
+
+            if ($discountValue > 0 && $discountType === null) {
+                throw ValidationException::withMessages([
+                    'discount_type' => 'Jenis diskon wajib dipilih.',
+                ]);
+            }
+
+            if ($discountType === 'percentage' && $discountValue > 100) {
+                throw ValidationException::withMessages([
+                    'discount_value' => 'Diskon persentase maksimal 100%.',
+                ]);
+            }
+
+            $discountAmount = match ($discountType) {
+                'percentage' => (int) round($subtotal * ($discountValue / 100)),
+                'fixed' => $discountValue,
+                default => 0,
+            };
+
+            if ($discountAmount > $subtotal) {
+                throw ValidationException::withMessages([
+                    'discount_value' => 'Diskon tidak boleh melebihi subtotal.',
+                ]);
+            }
+
+            $netSubtotal = $subtotal - $discountAmount;
+            $taxAmount = (int) round($netSubtotal * ((float) $tenant->tax_percentage / 100));
+            $serviceChargeAmount = (int) round($netSubtotal * ((float) $tenant->service_charge_percentage / 100));
 
             $additionalFee = $data['additional_fee'] ?? 0;
-            $total = $subtotal + $taxAmount + $serviceChargeAmount + $additionalFee;
+            $total = $netSubtotal + $taxAmount + $serviceChargeAmount + $additionalFee;
             $amountReceived = $data['amount_received'] ?? null;
             $isCashPayment = $data['payment_method'] === PaymentMethod::Cash->value;
 
@@ -301,6 +331,9 @@ class PosController extends Controller
                 'status' => $status,
                 'payment_method' => $data['payment_method'],
                 'subtotal' => $subtotal,
+                'discount_type' => $discountAmount > 0 ? $discountType : null,
+                'discount_value' => $discountAmount > 0 ? $discountValue : 0,
+                'discount_amount' => $discountAmount,
                 'tax_amount' => $taxAmount,
                 'service_charge_amount' => $serviceChargeAmount,
                 'additional_fee' => $additionalFee,

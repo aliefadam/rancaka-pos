@@ -51,8 +51,10 @@ function restoreCartDraft(activeShift, products) {
 
         return {
             items,
-            paymentMethod:
-                saved.paymentMethod === 'qris' ? 'qris' : 'cash',
+            paymentMethod: saved.paymentMethod === 'qris' ? 'qris' : 'cash',
+            discountType:
+                saved.discountType === 'percentage' ? 'percentage' : 'fixed',
+            discountValue: String(saved.discountValue ?? ''),
             additionalFee: String(saved.additionalFee ?? ''),
             amountReceived: String(saved.amountReceived ?? ''),
         };
@@ -171,6 +173,12 @@ export default function Index({
     const [paymentMethod, setPaymentMethod] = useState(
         () => restoredDraft?.paymentMethod ?? 'cash',
     );
+    const [discountType, setDiscountType] = useState(
+        () => restoredDraft?.discountType ?? 'fixed',
+    );
+    const [discountValue, setDiscountValue] = useState(
+        () => restoredDraft?.discountValue ?? '',
+    );
     const [additionalFee, setAdditionalFee] = useState(
         () => restoredDraft?.additionalFee ?? '',
     );
@@ -250,6 +258,8 @@ export default function Index({
                 JSON.stringify({
                     items: cart,
                     paymentMethod,
+                    discountType,
+                    discountValue,
                     additionalFee,
                     amountReceived,
                 }),
@@ -262,6 +272,8 @@ export default function Index({
         additionalFee,
         amountReceived,
         cart,
+        discountType,
+        discountValue,
         paymentMethod,
     ]);
 
@@ -282,27 +294,78 @@ export default function Index({
         (sum, item) => sum + item.price * item.quantity,
         0,
     );
+    const numericDiscountValue = Math.max(
+        Math.trunc(Number(discountValue) || 0),
+        0,
+    );
+    const discountAmount = Math.min(
+        discountType === 'percentage'
+            ? Math.round(
+                  subtotal * (Math.min(numericDiscountValue, 100) / 100),
+              )
+            : numericDiscountValue,
+        subtotal,
+    );
+    const netSubtotal = subtotal - discountAmount;
     const taxAmount = Math.round(
-        subtotal * (storeSettings.tax_percentage / 100),
+        netSubtotal * (storeSettings.tax_percentage / 100),
     );
     const serviceChargeAmount = Math.round(
-        subtotal * (storeSettings.service_charge_percentage / 100),
+        netSubtotal * (storeSettings.service_charge_percentage / 100),
     );
     const total =
-        subtotal + taxAmount + serviceChargeAmount + Number(additionalFee || 0);
+        netSubtotal +
+        taxAmount +
+        serviceChargeAmount +
+        Number(additionalFee || 0);
+
+    const changeDiscountType = (type) => {
+        setDiscountType(type);
+        setDiscountValue('');
+    };
+
+    const changeDiscountValue = (value) => {
+        if (value === '') {
+            setDiscountValue('');
+            return;
+        }
+
+        const maximum = discountType === 'percentage' ? 100 : subtotal;
+        const normalized = Math.min(
+            Math.max(Math.trunc(Number(value) || 0), 0),
+            maximum,
+        );
+
+        setDiscountValue(String(normalized));
+    };
+
+    useEffect(() => {
+        if (discountValue === '') return;
+
+        const maximum = discountType === 'percentage' ? 100 : subtotal;
+
+        const normalized = Math.min(
+            Math.max(Math.trunc(Number(discountValue) || 0), 0),
+            maximum,
+        );
+
+        if (String(normalized) !== discountValue) {
+            setDiscountValue(String(normalized));
+        }
+    }, [discountType, discountValue, subtotal]);
 
     const clearCart = () => {
         if (activeShift && typeof window !== 'undefined') {
             try {
-                window.localStorage.removeItem(
-                    cartStorageKey(activeShift.id),
-                );
+                window.localStorage.removeItem(cartStorageKey(activeShift.id));
             } catch {
                 // Abaikan jika penyimpanan browser tidak tersedia.
             }
         }
 
         setCart([]);
+        setDiscountType('fixed');
+        setDiscountValue('');
         setAdditionalFee('');
         setAmountReceived('');
     };
@@ -370,9 +433,7 @@ export default function Index({
     };
 
     const removeItem = (productId) => {
-        setCart((current) =>
-            current.filter((i) => i.product_id !== productId),
-        );
+        setCart((current) => current.filter((i) => i.product_id !== productId));
     };
 
     const updateNote = (productId, note) => {
@@ -390,6 +451,8 @@ export default function Index({
             note: i.note || null,
         })),
         payment_method: paymentMethod,
+        discount_type: discountValue === '' ? null : discountType,
+        discount_value: Number(discountValue || 0),
         additional_fee: Number(additionalFee || 0),
         amount_received:
             paymentMethod === 'cash' && amountReceived !== ''
@@ -407,7 +470,12 @@ export default function Index({
                 toast.success('Transaksi ditahan.');
             },
             onError: (errors) =>
-                toast.error(errors.items ?? 'Gagal menahan transaksi.'),
+                toast.error(
+                    errors.items ??
+                        errors.discount_type ??
+                        errors.discount_value ??
+                        'Gagal menahan transaksi.',
+                ),
             onFinish: () => setProcessing(false),
         });
     };
@@ -425,6 +493,8 @@ export default function Index({
                 toast.error(
                     errors.items ??
                         errors.stock ??
+                        errors.discount_type ??
+                        errors.discount_value ??
                         errors.amount_received ??
                         'Gagal memproses pembayaran.',
                 ),
@@ -448,6 +518,19 @@ export default function Index({
         });
 
         setCart(items);
+        setPaymentMethod(held.payment_method ?? 'cash');
+        setDiscountType(held.discount_type ?? 'fixed');
+        setDiscountValue(
+            Number(held.discount_value || 0) > 0
+                ? String(held.discount_value)
+                : '',
+        );
+        setAdditionalFee(
+            Number(held.additional_fee || 0) > 0
+                ? String(held.additional_fee)
+                : '',
+        );
+        setAmountReceived('');
         setHeldPanelOpen(false);
         router.delete(route('tenant.pos.held.destroy', held.id), {
             preserveScroll: true,
@@ -556,6 +639,11 @@ export default function Index({
         onNoteChange: updateNote,
         paymentMethod,
         onPaymentMethodChange: setPaymentMethod,
+        discountType,
+        onDiscountTypeChange: changeDiscountType,
+        discountValue,
+        onDiscountValueChange: changeDiscountValue,
+        discountAmount,
         additionalFee,
         onAdditionalFeeChange: setAdditionalFee,
         amountReceived,
@@ -642,7 +730,12 @@ export default function Index({
                                         {flash?.receipt_url && (
                                             <button
                                                 type="button"
-                                                onClick={() => window.open(flash.receipt_url, '_blank')}
+                                                onClick={() =>
+                                                    window.open(
+                                                        flash.receipt_url,
+                                                        '_blank',
+                                                    )
+                                                }
                                                 className="flex w-full items-center justify-center gap-2 rounded-xl bg-indigo-600 py-3 text-sm font-semibold text-white transition hover:bg-indigo-700"
                                             >
                                                 <i className="fi fi-rr-receipt" />
@@ -652,7 +745,9 @@ export default function Index({
 
                                         <button
                                             type="button"
-                                            onClick={() => setShowSuccessModal(false)}
+                                            onClick={() =>
+                                                setShowSuccessModal(false)
+                                            }
                                             className="w-full rounded-xl border border-slate-200 py-2.5 text-sm font-medium text-slate-600 transition hover:bg-slate-50"
                                         >
                                             Tutup

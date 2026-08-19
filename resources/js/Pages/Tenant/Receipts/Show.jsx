@@ -3,7 +3,11 @@ import { useRef, useState } from 'react';
 
 const money = (value) => `Rp ${Number(value || 0).toLocaleString('id-ID')}`;
 
-export default function Show({ store, sale, bridge_receipt_url: bridgeReceiptUrl }) {
+export default function Show({
+    store,
+    sale,
+    bridge_receipt_url: bridgeReceiptUrl,
+}) {
     const is80mm = store.receipt_size === '80mm';
     const widthClass = is80mm ? 'max-w-[320px]' : 'max-w-[230px]';
     const receiptRef = useRef(null);
@@ -12,7 +16,9 @@ export default function Show({ store, sale, bridge_receipt_url: bridgeReceiptUrl
 
     const openRancakaPrint = () => {
         if (!bridgeReceiptUrl) {
-            setActionMessage('Link cetak ulang belum tersedia. Muat ulang halaman lalu coba lagi.');
+            setActionMessage(
+                'Link cetak ulang belum tersedia. Muat ulang halaman lalu coba lagi.',
+            );
             return;
         }
 
@@ -46,14 +52,19 @@ export default function Show({ store, sale, bridge_receipt_url: bridgeReceiptUrl
         try {
             const canvas = await captureReceipt();
             const link = document.createElement('a');
-            const safeInvoice = sale.invoice_number.replace(/[^a-z0-9_-]+/gi, '-');
+            const safeInvoice = sale.invoice_number.replace(
+                /[^a-z0-9_-]+/gi,
+                '-',
+            );
             link.download = `struk-${safeInvoice}.jpg`;
             link.href = canvas.toDataURL('image/jpeg', 0.95);
             link.click();
             setActionMessage('Struk JPG berhasil diunduh.');
         } catch (error) {
             console.error('Gagal membuat JPG struk.', error);
-            setActionMessage('Struk JPG gagal dibuat. Coba muat ulang halaman.');
+            setActionMessage(
+                'Struk JPG gagal dibuat. Coba muat ulang halaman.',
+            );
         } finally {
             setDownloadingFormat('');
         }
@@ -74,7 +85,10 @@ export default function Show({ store, sale, bridge_receipt_url: bridgeReceiptUrl
             const paperWidth = is80mm ? 80 : 58;
             const margin = 2;
             const imageWidth = paperWidth - margin * 2;
-            const imageHeight = Math.max((bounds.height / bounds.width) * imageWidth, 20);
+            const imageHeight = Math.max(
+                (bounds.height / bounds.width) * imageWidth,
+                20,
+            );
             const pdf = new jsPDF({
                 orientation: 'portrait',
                 unit: 'mm',
@@ -92,11 +106,15 @@ export default function Show({ store, sale, bridge_receipt_url: bridgeReceiptUrl
                 undefined,
                 'FAST',
             );
-            pdf.save(`struk-${sale.invoice_number.replace(/[^a-z0-9_-]+/gi, '-')}.pdf`);
+            pdf.save(
+                `struk-${sale.invoice_number.replace(/[^a-z0-9_-]+/gi, '-')}.pdf`,
+            );
             setActionMessage('Struk PDF berhasil diunduh.');
         } catch (error) {
             console.error('Gagal membuat PDF struk.', error);
-            setActionMessage('Struk PDF gagal dibuat. Coba muat ulang halaman.');
+            setActionMessage(
+                'Struk PDF gagal dibuat. Coba muat ulang halaman.',
+            );
         } finally {
             setDownloadingFormat('');
         }
@@ -123,7 +141,9 @@ export default function Show({ store, sale, bridge_receipt_url: bridgeReceiptUrl
                             disabled={Boolean(downloadingFormat)}
                             className="inline-flex min-h-10 items-center justify-center gap-1.5 rounded-xl border border-indigo-200 bg-indigo-50 px-3 py-2 text-xs font-bold text-indigo-700 transition hover:bg-indigo-100 disabled:cursor-wait disabled:opacity-60 sm:text-sm"
                         >
-                            <i className={`fi ${downloadingFormat === 'pdf' ? 'fi-rr-spinner animate-spin' : 'fi-rr-file-pdf'}`} />
+                            <i
+                                className={`fi ${downloadingFormat === 'pdf' ? 'fi-rr-spinner animate-spin' : 'fi-rr-file-pdf'}`}
+                            />
                             {downloadingFormat === 'pdf' ? 'Membuat...' : 'PDF'}
                         </button>
                         <button
@@ -132,7 +152,9 @@ export default function Show({ store, sale, bridge_receipt_url: bridgeReceiptUrl
                             disabled={Boolean(downloadingFormat)}
                             className="inline-flex min-h-10 items-center justify-center gap-1.5 rounded-xl border border-slate-300 bg-white px-3 py-2 text-xs font-bold text-slate-700 transition hover:bg-slate-50 disabled:cursor-wait disabled:opacity-60 sm:text-sm"
                         >
-                            <i className={`fi ${downloadingFormat === 'jpg' ? 'fi-rr-spinner animate-spin' : 'fi-rr-download'}`} />
+                            <i
+                                className={`fi ${downloadingFormat === 'jpg' ? 'fi-rr-spinner animate-spin' : 'fi-rr-download'}`}
+                            />
                             {downloadingFormat === 'jpg' ? 'Membuat...' : 'JPG'}
                         </button>
                         <button
@@ -185,32 +207,84 @@ export default function Show({ store, sale, bridge_receipt_url: bridgeReceiptUrl
 
                     {sale.is_void && (
                         <div className="border-b border-dashed border-black py-3 text-center">
-                            <div className="text-sm font-bold uppercase">TRANSAKSI VOID</div>
+                            <div className="text-sm font-bold uppercase">
+                                TRANSAKSI VOID
+                            </div>
                         </div>
                     )}
 
                     <div className="space-y-2 border-b border-dashed border-black py-3">
                         {sale.items.map((item, index) => (
                             <div key={`${item.product_name}-${index}`}>
-                                <div className="font-semibold">{item.product_name}</div>
+                                <div className="font-semibold">
+                                    {item.product_name}
+                                </div>
                                 <div className="flex justify-between gap-2">
-                                    <span>{item.quantity} x {money(item.unit_price)}</span>
+                                    <span>
+                                        {item.quantity} x{' '}
+                                        {money(item.unit_price)}
+                                    </span>
                                     <span>{money(item.line_total)}</span>
                                 </div>
-                                {item.note && <div className="text-[11px]">Catatan: {item.note}</div>}
+                                {item.note && (
+                                    <div className="text-[11px]">
+                                        Catatan: {item.note}
+                                    </div>
+                                )}
                             </div>
                         ))}
                     </div>
 
                     <div className="space-y-1 border-b border-dashed border-black py-3">
-                        <div className="flex justify-between"><span>Subtotal</span><span>{money(sale.subtotal)}</span></div>
-                        {sale.tax_total > 0 && <div className="flex justify-between"><span>Pajak</span><span>{money(sale.tax_total)}</span></div>}
-                        {sale.service_charge_total > 0 && <div className="flex justify-between"><span>Biaya layanan</span><span>{money(sale.service_charge_total)}</span></div>}
-                        {sale.additional_fee > 0 && <div className="flex justify-between"><span>Biaya tambahan</span><span>{money(sale.additional_fee)}</span></div>}
-                        <div className="flex justify-between font-bold"><span>Total</span><span>{money(sale.grand_total)}</span></div>
-                        <div className="flex justify-between"><span>Bayar</span><span>{money(sale.payment?.paid_amount)}</span></div>
-                        <div className="flex justify-between"><span>Kembalian</span><span>{money(sale.payment?.change_amount)}</span></div>
-                        <div className="flex justify-between uppercase"><span>Metode</span><span>{sale.payment?.method || '-'}</span></div>
+                        <div className="flex justify-between">
+                            <span>Subtotal</span>
+                            <span>{money(sale.subtotal)}</span>
+                        </div>
+                        {sale.discount_total > 0 && (
+                            <div className="flex justify-between">
+                                <span>
+                                    Diskon
+                                    {sale.discount_type === 'percentage'
+                                        ? ` (${sale.discount_value}%)`
+                                        : ''}
+                                </span>
+                                <span>-{money(sale.discount_total)}</span>
+                            </div>
+                        )}
+                        {sale.tax_total > 0 && (
+                            <div className="flex justify-between">
+                                <span>Pajak</span>
+                                <span>{money(sale.tax_total)}</span>
+                            </div>
+                        )}
+                        {sale.service_charge_total > 0 && (
+                            <div className="flex justify-between">
+                                <span>Biaya layanan</span>
+                                <span>{money(sale.service_charge_total)}</span>
+                            </div>
+                        )}
+                        {sale.additional_fee > 0 && (
+                            <div className="flex justify-between">
+                                <span>Biaya tambahan</span>
+                                <span>{money(sale.additional_fee)}</span>
+                            </div>
+                        )}
+                        <div className="flex justify-between font-bold">
+                            <span>Total</span>
+                            <span>{money(sale.grand_total)}</span>
+                        </div>
+                        <div className="flex justify-between">
+                            <span>Bayar</span>
+                            <span>{money(sale.payment?.paid_amount)}</span>
+                        </div>
+                        <div className="flex justify-between">
+                            <span>Kembalian</span>
+                            <span>{money(sale.payment?.change_amount)}</span>
+                        </div>
+                        <div className="flex justify-between uppercase">
+                            <span>Metode</span>
+                            <span>{sale.payment?.method || '-'}</span>
+                        </div>
                     </div>
 
                     <div className="pt-3 text-center">

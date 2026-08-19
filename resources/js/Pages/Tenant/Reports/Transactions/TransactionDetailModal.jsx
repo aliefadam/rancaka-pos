@@ -121,6 +121,19 @@ export default function TransactionDetailModal({
                         <span>Subtotal</span>
                         <span>{formatRupiah(transaction.subtotal)}</span>
                     </div>
+                    {transaction.discount_amount > 0 && (
+                        <div className="flex items-center justify-between font-medium text-emerald-600">
+                            <span>
+                                Diskon
+                                {transaction.discount_type === 'percentage'
+                                    ? ` (${transaction.discount_value}%)`
+                                    : ''}
+                            </span>
+                            <span>
+                                -{formatRupiah(transaction.discount_amount)}
+                            </span>
+                        </div>
+                    )}
                     {transaction.tax_amount > 0 && (
                         <div className="flex items-center justify-between text-slate-500">
                             <span>Pajak</span>
