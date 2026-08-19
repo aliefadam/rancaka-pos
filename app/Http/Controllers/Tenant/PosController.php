@@ -32,30 +32,41 @@ class PosController extends Controller
             ->first();
 
         $heldTransactions = [];
+        $heldTransactionCount = 0;
         $shiftSummary = null;
 
         if ($activeShift) {
+            $heldTransactionCount = Transaction::where('tenant_id', $tenantId)
+                ->where('status', TransactionStatus::Held)
+                ->count();
+
             $heldTransactions = Transaction::where('tenant_id', $tenantId)
                 ->where('status', TransactionStatus::Held)
+                ->when(
+                    $request->user()->hasRestrictedCashierAccess(),
+                    fn ($query) => $query->where('user_id', $request->user()->id),
+                )
                 ->with('items')
                 ->latest()
                 ->get();
 
-            $completed = Transaction::where('shift_id', $activeShift->id)
-                ->where('status', TransactionStatus::Completed);
+            if ($request->user()->hasPermission('financial-reports.view')) {
+                $completed = Transaction::where('shift_id', $activeShift->id)
+                    ->where('status', TransactionStatus::Completed);
 
-            $transactionCount = (clone $completed)->count();
-            $cashSales = (int) (clone $completed)->where('payment_method', PaymentMethod::Cash)->sum('total');
-            $qrisSales = (int) (clone $completed)->where('payment_method', PaymentMethod::Qris)->sum('total');
+                $transactionCount = (clone $completed)->count();
+                $cashSales = (int) (clone $completed)->where('payment_method', PaymentMethod::Cash)->sum('total');
+                $qrisSales = (int) (clone $completed)->where('payment_method', PaymentMethod::Qris)->sum('total');
 
-            $shiftSummary = [
-                'transaction_count' => $transactionCount,
-                'opening_cash' => $activeShift->opening_cash,
-                'cash_sales' => $cashSales,
-                'qris_sales' => $qrisSales,
-                'total_sales' => $cashSales + $qrisSales,
-                'expected_cash' => $activeShift->opening_cash + $cashSales,
-            ];
+                $shiftSummary = [
+                    'transaction_count' => $transactionCount,
+                    'opening_cash' => $activeShift->opening_cash,
+                    'cash_sales' => $cashSales,
+                    'qris_sales' => $qrisSales,
+                    'total_sales' => $cashSales + $qrisSales,
+                    'expected_cash' => $activeShift->opening_cash + $cashSales,
+                ];
+            }
         }
 
         $tenant = $request->user()->tenant;
@@ -90,6 +101,7 @@ class PosController extends Controller
             'products' => $products,
             'categories' => $tenant->categories()->where('is_active', true)->orderBy('name')->get(['id', 'name', 'icon']),
             'heldTransactions' => $heldTransactions,
+            'heldTransactionCount' => $heldTransactionCount,
             'shiftSummary' => $shiftSummary,
             'storeSettings' => [
                 'name' => $tenant->name,

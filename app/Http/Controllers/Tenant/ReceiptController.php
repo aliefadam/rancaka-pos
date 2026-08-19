@@ -16,6 +16,16 @@ class ReceiptController extends Controller
     {
         abort_unless($transaction->tenant_id === $request->user()->tenant_id, 403);
 
+        if ($request->user()->isEmployee()
+            && ($request->user()->hasRestrictedCashierAccess()
+                || ! $request->user()->hasPermission('transactions.view'))) {
+            abort_unless(
+                $transaction->user_id === $request->user()->id
+                    && $transaction->created_at?->isToday(),
+                403,
+            );
+        }
+
         $transaction->load(['items', 'user:id,name']);
         $tenant = $request->user()->tenant;
 

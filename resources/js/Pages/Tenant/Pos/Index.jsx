@@ -154,6 +154,7 @@ export default function Index({
     products,
     categories,
     heldTransactions,
+    heldTransactionCount,
     shiftSummary,
     storeSettings,
 }) {
@@ -848,7 +849,7 @@ export default function Index({
                 show={closeShiftOpen}
                 onClose={() => setCloseShiftOpen(false)}
                 summary={shiftSummary}
-                heldCount={heldTransactions.length}
+                heldCount={heldTransactionCount}
             />
 
             <HeldPanel

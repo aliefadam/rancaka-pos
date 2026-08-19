@@ -52,6 +52,7 @@ function StatusBadge({ open }) {
 
 export default function Index({ shifts, filters }) {
     const [search, setSearch] = useState(filters.search ?? '');
+    const [date, setDate] = useState(filters.date ?? '');
     const [status, setStatus] = useState(filters.status ?? '');
     const isFirstRun = useRef(true);
 
@@ -66,6 +67,7 @@ export default function Index({ shifts, filters }) {
                 route('tenant.reports.shifts.index'),
                 {
                     ...(search ? { search } : {}),
+                    ...(date ? { date } : {}),
                     ...(status ? { status } : {}),
                 },
                 {
@@ -79,7 +81,7 @@ export default function Index({ shifts, filters }) {
 
         return () => clearTimeout(timeout);
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [search, status]);
+    }, [search, date, status]);
 
     return (
         <AdminLayout header="Riwayat Shift">
@@ -108,6 +110,19 @@ export default function Index({ shifts, filters }) {
                             onChange={(e) => setSearch(e.target.value)}
                             placeholder="Cari nama kasir..."
                             className="w-full rounded-lg border border-slate-200 py-2.5 pl-10 pr-3 text-sm text-slate-900 placeholder-slate-400 focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-100"
+                        />
+                    </div>
+
+                    <div className="relative w-full sm:w-48">
+                        <span className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3.5 text-slate-400">
+                            <i className="fi fi-rr-calendar" />
+                        </span>
+                        <input
+                            type="date"
+                            value={date}
+                            onChange={(e) => setDate(e.target.value)}
+                            aria-label="Filter tanggal buka shift"
+                            className="w-full rounded-lg border border-slate-200 py-2.5 pl-10 pr-3 text-sm text-slate-900 focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-100"
                         />
                     </div>
 

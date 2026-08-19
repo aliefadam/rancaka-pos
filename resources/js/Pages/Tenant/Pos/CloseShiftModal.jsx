@@ -34,10 +34,14 @@ export default function CloseShiftModal({ show, onClose, summary, heldCount = 0 
         });
     };
 
+    const hasFinancialSummary = Boolean(summary);
     const expectedCash = Number(summary?.expected_cash ?? 0);
     const closingCash = data.closing_cash === '' ? null : Number(data.closing_cash);
-    const difference = closingCash === null ? null : closingCash - expectedCash;
-    const isCashMatched = difference === 0;
+    const difference =
+        closingCash === null || !hasFinancialSummary
+            ? null
+            : closingCash - expectedCash;
+    const isCashMatched = !hasFinancialSummary || difference === 0;
 
     return (
         <Modal show={show} onClose={onClose} maxWidth="lg">
@@ -117,6 +121,20 @@ export default function CloseShiftModal({ show, onClose, summary, heldCount = 0 
                             </div>
                         )}
 
+                        {!hasFinancialSummary && (
+                            <div className="rounded-xl border border-sky-200 bg-sky-50 p-4 text-sm text-sky-900">
+                                <div className="flex items-start gap-3">
+                                    <i className="fi fi-rr-shield-check mt-0.5 text-sky-600" />
+                                    <div>
+                                        <p className="font-semibold">Penutupan kas terbatas</p>
+                                        <p className="mt-1 text-xs leading-5 text-sky-700">
+                                            Ringkasan omzet disembunyikan. Masukkan hasil hitung uang fisik di laci.
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
                         <div>
                             <label
                                 htmlFor="closing_cash"
@@ -189,7 +207,12 @@ export default function CloseShiftModal({ show, onClose, summary, heldCount = 0 
                     </button>
                     <button
                         type="submit"
-                        disabled={processing || heldCount > 0 || !isCashMatched}
+                            disabled={
+                                processing ||
+                                heldCount > 0 ||
+                                closingCash === null ||
+                                !isCashMatched
+                            }
                         className="flex items-center gap-2 rounded-lg bg-rose-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-rose-700 disabled:cursor-not-allowed disabled:opacity-70"
                     >
                         {processing && (
@@ -197,7 +220,7 @@ export default function CloseShiftModal({ show, onClose, summary, heldCount = 0 
                         )}
                         {heldCount > 0
                             ? 'Selesaikan Transaksi Ditahan'
-                            : !isCashMatched
+                            : hasFinancialSummary && !isCashMatched
                               ? 'Cocokkan Saldo Kas'
                               : 'Tutup Shift'}
                     </button>

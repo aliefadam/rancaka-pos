@@ -26,6 +26,7 @@ class PermissionViewAccessTest extends TestCase
     public function test_every_configurable_menu_page_is_protected_by_its_view_permission(): void
     {
         $routes = [
+            'tenant.dashboard' => 'dashboard.view',
             'tenant.categories.index' => 'categories.view',
             'tenant.products.index' => 'products.view',
             'tenant.raw-materials.index' => 'raw-materials.view',
@@ -33,6 +34,8 @@ class PermissionViewAccessTest extends TestCase
             'tenant.stock.products.index' => 'stock-products.view',
             'tenant.stock.raw-materials.index' => 'stock-raw-materials.view',
             'tenant.reports.transactions.index' => 'transactions.view',
+            'tenant.reports.financial.index' => 'financial-reports.view',
+            'tenant.reports.shifts.index' => 'shift-reports.view',
         ];
 
         foreach ($routes as $routeName => $permission) {

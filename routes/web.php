@@ -27,9 +27,12 @@ Route::get('/', function () {
         return Inertia::render('Landing');
     }
 
-    $route = auth()->user()->role === UserRole::Superadmin
-        ? 'admin.dashboard'
-        : 'tenant.dashboard';
+    $user = auth()->user();
+    $route = match (true) {
+        $user->role === UserRole::Superadmin => 'admin.dashboard',
+        $user->hasPermission('dashboard.view') => 'tenant.dashboard',
+        default => 'tenant.pos.index',
+    };
 
     return redirect()->route($route);
 })->name('home');
@@ -45,7 +48,9 @@ Route::middleware(['auth', 'role:superadmin'])->prefix('admin')->name('admin.')-
 });
 
 Route::middleware(['auth', 'role:owner,employee'])->prefix('tenant')->name('tenant.')->group(function () {
-    Route::get('/dashboard', [TenantDashboardController::class, 'index'])->name('dashboard');
+    Route::get('/dashboard', [TenantDashboardController::class, 'index'])
+        ->name('dashboard')
+        ->middleware('permission:dashboard.view');
 
     Route::resource('categories', TenantCategoryController::class)
         ->only(['index', 'store', 'update', 'destroy'])
@@ -117,9 +122,13 @@ Route::middleware(['auth', 'role:owner,employee'])->prefix('tenant')->name('tena
     })->name('printer.download');
 
     Route::prefix('reports')->name('reports.')->group(function () {
-        Route::get('/financial', [TenantFinancialReportController::class, 'index'])->name('financial.index');
+        Route::get('/financial', [TenantFinancialReportController::class, 'index'])
+            ->name('financial.index')
+            ->middleware('permission:financial-reports.view');
 
-        Route::get('/shifts', [TenantShiftHistoryController::class, 'index'])->name('shifts.index');
+        Route::get('/shifts', [TenantShiftHistoryController::class, 'index'])
+            ->name('shifts.index')
+            ->middleware('permission:shift-reports.view');
 
         Route::get('/transactions', [TenantTransactionHistoryController::class, 'index'])
             ->name('transactions.index')

@@ -57,12 +57,33 @@ class User extends Authenticatable
         return $this->role === UserRole::Employee;
     }
 
+    public function hasRestrictedCashierAccess(): bool
+    {
+        return $this->isEmployee() && $this->employee_role_id === null;
+    }
+
+    /**
+     * @return array<int, string>
+     */
+    public function effectivePermissions(): array
+    {
+        if (! $this->isEmployee()) {
+            return [];
+        }
+
+        if ($this->hasRestrictedCashierAccess()) {
+            return ['transactions.view'];
+        }
+
+        return $this->employeeRole?->permissions ?? [];
+    }
+
     public function hasPermission(string $permission): bool
     {
         if ($this->isOwner() || $this->isSuperadmin()) {
             return true;
         }
 
-        return $this->employeeRole?->hasPermission($permission) ?? false;
+        return in_array($permission, $this->effectivePermissions(), true);
     }
 }

@@ -53,7 +53,7 @@ function StatusBadge({ status }) {
     );
 }
 
-export default function Index({ transactions, filters }) {
+export default function Index({ transactions, filters, limitedToOwnToday = false }) {
     const toast = useToast();
     const can = usePermission();
 
@@ -148,7 +148,9 @@ export default function Index({ transactions, filters }) {
                         Riwayat Transaksi
                     </h2>
                     <p className="mt-1 text-sm text-slate-500">
-                        Seluruh transaksi kasir.
+                        {limitedToOwnToday
+                            ? 'Transaksi Anda yang dibuat hari ini.'
+                            : 'Seluruh transaksi kasir.'}
                     </p>
                 </div>
 
@@ -163,6 +165,20 @@ export default function Index({ transactions, filters }) {
                     <span className="hidden sm:inline">Refresh</span>
                 </button>
             </div>
+
+            {limitedToOwnToday && (
+                <div className="mb-5 flex items-start gap-3 rounded-xl border border-sky-200 bg-sky-50 px-4 py-3 text-sm text-sky-900">
+                    <span className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-white text-sky-600 shadow-sm">
+                        <i className="fi fi-rr-shield-check" />
+                    </span>
+                    <div>
+                        <p className="font-semibold">Akses kasir terbatas</p>
+                        <p className="mt-0.5 text-xs leading-5 text-sky-700">
+                            Tanpa role, riwayat hanya menampilkan transaksi milik Anda pada hari ini.
+                        </p>
+                    </div>
+                </div>
+            )}
 
             <div className="rounded-2xl border border-slate-200/70 bg-white shadow-sm shadow-slate-200/40">
                 <div className="flex flex-col gap-3 border-b border-slate-100 p-5 sm:flex-row sm:items-center sm:p-6">
@@ -179,12 +195,14 @@ export default function Index({ transactions, filters }) {
                         />
                     </div>
 
-                    <input
-                        type="date"
-                        value={date}
-                        onChange={(e) => setDate(e.target.value)}
-                        className="w-full rounded-lg border border-slate-200 px-3 py-2.5 text-sm text-slate-900 focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-100 sm:w-48"
-                    />
+                    {!limitedToOwnToday && (
+                        <input
+                            type="date"
+                            value={date}
+                            onChange={(e) => setDate(e.target.value)}
+                            className="w-full rounded-lg border border-slate-200 px-3 py-2.5 text-sm text-slate-900 focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-100 sm:w-48"
+                        />
+                    )}
 
                     <Select
                         value={status}

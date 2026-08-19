@@ -73,6 +73,12 @@ class ShiftController extends Controller
             $expectedCash = $shift->opening_cash + $cashSales;
 
             if ((int) $validated['closing_cash'] !== $expectedCash) {
+                if ($request->user()->hasRestrictedCashierAccess()) {
+                    throw ValidationException::withMessages([
+                        'closing_cash' => 'Kas aktual belum sesuai. Hitung kembali uang tunai fisik di laci.',
+                    ]);
+                }
+
                 $formattedExpectedCash = number_format($expectedCash, 0, ',', '.');
 
                 throw ValidationException::withMessages([

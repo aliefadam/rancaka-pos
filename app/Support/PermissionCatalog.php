@@ -13,6 +13,13 @@ class PermissionCatalog
     {
         return [
             [
+                'key' => 'dashboard',
+                'label' => 'Dashboard & Omzet',
+                'actions' => [
+                    ['key' => 'view', 'label' => 'Lihat'],
+                ],
+            ],
+            [
                 'key' => 'categories',
                 'label' => 'Kategori',
                 'actions' => [
@@ -76,6 +83,20 @@ class PermissionCatalog
                 'actions' => [
                     ['key' => 'view', 'label' => 'Lihat'],
                     ['key' => 'delete', 'label' => 'Batalkan (Void)'],
+                ],
+            ],
+            [
+                'key' => 'financial-reports',
+                'label' => 'Laporan Keuangan',
+                'actions' => [
+                    ['key' => 'view', 'label' => 'Lihat'],
+                ],
+            ],
+            [
+                'key' => 'shift-reports',
+                'label' => 'Riwayat Shift',
+                'actions' => [
+                    ['key' => 'view', 'label' => 'Lihat'],
                 ],
             ],
         ];

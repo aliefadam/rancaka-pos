@@ -36,7 +36,7 @@ class HandleInertiaRequests extends Middleware
             'auth' => [
                 'user' => $user,
                 'permissions' => $user?->isEmployee()
-                    ? ($user->employeeRole?->permissions ?? [])
+                    ? $user->effectivePermissions()
                     : null,
             ],
             'flash' => [

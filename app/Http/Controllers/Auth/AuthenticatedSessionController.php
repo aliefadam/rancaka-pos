@@ -32,9 +32,12 @@ class AuthenticatedSessionController extends Controller
 
         $request->session()->regenerate();
 
-        $defaultRoute = $request->user()->role === UserRole::Superadmin
-            ? 'admin.dashboard'
-            : 'tenant.dashboard';
+        $user = $request->user();
+        $defaultRoute = match (true) {
+            $user->role === UserRole::Superadmin => 'admin.dashboard',
+            $user->hasPermission('dashboard.view') => 'tenant.dashboard',
+            default => 'tenant.pos.index',
+        };
 
         return redirect()->intended(route($defaultRoute, absolute: false));
     }

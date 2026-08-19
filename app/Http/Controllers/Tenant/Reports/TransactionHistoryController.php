@@ -18,13 +18,20 @@ class TransactionHistoryController extends Controller
 {
     public function index(Request $request): Response
     {
+        $limitedToOwnToday = $request->user()->hasRestrictedCashierAccess();
         $search = $request->string('search')->toString();
-        $date = $request->string('date')->toString();
+        $date = $limitedToOwnToday
+            ? now()->toDateString()
+            : $request->string('date')->toString();
         $status = $request->string('status')->toString();
 
         $transactions = Transaction::query()
             ->where('tenant_id', $request->user()->tenant_id)
             ->whereIn('status', [TransactionStatus::Completed, TransactionStatus::Voided])
+            ->when($limitedToOwnToday, fn ($query) => $query
+                ->where('user_id', $request->user()->id)
+                ->where('created_at', '>=', now()->startOfDay())
+                ->where('created_at', '<', now()->addDay()->startOfDay()))
             ->with(['user:id,name', 'shift.user:id,name', 'items'])
             ->when($search, function ($query, $search) {
                 $query->where(function ($query) use ($search) {
@@ -52,6 +59,7 @@ class TransactionHistoryController extends Controller
         return Inertia::render('Tenant/Reports/Transactions/Index', [
             'transactions' => $transactions,
             'filters' => ['search' => $search, 'date' => $date, 'status' => $status],
+            'limitedToOwnToday' => $limitedToOwnToday,
         ]);
     }
 

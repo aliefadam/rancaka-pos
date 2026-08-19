@@ -16,6 +16,7 @@ class ShiftHistoryController extends Controller
     {
         $search = $request->string('search')->toString();
         $status = $request->string('status')->toString();
+        $date = $request->string('date')->toString();
 
         $shifts = Shift::query()
             ->where('tenant_id', $request->user()->tenant_id)
@@ -39,6 +40,7 @@ class ShiftHistoryController extends Controller
             })
             ->when($status === 'open', fn ($query) => $query->whereNull('closed_at'))
             ->when($status === 'closed', fn ($query) => $query->whereNotNull('closed_at'))
+            ->when($date, fn ($query, $date) => $query->whereDate('opened_at', $date))
             ->latest('opened_at')
             ->paginate(15)
             ->withQueryString();
@@ -61,7 +63,7 @@ class ShiftHistoryController extends Controller
 
         return Inertia::render('Tenant/Reports/Shifts/Index', [
             'shifts' => $shifts,
-            'filters' => ['search' => $search, 'status' => $status],
+            'filters' => ['search' => $search, 'status' => $status, 'date' => $date],
         ]);
     }
 }

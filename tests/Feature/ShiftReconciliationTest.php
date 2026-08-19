@@ -66,6 +66,35 @@ class ShiftReconciliationTest extends TestCase
                 ->where('shifts.data.0.transaction_count', 2));
     }
 
+    public function test_shift_history_can_be_filtered_by_opening_date(): void
+    {
+        [$owner, $todayShift] = $this->openShift();
+        $yesterdayShift = Shift::create([
+            'tenant_id' => $todayShift->tenant_id,
+            'user_id' => $owner->id,
+            'opening_cash' => 50000,
+            'opened_at' => now()->subDay(),
+            'closed_at' => now()->subDay()->addHours(8),
+        ]);
+
+        $this->actingAs($owner)
+            ->get(route('tenant.reports.shifts.index', [
+                'date' => now()->toDateString(),
+            ]))
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('filters.date', now()->toDateString())
+                ->has('shifts.data', 1)
+                ->where('shifts.data.0.id', $todayShift->id));
+
+        $this->actingAs($owner)
+            ->get(route('tenant.reports.shifts.index', [
+                'date' => now()->subDay()->toDateString(),
+            ]))
+            ->assertInertia(fn (Assert $page) => $page
+                ->has('shifts.data', 1)
+                ->where('shifts.data.0.id', $yesterdayShift->id));
+    }
+
     /**
      * @return array{User, Shift}
      */
