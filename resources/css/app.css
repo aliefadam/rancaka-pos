@@ -114,15 +114,47 @@
     --tw-shadow-color: rgb(2 6 23 / 0.45) !important;
 }
 
-.dark input,
+.dark input:not([type='checkbox']):not([type='radio']):not([type='file']),
 .dark select,
 .dark textarea {
-    color: #e2e8f0;
+    border-color: #334155 !important;
+    background-color: #0f172a !important;
+    color: #e2e8f0 !important;
+    color-scheme: dark;
 }
 
 .dark input::placeholder,
 .dark textarea::placeholder {
-    color: #64748b;
+    color: #64748b !important;
+    opacity: 1;
+}
+
+.dark select option {
+    background-color: #0f172a;
+    color: #e2e8f0;
+}
+
+.dark input:not([type='checkbox']):not([type='radio']):not([type='file']):disabled,
+.dark input:not([type='checkbox']):not([type='radio']):not([type='file'])[readonly],
+.dark select:disabled,
+.dark textarea:disabled,
+.dark textarea[readonly] {
+    background-color: #1e293b !important;
+    color: #94a3b8 !important;
+}
+
+.dark input:-webkit-autofill,
+.dark input:-webkit-autofill:hover,
+.dark input:-webkit-autofill:focus,
+.dark textarea:-webkit-autofill,
+.dark select:-webkit-autofill {
+    -webkit-text-fill-color: #e2e8f0 !important;
+    box-shadow: 0 0 0 1000px #0f172a inset !important;
+    caret-color: #e2e8f0;
+}
+
+.dark .focus\:ring-indigo-100:focus {
+    --tw-ring-color: rgb(79 70 229 / 0.32) !important;
 }
 
 .dark .hover\:bg-slate-50:hover,
