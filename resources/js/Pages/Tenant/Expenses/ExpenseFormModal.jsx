@@ -1,4 +1,5 @@
 import Modal from '@/Components/Modal';
+import LocalizedDateInput from '@/Components/LocalizedDateInput';
 import Select from '@/Components/Select';
 import { useToast } from '@/Contexts/ToastContext';
 import { useForm } from '@inertiajs/react';
@@ -95,20 +96,17 @@ export default function ExpenseFormModal({
                     <div className="space-y-5">
                         <Field
                             label="Tanggal"
+                            htmlFor="expense_date"
                             required
                             error={errors.expense_date}
                         >
-                            <input
-                                type="date"
+                            <LocalizedDateInput
+                                id="expense_date"
                                 max={today}
                                 value={data.expense_date}
-                                onChange={(event) =>
-                                    setData(
-                                        'expense_date',
-                                        event.target.value,
-                                    )
+                                onChange={(value) =>
+                                    setData('expense_date', value)
                                 }
-                                className="block w-full rounded-lg border border-slate-200 px-3 py-2.5 text-sm text-slate-900 focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-100"
                             />
                         </Field>
 
@@ -216,10 +214,13 @@ export default function ExpenseFormModal({
     );
 }
 
-function Field({ label, required = false, error, children }) {
+function Field({ label, htmlFor, required = false, error, children }) {
     return (
         <div>
-            <label className="mb-1.5 block text-sm font-medium text-slate-700">
+            <label
+                htmlFor={htmlFor}
+                className="mb-1.5 block text-sm font-medium text-slate-700"
+            >
                 {label}{' '}
                 {required && <span className="text-rose-500">*</span>}
             </label>

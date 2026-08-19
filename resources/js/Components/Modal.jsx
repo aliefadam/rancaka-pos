@@ -87,7 +87,7 @@ Modal.Body = function ModalBody({ children }) {
 
 Modal.Footer = function ModalFooter({ children }) {
     return (
-        <div className="flex h-16 shrink-0 items-center justify-end gap-3 border-t border-slate-200 bg-slate-50/60 px-6">
+        <div className="flex h-16 shrink-0 items-center justify-end gap-3 border-t border-slate-200 bg-white px-6">
             {children}
         </div>
     );

@@ -24,6 +24,8 @@ class ExpenseController extends Controller
 
     public function index(Request $request): Response
     {
+        Carbon::setLocale('id');
+
         $tenantId = $request->user()->tenant_id;
         $search = $request->string('search')->trim()->toString();
 
