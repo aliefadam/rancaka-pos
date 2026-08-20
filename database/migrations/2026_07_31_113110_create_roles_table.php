@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('tenant_id')->constrained('tenants')->cascadeOnDelete();
             $table->string('name');
-            $table->json('permissions')->default('[]');
+            $table->json('permissions');
             $table->timestamps();
 
             $table->unique(['tenant_id', 'name']);

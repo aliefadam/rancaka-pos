@@ -1,11 +1,11 @@
 <?php
 
 use App\Enums\UserRole;
-use App\Http\Controllers\Admin\TenantController;
 use App\Http\Controllers\Admin\BillingController as AdminBillingController;
+use App\Http\Controllers\Admin\TenantController;
 use App\Http\Controllers\BridgeReceiptController;
-use App\Http\Controllers\Tenant\CategoryController as TenantCategoryController;
 use App\Http\Controllers\Tenant\BillingController as TenantBillingController;
+use App\Http\Controllers\Tenant\CategoryController as TenantCategoryController;
 use App\Http\Controllers\Tenant\DashboardController as TenantDashboardController;
 use App\Http\Controllers\Tenant\EmployeeController as TenantEmployeeController;
 use App\Http\Controllers\Tenant\ExpenseController as TenantExpenseController;
@@ -80,6 +80,13 @@ Route::middleware(['auth', 'role:owner,employee', 'subscription.active'])->prefi
         ->middlewareFor('store', 'permission:raw-materials.create')
         ->middlewareFor('update', 'permission:raw-materials.edit')
         ->middlewareFor('destroy', 'permission:raw-materials.delete');
+
+    Route::get('/products/import/template', [TenantProductController::class, 'downloadImportTemplate'])
+        ->name('products.import.template')
+        ->middleware('permission:products.create');
+    Route::post('/products/import', [TenantProductController::class, 'import'])
+        ->name('products.import')
+        ->middleware('permission:products.create');
 
     Route::resource('products', TenantProductController::class)
         ->only(['index', 'store', 'update', 'destroy'])

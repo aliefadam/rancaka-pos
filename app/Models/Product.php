@@ -10,7 +10,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
-#[Fillable(['name', 'category_id', 'price', 'track_stock', 'stock', 'is_active', 'tenant_id'])]
+#[Fillable(['name', 'category_id', 'price', 'cost', 'margin_percentage', 'track_stock', 'stock', 'is_active', 'tenant_id'])]
 class Product extends Model
 {
     /** @use HasFactory<ProductFactory> */
@@ -20,6 +20,8 @@ class Product extends Model
     {
         return [
             'price' => 'integer',
+            'cost' => 'integer',
+            'margin_percentage' => 'decimal:2',
             'track_stock' => 'boolean',
             'is_active' => 'boolean',
         ];

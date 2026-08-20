@@ -39,7 +39,7 @@ class AuthenticatedSessionController extends Controller
             default => 'tenant.pos.index',
         };
 
-        return redirect()->intended(route($defaultRoute, absolute: false));
+        return redirect()->route($defaultRoute);
     }
 
     /**

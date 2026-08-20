@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\Product;
+use App\Models\Tenant;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -32,6 +33,14 @@ class DatabaseSeederTest extends TestCase
         ]);
         $this->assertDatabaseMissing('products', [
             'name' => 'Aoka Coklat',
+        ]);
+
+        $demoTenant = Tenant::query()->where('name', 'Kedai Josjis')->firstOrFail();
+
+        $this->assertDatabaseHas('subscriptions', [
+            'tenant_id' => $demoTenant->id,
+            'status' => 'active',
+            'is_grandfathered' => true,
         ]);
     }
 }

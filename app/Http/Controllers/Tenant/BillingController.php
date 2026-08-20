@@ -15,7 +15,18 @@ class BillingController extends Controller
     public function index(Request $request): Response
     {
         abort_unless($request->user()->tenant?->status === 'active', 403, 'Tenant tidak aktif.');
-        $subscription = $request->user()->tenant->subscription()->with(['invoices' => fn ($q) => $q->with('payments')->latest()])->firstOrFail();
+        $tenant = $request->user()->tenant;
+        $tenant->subscription()->firstOrCreate([], [
+            'plan_code' => 'monthly',
+            'plan_name' => config('billing.plan_name'),
+            'price' => config('billing.monthly_price'),
+            'status' => 'active',
+            'is_grandfathered' => true,
+        ]);
+
+        $subscription = $tenant->subscription()
+            ->with(['invoices' => fn ($q) => $q->with('payments')->latest()])
+            ->first();
 
         return Inertia::render('Tenant/Billing/Index', ['subscription' => $subscription, 'billing' => config('billing')]);
     }

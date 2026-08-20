@@ -45,6 +45,7 @@ class HandleInertiaRequests extends Middleware
                 'transaction_id' => fn () => $request->session()->get('transaction_id'),
                 'receipt_url' => fn () => $request->session()->get('receipt_url'),
                 'bridge_receipt_url' => fn () => $request->session()->get('bridge_receipt_url'),
+                'import_errors' => fn () => $request->session()->get('import_errors'),
             ],
         ];
     }

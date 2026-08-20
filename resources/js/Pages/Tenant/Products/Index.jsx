@@ -5,7 +5,8 @@ import { useToast } from '@/Contexts/ToastContext';
 import AdminLayout from '@/Layouts/AdminLayout';
 import usePermission from '@/Hooks/usePermission';
 import ProductFormModal from '@/Pages/Tenant/Products/ProductFormModal';
-import { Head, router } from '@inertiajs/react';
+import ProductImportModal from '@/Pages/Tenant/Products/ProductImportModal';
+import { Head, router, usePage } from '@inertiajs/react';
 import { useEffect, useRef, useState } from 'react';
 
 function initials(name) {
@@ -66,15 +67,21 @@ function StockBadge({ trackStock, stock }) {
 export default function Index({ products, categories, rawMaterials, filters }) {
     const toast = useToast();
     const can = usePermission();
+    const { flash } = usePage().props;
 
     const [search, setSearch] = useState(filters.search ?? '');
     const [categoryId, setCategoryId] = useState(filters.category_id ?? '');
     const [refreshing, setRefreshing] = useState(false);
     const [modalOpen, setModalOpen] = useState(false);
+    const [importModalOpen, setImportModalOpen] = useState(false);
     const [editingProduct, setEditingProduct] = useState(null);
     const [deleteTarget, setDeleteTarget] = useState(null);
     const [deleting, setDeleting] = useState(false);
     const isFirstRun = useRef(true);
+
+    useEffect(() => {
+        if (flash?.import_errors?.length) setImportModalOpen(true);
+    }, [flash?.import_errors]);
 
     const categoryFilterOptions = [
         { value: '', label: 'Semua Kategori' },
@@ -179,6 +186,16 @@ export default function Index({ products, categories, rawMaterials, filters }) {
                         />
                         <span className="hidden sm:inline">Refresh</span>
                     </button>
+                    {can('products.create') && (
+                        <button
+                            type="button"
+                            onClick={() => setImportModalOpen(true)}
+                            className="flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-3.5 py-2.5 text-sm font-medium text-slate-600 transition hover:border-indigo-200 hover:bg-indigo-50 hover:text-indigo-600"
+                        >
+                            <i className="fi fi-rr-file-upload" />
+                            <span className="hidden sm:inline">Import</span>
+                        </button>
+                    )}
                     {can('products.create') && (
                         <button
                             type="button"
@@ -406,6 +423,12 @@ export default function Index({ products, categories, rawMaterials, filters }) {
                 product={editingProduct}
                 categories={categories}
                 rawMaterials={rawMaterials}
+            />
+
+            <ProductImportModal
+                show={importModalOpen}
+                onClose={() => setImportModalOpen(false)}
+                importErrors={flash?.import_errors ?? []}
             />
 
             <ConfirmDialog

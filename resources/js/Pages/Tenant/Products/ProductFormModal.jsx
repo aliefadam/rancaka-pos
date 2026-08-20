@@ -14,10 +14,22 @@ function initials(name) {
         .toUpperCase();
 }
 
+function nonNegativeValue(value) {
+    if (value === '') return '';
+
+    return Math.max(0, Number(value));
+}
+
+function preventNegativeInput(event) {
+    if (event.key === '-' || event.key === '+') event.preventDefault();
+}
+
 const emptyForm = {
     name: '',
     category_id: '',
     price: '',
+    cost: '',
+    margin_percentage: '',
     stock: '',
     track_stock: true,
     is_active: true,
@@ -56,6 +68,8 @@ export default function ProductFormModal({
                       name: product.name,
                       category_id: String(product.category_id),
                       price: product.price,
+                      cost: product.cost ?? 0,
+                      margin_percentage: product.margin_percentage ?? 0,
                       stock: product.stock,
                       track_stock: product.track_stock,
                       is_active: product.is_active,
@@ -91,6 +105,51 @@ export default function ProductFormModal({
             'ingredients',
             data.ingredients.filter((_, i) => i !== index),
         );
+    };
+
+    const calculateMargin = (price, cost) => {
+        const numericPrice = Number(price);
+        const numericCost = Number(cost);
+
+        if (!numericCost || numericPrice < numericCost) return '0.00';
+
+        return (((numericPrice - numericCost) / numericCost) * 100).toFixed(2);
+    };
+
+    const updateCost = (value) => {
+        const safeValue = nonNegativeValue(value);
+
+        setData((current) => ({
+            ...current,
+            cost: safeValue,
+            margin_percentage: calculateMargin(current.price, safeValue),
+        }));
+    };
+
+    const updatePrice = (value) => {
+        const safeValue = nonNegativeValue(value);
+
+        setData((current) => ({
+            ...current,
+            price: safeValue,
+            margin_percentage: calculateMargin(safeValue, current.cost),
+        }));
+    };
+
+    const updateMargin = (value) => {
+        const safeValue = nonNegativeValue(value);
+        const numericCost = Number(data.cost);
+        const numericMargin = Number(safeValue);
+        const price =
+            numericCost > 0 && Number.isFinite(numericMargin)
+                ? Math.round(numericCost * (1 + numericMargin / 100))
+                : data.price;
+
+        setData((current) => ({
+            ...current,
+            margin_percentage: safeValue,
+            price,
+        }));
     };
 
     const submit = (e) => {
@@ -189,13 +248,51 @@ export default function ProductFormModal({
                             )}
                         </div>
 
-                        <div className="grid grid-cols-2 gap-4">
+                        <div className="rounded-xl border border-slate-200 bg-slate-50/60 p-4">
+                            <div className="mb-4 flex items-start gap-3">
+                                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-emerald-50 text-emerald-600 ring-1 ring-emerald-100">
+                                    <i className="fi fi-rr-calculator" />
+                                </span>
+                                <div>
+                                    <p className="text-sm font-semibold text-slate-800">
+                                        Perhitungan Harga
+                                    </p>
+                                    <p className="mt-0.5 text-xs leading-5 text-slate-500">
+                                        Margin dihitung dari HPP. Ubah margin untuk menghitung harga jual otomatis.
+                                    </p>
+                                </div>
+                            </div>
+
+                            <div className="grid gap-4 sm:grid-cols-3">
+                                <div>
+                                    <label
+                                        htmlFor="cost"
+                                        className="mb-1.5 block text-sm font-medium text-slate-700"
+                                    >
+                                        HPP (Rp) <span className="text-rose-500">*</span>
+                                    </label>
+                                    <input
+                                        id="cost"
+                                        type="number"
+                                        min="0"
+                                        max="999999999999"
+                                        value={data.cost}
+                                        onKeyDown={preventNegativeInput}
+                                        onChange={(e) => updateCost(e.target.value)}
+                                        className="block w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-900 placeholder-slate-400 focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-100"
+                                        placeholder="10000"
+                                    />
+                                    {errors.cost && (
+                                        <p className="mt-1.5 text-sm text-red-600">{errors.cost}</p>
+                                    )}
+                                </div>
+
                             <div>
                                 <label
                                     htmlFor="price"
                                     className="mb-1.5 block text-sm font-medium text-slate-700"
                                 >
-                                    Harga (Rp) <span className="text-rose-500">*</span>
+                                    Harga Jual (Rp) <span className="text-rose-500">*</span>
                                 </label>
                                 <input
                                     id="price"
@@ -203,11 +300,10 @@ export default function ProductFormModal({
                                     min="0"
                                     max="999999999999"
                                     value={data.price}
-                                    onChange={(e) =>
-                                        setData('price', e.target.value)
-                                    }
-                                    className="block w-full rounded-lg border border-slate-200 px-3 py-2.5 text-sm text-slate-900 placeholder-slate-400 focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-100"
-                                    placeholder="3000"
+                                    onKeyDown={preventNegativeInput}
+                                    onChange={(e) => updatePrice(e.target.value)}
+                                    className="block w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-900 placeholder-slate-400 focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-100"
+                                    placeholder="15000"
                                 />
                                 {errors.price && (
                                     <p className="mt-1.5 text-sm text-red-600">
@@ -218,29 +314,63 @@ export default function ProductFormModal({
 
                             <div>
                                 <label
-                                    htmlFor="stock"
+                                    htmlFor="margin_percentage"
                                     className="mb-1.5 block text-sm font-medium text-slate-700"
                                 >
-                                    Stok (pcs)
+                                    Margin (%) <span className="text-rose-500">*</span>
                                 </label>
-                                <input
-                                    id="stock"
-                                    type="number"
-                                    min="0"
-                                    disabled={!data.track_stock}
-                                    value={data.stock}
-                                    onChange={(e) =>
-                                        setData('stock', e.target.value)
-                                    }
-                                    className="block w-full rounded-lg border border-slate-200 px-3 py-2.5 text-sm text-slate-900 placeholder-slate-400 focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-100 disabled:cursor-not-allowed disabled:bg-slate-50 disabled:text-slate-400"
-                                    placeholder="0"
-                                />
-                                {errors.stock && (
-                                    <p className="mt-1.5 text-sm text-red-600">
-                                        {errors.stock}
-                                    </p>
+                                <div className="relative">
+                                    <input
+                                        id="margin_percentage"
+                                        type="number"
+                                        min="0"
+                                        max="999999.99"
+                                        step="0.01"
+                                        value={data.margin_percentage}
+                                        onKeyDown={preventNegativeInput}
+                                        onChange={(e) => updateMargin(e.target.value)}
+                                        className="block w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 pr-9 text-sm text-slate-900 placeholder-slate-400 focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-100"
+                                        placeholder="50"
+                                    />
+                                    <span className="pointer-events-none absolute inset-y-0 right-3 flex items-center text-sm font-medium text-slate-400">%</span>
+                                </div>
+                                {errors.margin_percentage && (
+                                    <p className="mt-1.5 text-sm text-red-600">{errors.margin_percentage}</p>
                                 )}
                             </div>
+                            </div>
+
+                            {Number(data.price) >= Number(data.cost) && Number(data.cost) > 0 && (
+                                <p className="mt-3 text-xs text-slate-500">
+                                    Estimasi laba kotor:{' '}
+                                    <span className="font-semibold text-emerald-600">
+                                        Rp {(Number(data.price) - Number(data.cost)).toLocaleString('id-ID')}
+                                    </span>{' '}
+                                    per produk
+                                </p>
+                            )}
+                        </div>
+
+                        <div>
+                            <label
+                                htmlFor="stock"
+                                className="mb-1.5 block text-sm font-medium text-slate-700"
+                            >
+                                Stok (pcs)
+                            </label>
+                            <input
+                                id="stock"
+                                type="number"
+                                min="0"
+                                disabled={!data.track_stock}
+                                value={data.stock}
+                                onChange={(e) => setData('stock', e.target.value)}
+                                className="block w-full rounded-lg border border-slate-200 px-3 py-2.5 text-sm text-slate-900 placeholder-slate-400 focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-100 disabled:cursor-not-allowed disabled:bg-slate-50 disabled:text-slate-400"
+                                placeholder="0"
+                            />
+                            {errors.stock && (
+                                <p className="mt-1.5 text-sm text-red-600">{errors.stock}</p>
+                            )}
                         </div>
 
                         <div className="space-y-2.5">

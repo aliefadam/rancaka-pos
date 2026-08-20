@@ -20,6 +20,8 @@ class ProductFactory extends Factory
         return [
             'name' => fake()->unique()->words(2, true),
             'price' => fake()->numberBetween(5000, 50000),
+            'cost' => 0,
+            'margin_percentage' => 0,
             'track_stock' => true,
             'stock' => fake()->numberBetween(0, 50),
             'is_active' => true,

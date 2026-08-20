@@ -36,6 +36,14 @@ class DatabaseSeeder extends Seeder
             'name' => 'Kedai Josjis',
         ]);
 
+        $demoTenant->subscription()->create([
+            'plan_code' => 'monthly',
+            'plan_name' => config('billing.plan_name'),
+            'price' => config('billing.monthly_price'),
+            'status' => 'active',
+            'is_grandfathered' => true,
+        ]);
+
         $owner = User::factory()->create([
             'name' => 'Owner Kedai Josjis',
             'username' => 'owner.josjis',

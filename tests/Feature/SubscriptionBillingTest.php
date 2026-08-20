@@ -43,6 +43,22 @@ class SubscriptionBillingTest extends TestCase
             ->assertRedirect(route('tenant.billing.index'));
     }
 
+    public function test_billing_page_repairs_a_missing_legacy_subscription(): void
+    {
+        [$tenant, $owner] = $this->tenantOwner();
+        $tenant->subscription()->delete();
+
+        $this->actingAs($owner)
+            ->get(route('tenant.billing.index'))
+            ->assertOk();
+
+        $this->assertDatabaseHas('subscriptions', [
+            'tenant_id' => $tenant->id,
+            'status' => 'active',
+            'is_grandfathered' => true,
+        ]);
+    }
+
     public function test_inactive_tenant_cannot_log_in(): void
     {
         [$tenant, $owner] = $this->tenantOwner();
