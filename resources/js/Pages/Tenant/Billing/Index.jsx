@@ -78,18 +78,36 @@ export default function Index({ subscription, billing, paymentSettings }) {
                             <p className="mt-2 text-sm text-slate-500">
                                 Jatuh tempo {date(invoice.due_at)}
                             </p>
-                            {form.data.payment_method === 'qris' && qrisAvailable ? (
+                            {form.data.payment_method === 'qris' &&
+                            qrisAvailable ? (
                                 <div className="mt-5 text-center">
                                     <div className="inline-block rounded-2xl bg-white p-4 shadow-sm ring-1 ring-slate-200">
-                                        <img src={paymentSettings.qris_image_url} alt={`QRIS ${paymentSettings.qris_merchant_name ?? ''}`} className="h-56 w-56 object-contain" />
+                                        <img
+                                            src={paymentSettings.qris_image_url}
+                                            alt={`QRIS ${paymentSettings.qris_merchant_name ?? ''}`}
+                                            className="h-56 w-56 object-contain"
+                                        />
                                     </div>
-                                    <p className="mt-3 text-sm font-bold text-slate-900">{paymentSettings.qris_merchant_name || 'Pembayaran QRIS'}</p>
-                                    <a href={paymentSettings.qris_image_url} download className="mt-2 inline-flex text-sm font-semibold text-indigo-600">Unduh gambar QRIS</a>
+                                    <p className="mt-3 text-sm font-bold text-slate-900">
+                                        {paymentSettings.qris_merchant_name ||
+                                            'Pembayaran QRIS'}
+                                    </p>
+                                    <a
+                                        href={paymentSettings.qris_image_url}
+                                        download
+                                        className="mt-2 inline-flex text-sm font-semibold text-indigo-600"
+                                    >
+                                        Unduh gambar QRIS
+                                    </a>
                                 </div>
                             ) : (
                                 <div className="mt-5 rounded-xl bg-slate-50 p-4 text-sm text-slate-600">
-                                    <p className="font-bold text-slate-900">Transfer ke {billing.bank_name}</p>
-                                    <p className="mt-1 text-lg font-bold tracking-wide">{billing.bank_account}</p>
+                                    <p className="font-bold text-slate-900">
+                                        Transfer ke {billing.bank_name}
+                                    </p>
+                                    <p className="mt-1 text-lg font-bold tracking-wide">
+                                        {billing.bank_account}
+                                    </p>
                                     <p>a.n. {billing.bank_holder}</p>
                                 </div>
                             )}
@@ -108,9 +126,35 @@ export default function Index({ subscription, billing, paymentSettings }) {
                                     onSubmit={submit}
                                     className="mt-5 space-y-4"
                                 >
-                                    <div className={`grid gap-2 ${qrisAvailable ? 'grid-cols-2' : 'grid-cols-1'}`}>
-                                        {qrisAvailable && <button type="button" onClick={() => form.setData('payment_method', 'qris')} className={`rounded-xl border px-3 py-2.5 text-sm font-bold ${form.data.payment_method === 'qris' ? 'border-indigo-500 bg-indigo-50 text-indigo-700' : 'border-slate-200 text-slate-500'}`}>QRIS</button>}
-                                        <button type="button" onClick={() => form.setData('payment_method', 'bank_transfer')} className={`rounded-xl border px-3 py-2.5 text-sm font-bold ${form.data.payment_method === 'bank_transfer' ? 'border-indigo-500 bg-indigo-50 text-indigo-700' : 'border-slate-200 text-slate-500'}`}>Transfer Bank</button>
+                                    <div
+                                        className={`grid gap-2 ${qrisAvailable ? 'grid-cols-2' : 'grid-cols-1'}`}
+                                    >
+                                        {qrisAvailable && (
+                                            <button
+                                                type="button"
+                                                onClick={() =>
+                                                    form.setData(
+                                                        'payment_method',
+                                                        'qris',
+                                                    )
+                                                }
+                                                className={`rounded-xl border px-3 py-2.5 text-sm font-bold ${form.data.payment_method === 'qris' ? 'border-indigo-500 bg-indigo-50 text-indigo-700' : 'border-slate-200 text-slate-500'}`}
+                                            >
+                                                QRIS
+                                            </button>
+                                        )}
+                                        <button
+                                            type="button"
+                                            onClick={() =>
+                                                form.setData(
+                                                    'payment_method',
+                                                    'bank_transfer',
+                                                )
+                                            }
+                                            className={`rounded-xl border px-3 py-2.5 text-sm font-bold ${form.data.payment_method === 'bank_transfer' ? 'border-indigo-500 bg-indigo-50 text-indigo-700' : 'border-slate-200 text-slate-500'}`}
+                                        >
+                                            Transfer Bank
+                                        </button>
                                     </div>
                                     <input
                                         type="file"

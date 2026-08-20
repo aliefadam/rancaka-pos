@@ -47,7 +47,11 @@ class BillingController extends Controller
 
         unset($data['qris_image'], $data['remove_qris']);
 
-        if ($data['qris_enabled'] && ! ($data['qris_image_path'] ?? $settings->qris_image_path)) {
+        $resultingImagePath = array_key_exists('qris_image_path', $data)
+            ? $data['qris_image_path']
+            : $settings->qris_image_path;
+
+        if ($data['qris_enabled'] && ! $resultingImagePath) {
             return back()->withErrors(['qris_image' => 'Unggah gambar QRIS sebelum mengaktifkannya.']);
         }
 

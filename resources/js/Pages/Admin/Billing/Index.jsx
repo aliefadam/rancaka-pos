@@ -14,7 +14,6 @@ export default function Index({ payments, settings }) {
         event.preventDefault();
         qrisForm.post(route('admin.billing.settings.update'), {
             forceFormData: true,
-            method: 'put',
         });
     };
     const approve = (payment) =>
@@ -28,23 +27,93 @@ export default function Index({ payments, settings }) {
     return (
         <AdminLayout header="Billing Tenant">
             <Head title="Billing Tenant" />
-            <form onSubmit={saveQris} className="mb-6 grid gap-5 rounded-2xl border border-slate-200 bg-white p-5 lg:grid-cols-[1fr_auto]">
+            <form
+                onSubmit={saveQris}
+                className="mb-6 grid gap-5 rounded-2xl border border-slate-200 bg-white p-5 lg:grid-cols-[1fr_auto]"
+            >
                 <div>
-                    <h2 className="font-bold text-slate-900">QRIS Pembayaran</h2>
-                    <p className="mt-1 text-sm text-slate-500">Gambar QRIS statis akan ditampilkan pada invoice tenant.</p>
+                    <h2 className="font-bold text-slate-900">
+                        QRIS Pembayaran
+                    </h2>
+                    <p className="mt-1 text-sm text-slate-500">
+                        Gambar QRIS statis akan ditampilkan pada invoice tenant.
+                    </p>
                     <div className="mt-4 grid gap-3 sm:grid-cols-2">
-                        <input value={qrisForm.data.qris_merchant_name} onChange={(e) => qrisForm.setData('qris_merchant_name', e.target.value)} placeholder="Nama merchant QRIS" className="rounded-xl border border-slate-200 px-3 py-2.5 text-sm" />
-                        <input type="file" accept="image/jpeg,image/png,image/webp" onChange={(e) => qrisForm.setData('qris_image', e.target.files[0])} className="rounded-xl border border-dashed border-slate-300 p-2 text-sm" />
+                        <input
+                            value={qrisForm.data.qris_merchant_name}
+                            onChange={(e) =>
+                                qrisForm.setData(
+                                    'qris_merchant_name',
+                                    e.target.value,
+                                )
+                            }
+                            placeholder="Nama merchant QRIS"
+                            className="rounded-xl border border-slate-200 px-3 py-2.5 text-sm"
+                        />
+                        <input
+                            type="file"
+                            accept="image/jpeg,image/png,image/webp"
+                            onChange={(e) =>
+                                qrisForm.setData(
+                                    'qris_image',
+                                    e.target.files[0],
+                                )
+                            }
+                            className="rounded-xl border border-dashed border-slate-300 p-2 text-sm"
+                        />
                     </div>
                     <div className="mt-3 flex flex-wrap gap-4">
-                        <label className="flex items-center gap-2 text-sm text-slate-600"><input type="checkbox" checked={qrisForm.data.qris_enabled} onChange={(e) => qrisForm.setData('qris_enabled', e.target.checked)} /> Aktifkan QRIS</label>
-                        {settings?.qris_image_url && <label className="flex items-center gap-2 text-sm text-rose-600"><input type="checkbox" checked={qrisForm.data.remove_qris} onChange={(e) => qrisForm.setData('remove_qris', e.target.checked)} /> Hapus gambar lama</label>}
+                        <label className="flex items-center gap-2 text-sm text-slate-600">
+                            <input
+                                type="checkbox"
+                                checked={qrisForm.data.qris_enabled}
+                                onChange={(e) =>
+                                    qrisForm.setData(
+                                        'qris_enabled',
+                                        e.target.checked,
+                                    )
+                                }
+                            />{' '}
+                            Aktifkan QRIS
+                        </label>
+                        {settings?.qris_image_url && (
+                            <label className="flex items-center gap-2 text-sm text-rose-600">
+                                <input
+                                    type="checkbox"
+                                    checked={qrisForm.data.remove_qris}
+                                    onChange={(e) =>
+                                        qrisForm.setData(
+                                            'remove_qris',
+                                            e.target.checked,
+                                        )
+                                    }
+                                />{' '}
+                                Hapus gambar lama
+                            </label>
+                        )}
                     </div>
-                    {qrisForm.errors.qris_image && <p className="mt-2 text-sm text-red-600">{qrisForm.errors.qris_image}</p>}
+                    {qrisForm.errors.qris_image && (
+                        <p className="mt-2 text-sm text-red-600">
+                            {qrisForm.errors.qris_image}
+                        </p>
+                    )}
                 </div>
                 <div className="flex items-center gap-4">
-                    {settings?.qris_image_url && <div className="rounded-xl bg-white p-2 ring-1 ring-slate-200"><img src={settings.qris_image_url} alt="QRIS aktif" className="h-28 w-28 object-contain" /></div>}
-                    <button disabled={qrisForm.processing} className="rounded-xl bg-indigo-600 px-4 py-2.5 text-sm font-bold text-white">Simpan QRIS</button>
+                    {settings?.qris_image_url && (
+                        <div className="rounded-xl bg-white p-2 ring-1 ring-slate-200">
+                            <img
+                                src={settings.qris_image_url}
+                                alt="QRIS aktif"
+                                className="h-28 w-28 object-contain"
+                            />
+                        </div>
+                    )}
+                    <button
+                        disabled={qrisForm.processing}
+                        className="rounded-xl bg-indigo-600 px-4 py-2.5 text-sm font-bold text-white"
+                    >
+                        Simpan QRIS
+                    </button>
                 </div>
             </form>
             <div className="mb-6">
@@ -74,7 +143,9 @@ export default function Index({ payments, settings }) {
                             {money(payment.amount)}
                         </p>
                         <span className="text-xs font-semibold uppercase text-slate-500">
-                            {payment.payment_method === 'qris' ? 'QRIS' : 'Transfer'}
+                            {payment.payment_method === 'qris'
+                                ? 'QRIS'
+                                : 'Transfer'}
                         </span>
                         <span className="rounded-full bg-amber-50 px-3 py-1 text-xs font-bold uppercase text-amber-700">
                             {payment.status}
