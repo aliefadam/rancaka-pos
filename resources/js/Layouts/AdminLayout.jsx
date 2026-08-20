@@ -31,6 +31,11 @@ const navigationByRole = {
                     href: "admin.billing.index",
                     icon: "fi-rr-credit-card",
                 },
+                {
+                    name: "Sales & Komisi",
+                    href: "admin.sales.index",
+                    icon: "fi-rr-handshake",
+                },
             ],
         },
     ],

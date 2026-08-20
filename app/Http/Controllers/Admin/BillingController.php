@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\BillingInvoice;
 use App\Models\BillingSetting;
 use App\Models\SubscriptionPayment;
+use App\Services\SalesCommissionService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -60,9 +61,9 @@ class BillingController extends Controller
         return back()->with('success', 'Pengaturan QRIS diperbarui.');
     }
 
-    public function approve(Request $request, SubscriptionPayment $payment): RedirectResponse
+    public function approve(Request $request, SubscriptionPayment $payment, SalesCommissionService $commissionService): RedirectResponse
     {
-        DB::transaction(function () use ($request, $payment) {
+        DB::transaction(function () use ($request, $payment, $commissionService) {
             $payment = SubscriptionPayment::lockForUpdate()->findOrFail($payment->id);
             abort_unless($payment->status === 'pending', 422);
             $invoice = $payment->invoice()->lockForUpdate()->firstOrFail();
@@ -75,6 +76,7 @@ class BillingController extends Controller
             }
             $end = $start->copy()->addMonth();
             $payment->update(['status' => 'approved', 'reviewed_at' => now(), 'reviewed_by' => $request->user()->id]);
+            $commissionService->recordForFirstApprovedPayment($payment->fresh());
             $invoice->update(['status' => 'paid', 'paid_at' => now(), 'period_start' => $start, 'period_end' => $end]);
             $subscription->update(['status' => 'active', 'is_grandfathered' => false, 'current_period_start' => $start, 'current_period_end' => $end]);
             BillingInvoice::create(['tenant_id' => $invoice->tenant_id, 'subscription_id' => $subscription->id, 'number' => 'INV-'.now()->format('YmdHis').'-'.$invoice->tenant_id.'-'.Str::upper(Str::random(4)), 'status' => 'open', 'amount' => $subscription->price, 'due_at' => $end, 'period_start' => $end, 'period_end' => $end->copy()->addMonth()]);

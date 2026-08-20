@@ -3,6 +3,8 @@
 use App\Enums\UserRole;
 use App\Http\Controllers\AccountController;
 use App\Http\Controllers\Admin\BillingController as AdminBillingController;
+use App\Http\Controllers\Admin\CommissionPayoutController;
+use App\Http\Controllers\Admin\SalesController;
 use App\Http\Controllers\Admin\TenantController;
 use App\Http\Controllers\Auth\StoreOnboardingController;
 use App\Http\Controllers\BridgeReceiptController;
@@ -74,6 +76,13 @@ Route::middleware(['auth', 'role:superadmin'])->prefix('admin')->name('admin.')-
     Route::post('/billing/settings', [AdminBillingController::class, 'updateSettings'])->name('billing.settings.update');
     Route::patch('/billing/{payment}/approve', [AdminBillingController::class, 'approve'])->name('billing.approve');
     Route::patch('/billing/{payment}/reject', [AdminBillingController::class, 'reject'])->name('billing.reject');
+
+    Route::get('/sales', [SalesController::class, 'index'])->name('sales.index');
+    Route::post('/sales', [SalesController::class, 'store'])->name('sales.store');
+    Route::put('/sales/{salesProfile}', [SalesController::class, 'update'])->name('sales.update');
+    Route::patch('/sales/tenant/{tenant}/referral', [SalesController::class, 'updateTenantReferral'])->name('sales.tenant-referral.update');
+    Route::post('/commission-payouts', [CommissionPayoutController::class, 'store'])->name('commission-payouts.store');
+    Route::get('/commission-payouts/{payout}/proof', [CommissionPayoutController::class, 'proof'])->name('commission-payouts.proof');
 });
 
 Route::middleware(['auth', 'role:owner,employee', 'tenant.onboarded'])->prefix('tenant')->name('tenant.')->group(function () {

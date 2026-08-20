@@ -13,9 +13,10 @@ const fields = [
 ];
 
 export default function Register({ googleAuthEnabled }) {
-    const { data, setData, post, processing, errors } = useForm(
-        Object.fromEntries(fields.map(([key]) => [key, ''])),
-    );
+    const { data, setData, post, processing, errors } = useForm({
+        ...Object.fromEntries(fields.map(([key]) => [key, ''])),
+        referral_code: '',
+    });
     const submit = (event) => {
         event.preventDefault();
         post(route('register'));
@@ -54,9 +55,25 @@ export default function Register({ googleAuthEnabled }) {
                         <p className="mt-1 text-sm text-slate-500">
                             Akun owner langsung aktif setelah pendaftaran.
                         </p>
+                        <div className="mt-6">
+                            <label className="mb-1.5 block text-sm font-medium text-slate-700" htmlFor="referral_code">
+                                Kode referral <span className="font-normal text-slate-400">(opsional)</span>
+                            </label>
+                            <div className="relative">
+                                <i className="fi fi-rr-ticket absolute left-3.5 top-1/2 -translate-y-1/2 text-sm text-indigo-400" />
+                                <input
+                                    id="referral_code"
+                                    value={data.referral_code}
+                                    onChange={(e) => setData('referral_code', e.target.value.toUpperCase().replace(/\s/g, ''))}
+                                    placeholder="Contoh: SALESBUDI"
+                                    className="w-full rounded-xl border border-slate-200 py-2.5 pl-10 pr-3.5 text-sm font-semibold uppercase tracking-wide text-slate-900 focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-100"
+                                />
+                            </div>
+                            {errors.referral_code && <p className="mt-1 text-xs text-red-600">{errors.referral_code}</p>}
+                        </div>
                         {googleAuthEnabled && (
                             <>
-                                <div className="mt-6"><GoogleAuthButton label="Daftar dengan Google" /></div>
+                                <div className="mt-6"><GoogleAuthButton label="Daftar dengan Google" href={route('auth.google.redirect', data.referral_code ? { referral_code: data.referral_code.toUpperCase() } : {})} /></div>
                                 <div className="my-5 flex items-center gap-3 text-xs uppercase tracking-wider text-slate-400"><span className="h-px flex-1 bg-slate-200" /><span>atau isi formulir</span><span className="h-px flex-1 bg-slate-200" /></div>
                             </>
                         )}
@@ -79,7 +96,7 @@ export default function Register({ googleAuthEnabled }) {
                                         className="mb-1.5 block text-sm font-medium text-slate-700"
                                         htmlFor={key}
                                     >
-                                        {label}
+                                        {label} <span className="text-rose-500">*</span>
                                     </label>
                                     <input
                                         id={key}

@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Auth;
 use App\Enums\UserRole;
 use App\Http\Controllers\Controller;
 use App\Models\BillingInvoice;
+use App\Models\SalesProfile;
 use App\Models\Tenant;
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
@@ -13,6 +14,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
 use Illuminate\Validation\Rules\Password;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -28,6 +30,7 @@ class RegisteredTenantController extends Controller
 
     public function store(Request $request): RedirectResponse
     {
+        $request->merge(['referral_code' => SalesProfile::normalizeReferralCode($request->input('referral_code'))]);
         $data = $request->validate([
             'store_name' => ['required', 'string', 'max:255'],
             'owner_name' => ['required', 'string', 'max:255'],
@@ -35,10 +38,22 @@ class RegisteredTenantController extends Controller
             'phone' => ['required', 'string', 'max:30'],
             'username' => ['required', 'string', 'max:255', 'regex:/^[A-Za-z0-9._-]+$/', 'unique:users,username'],
             'password' => ['required', 'confirmed', Password::min(8)],
+            'referral_code' => ['nullable', 'string', Rule::exists('sales_profiles', 'referral_code')->where('status', 'active')],
+        ], [
+            'referral_code.exists' => 'Kode referral tidak ditemukan atau sudah tidak aktif.',
         ]);
 
         $user = DB::transaction(function () use ($data) {
-            $tenant = Tenant::create(['name' => $data['store_name'], 'email' => $data['email'], 'phone' => $data['phone'], 'status' => 'active']);
+            $sales = isset($data['referral_code']) ? SalesProfile::where('referral_code', $data['referral_code'])->where('status', 'active')->first() : null;
+            $tenant = Tenant::create([
+                'name' => $data['store_name'],
+                'email' => $data['email'],
+                'phone' => $data['phone'],
+                'status' => 'active',
+                'referred_by_sales_id' => $sales?->id,
+                'referral_code_used' => $sales?->referral_code,
+                'referred_at' => $sales ? now() : null,
+            ]);
             $user = User::create(['tenant_id' => $tenant->id, 'name' => $data['owner_name'], 'username' => $data['username'], 'email' => $data['email'], 'password' => Hash::make($data['password']), 'role' => UserRole::Owner]);
             $trialEnd = now()->addDays(config('billing.trial_days'));
             $subscription = $tenant->subscription;

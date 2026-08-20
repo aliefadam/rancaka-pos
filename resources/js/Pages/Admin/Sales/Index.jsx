@@ -1,0 +1,114 @@
+import Modal from '@/Components/Modal';
+import Pagination from '@/Components/Pagination';
+import Select from '@/Components/Select';
+import { useToast } from '@/Contexts/ToastContext';
+import AdminLayout from '@/Layouts/AdminLayout';
+import SalesFormModal from '@/Pages/Admin/Sales/SalesFormModal';
+import { Head, router, useForm } from '@inertiajs/react';
+import { useMemo, useState } from 'react';
+
+const money = (value) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(Number(value ?? 0));
+const date = (value) => value ? new Date(value).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' }) : '—';
+
+export default function Index({ sales, allSales, commissions, payouts, eligibleTenants, filters, metrics }) {
+    const toast = useToast();
+    const [modalOpen, setModalOpen] = useState(false);
+    const [editingSales, setEditingSales] = useState(null);
+    const [selected, setSelected] = useState([]);
+    const [payoutOpen, setPayoutOpen] = useState(false);
+    const [referralTenant, setReferralTenant] = useState('');
+    const [referralSales, setReferralSales] = useState('');
+    const [referralProcessing, setReferralProcessing] = useState(false);
+    const payoutForm = useForm({ commission_ids: [], proof: null, note: '' });
+
+    const selectedRows = commissions.data.filter((item) => selected.includes(item.id));
+    const selectedSalesId = selectedRows[0]?.sales_profile_id;
+    const selectedTotal = selectedRows.reduce((sum, item) => sum + Number(item.commission_amount), 0);
+    const activeSalesOptions = allSales.filter((item) => item.status === 'active').map((item) => ({ value: String(item.id), label: `${item.name} · ${item.referral_code}` }));
+
+    const applyFilters = (values) => router.get(route('admin.sales.index'), {
+        ...(values.search ? { search: values.search } : {}),
+        ...(values.sales_id ? { sales_id: values.sales_id } : {}),
+        ...(values.commission_status ? { commission_status: values.commission_status } : {}),
+    }, { preserveState: true, replace: true });
+
+    const toggleCommission = (commission) => {
+        if (commission.status !== 'accrued') return;
+        if (selected.includes(commission.id)) setSelected(selected.filter((id) => id !== commission.id));
+        else if (!selectedSalesId || selectedSalesId === commission.sales_profile_id) setSelected([...selected, commission.id]);
+        else toast.error('Satu payout hanya dapat berisi komisi dari sales yang sama.');
+    };
+
+    const openPayout = () => {
+        payoutForm.setData('commission_ids', selected);
+        payoutForm.clearErrors();
+        setPayoutOpen(true);
+    };
+
+    const submitPayout = (event) => {
+        event.preventDefault();
+        payoutForm.post(route('admin.commission-payouts.store'), {
+            forceFormData: true,
+            preserveScroll: true,
+            onSuccess: () => { setPayoutOpen(false); setSelected([]); payoutForm.reset(); },
+            onError: () => toast.error('Payout gagal dicatat. Periksa pilihan komisi.'),
+        });
+    };
+
+    const tenantOptions = useMemo(() => eligibleTenants.map((tenant) => ({ value: String(tenant.id), label: `${tenant.name} · ${tenant.email}` })), [eligibleTenants]);
+    const selectedTenant = eligibleTenants.find((tenant) => String(tenant.id) === referralTenant);
+
+    const updateReferral = () => {
+        if (!referralTenant) return;
+        setReferralProcessing(true);
+        router.patch(route('admin.sales.tenant-referral.update', referralTenant), { sales_profile_id: referralSales || null }, {
+            preserveScroll: true,
+            onSuccess: () => { setReferralTenant(''); setReferralSales(''); },
+            onError: () => toast.error('Atribusi referral tidak dapat diperbarui.'),
+            onFinish: () => setReferralProcessing(false),
+        });
+    };
+
+    return (
+        <AdminLayout header="Sales & Komisi">
+            <Head title="Sales & Komisi" />
+            <section className="relative overflow-hidden rounded-3xl bg-slate-950 px-6 py-7 text-white shadow-xl shadow-slate-300/30 sm:px-8">
+                <div className="absolute -right-16 -top-24 h-64 w-64 rounded-full border-[38px] border-indigo-500/20" />
+                <div className="absolute bottom-0 right-36 h-px w-48 bg-gradient-to-r from-transparent via-emerald-300/70 to-transparent" />
+                <div className="relative flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
+                    <div><p className="text-[10px] font-bold uppercase tracking-[0.24em] text-indigo-300">Referral ledger</p><h1 className="mt-2 text-3xl font-black tracking-tight">Sales, jejak referral, dan payout.</h1><p className="mt-2 max-w-2xl text-sm leading-6 text-slate-300">Komisi tercatat sekali pada pembayaran subscription pertama dan tetap dapat diaudit sampai payout.</p></div>
+                    <button onClick={() => { setEditingSales(null); setModalOpen(true); }} className="flex items-center justify-center gap-2 rounded-xl bg-white px-4 py-2.5 text-sm font-bold text-slate-900 shadow-lg transition hover:-translate-y-0.5 hover:bg-indigo-50"><i className="fi fi-rr-plus" /> Tambah sales</button>
+                </div>
+            </section>
+
+            <section className="mt-5 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+                {[['Referral tenant', metrics.referrals, 'fi-rr-users-alt', 'text-indigo-600 bg-indigo-50'], ['Komisi diperoleh', money(metrics.earned), 'fi-rr-coins', 'text-amber-600 bg-amber-50'], ['Belum dibayar', money(metrics.accrued), 'fi-rr-hourglass-end', 'text-rose-600 bg-rose-50'], ['Sudah dibayar', money(metrics.paid), 'fi-rr-check-circle', 'text-emerald-600 bg-emerald-50']].map(([label, value, icon, tone]) => <article key={label} className="rounded-2xl border border-slate-200/80 bg-white p-5 shadow-sm"><div className={`flex h-10 w-10 items-center justify-center rounded-xl ${tone}`}><i className={`fi ${icon}`} /></div><p className="mt-4 text-xs font-bold uppercase tracking-wider text-slate-400">{label}</p><p className="mt-1 text-xl font-black tracking-tight text-slate-900">{value}</p></article>)}
+            </section>
+
+            <section className="mt-5 rounded-2xl border border-slate-200 bg-white shadow-sm">
+                <div className="flex flex-col gap-4 border-b border-slate-100 p-5 sm:flex-row sm:items-center sm:justify-between"><div><h2 className="font-bold text-slate-900">Profil sales</h2><p className="mt-1 text-xs text-slate-500">Kode unik dan rate komisi saat pembayaran pertama.</p></div><form onSubmit={(e) => { e.preventDefault(); applyFilters({ ...filters, search: e.currentTarget.search.value, sales_status: e.currentTarget.sales_status.value }); }} className="flex gap-2"><div className="relative"><i className="fi fi-rr-search absolute left-3 top-1/2 -translate-y-1/2 text-xs text-slate-400" /><input name="search" defaultValue={filters.search} placeholder="Cari sales atau kode" className="w-full rounded-xl border-slate-200 py-2 pl-9 pr-3 text-sm sm:w-56" /></div><select name="sales_status" defaultValue={filters.sales_status} className="rounded-xl border-slate-200 py-2 text-xs"><option value="">Semua status</option><option value="active">Aktif</option><option value="inactive">Nonaktif</option></select><button className="rounded-xl bg-slate-900 px-3 text-xs font-bold text-white">Cari</button></form></div>
+                <div className="grid gap-3 p-4 md:grid-cols-2 xl:grid-cols-3">
+                    {sales.map((item) => <button key={item.id} onClick={() => { setEditingSales(item); setModalOpen(true); }} className="group rounded-2xl border border-slate-200 p-4 text-left transition hover:border-indigo-200 hover:bg-indigo-50/30"><div className="flex items-start justify-between"><div className="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-900 font-black text-white">{item.name.slice(0, 1).toUpperCase()}</div><span className={`rounded-full px-2.5 py-1 text-[10px] font-bold uppercase ${item.status === 'active' ? 'bg-emerald-50 text-emerald-700' : 'bg-slate-100 text-slate-500'}`}>{item.status === 'active' ? 'Aktif' : 'Nonaktif'}</span></div><h3 className="mt-3 font-bold text-slate-900">{item.name}</h3><p className="mt-1 font-mono text-xs font-bold tracking-wider text-indigo-600">{item.referral_code}</p><div className="mt-4 grid grid-cols-3 gap-2 border-t border-slate-100 pt-3 text-xs"><div><p className="text-slate-400">Rate</p><p className="mt-1 font-bold text-slate-700">{Number(item.commission_rate)}%</p></div><div><p className="text-slate-400">Referral</p><p className="mt-1 font-bold text-slate-700">{item.tenants_count}</p></div><div><p className="text-slate-400">Terutang</p><p className="mt-1 truncate font-bold text-rose-600">{money(item.accrued_commission)}</p></div></div></button>)}
+                    {sales.length === 0 && <p className="col-span-full py-10 text-center text-sm text-slate-400">Belum ada profil sales.</p>}
+                </div>
+            </section>
+
+            <section className="mt-5 grid gap-5 xl:grid-cols-[1.45fr_0.55fr]">
+                <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+                    <div className="border-b border-slate-100 p-5"><div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"><div><h2 className="font-bold text-slate-900">Ledger komisi</h2><p className="mt-1 text-xs text-slate-500">Pilih komisi terutang dari satu sales untuk payout.</p></div><div className="flex gap-2"><select value={filters.sales_id || ''} onChange={(e) => applyFilters({ ...filters, sales_id: e.target.value })} className="rounded-xl border-slate-200 py-2 text-xs"><option value="">Semua sales</option>{allSales.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}</select><select value={filters.commission_status || ''} onChange={(e) => applyFilters({ ...filters, commission_status: e.target.value })} className="rounded-xl border-slate-200 py-2 text-xs"><option value="">Semua status</option><option value="accrued">Belum dibayar</option><option value="paid">Sudah dibayar</option></select></div></div><form onSubmit={(e) => { e.preventDefault(); applyFilters({ ...filters, commission_search: e.currentTarget.commission_search.value, date_from: e.currentTarget.date_from.value, date_to: e.currentTarget.date_to.value }); }} className="mt-4 grid gap-2 sm:grid-cols-[1fr_auto_auto_auto]"><input name="commission_search" defaultValue={filters.commission_search} placeholder="Cari tenant atau invoice" className="rounded-xl border-slate-200 py-2 text-xs" /><input name="date_from" type="date" defaultValue={filters.date_from} className="rounded-xl border-slate-200 py-2 text-xs" /><input name="date_to" type="date" defaultValue={filters.date_to} className="rounded-xl border-slate-200 py-2 text-xs" /><button className="rounded-xl border border-slate-200 px-3 py-2 text-xs font-bold text-slate-600 hover:bg-slate-50">Terapkan</button></form></div>
+                    {selected.length > 0 && <div className="flex items-center justify-between gap-4 border-b border-indigo-100 bg-indigo-50 px-5 py-3"><p className="text-sm font-semibold text-indigo-800">{selected.length} komisi · {money(selectedTotal)}</p><button onClick={openPayout} className="rounded-lg bg-indigo-600 px-3 py-2 text-xs font-bold text-white">Catat payout</button></div>}
+                    <div className="overflow-x-auto"><table className="min-w-full"><thead><tr className="bg-slate-50 text-left text-[10px] font-bold uppercase tracking-wider text-slate-400"><th className="w-10 px-4 py-3"/><th className="px-3 py-3">Sales / Tenant</th><th className="px-3 py-3">Invoice</th><th className="px-3 py-3">Dasar</th><th className="px-3 py-3">Komisi</th><th className="px-3 py-3">Status</th></tr></thead><tbody>{commissions.data.map((item) => <tr key={item.id} className="border-t border-slate-100 text-sm"><td className="px-4 py-4"><input type="checkbox" checked={selected.includes(item.id)} disabled={item.status !== 'accrued'} onChange={() => toggleCommission(item)} className="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500" /></td><td className="px-3 py-4"><p className="font-semibold text-slate-800">{item.sales_profile.name}</p><p className="text-xs text-slate-400">{item.tenant.name}</p></td><td className="px-3 py-4"><p className="font-medium text-slate-700">{item.invoice.number}</p><p className="text-xs text-slate-400">{date(item.approved_at)}</p></td><td className="px-3 py-4 text-slate-600">{money(item.base_amount)} <span className="text-xs text-slate-400">× {Number(item.commission_rate_snapshot)}%</span></td><td className="px-3 py-4 font-bold text-slate-900">{money(item.commission_amount)}</td><td className="px-3 py-4"><span className={`rounded-full px-2.5 py-1 text-[10px] font-bold uppercase ${item.status === 'paid' ? 'bg-emerald-50 text-emerald-700' : 'bg-amber-50 text-amber-700'}`}>{item.status === 'paid' ? 'Dibayar' : 'Terutang'}</span></td></tr>)}{commissions.data.length === 0 && <tr><td colSpan="6" className="px-5 py-12 text-center text-sm text-slate-400">Belum ada komisi.</td></tr>}</tbody></table></div>
+                    <div className="border-t border-slate-100 p-4"><Pagination links={commissions.links} /></div>
+                </div>
+
+                <div className="space-y-5">
+                    <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm"><h2 className="font-bold text-slate-900">Koreksi referral</h2><p className="mt-1 text-xs leading-5 text-slate-500">Hanya tenant yang belum mempunyai pembayaran disetujui.</p><div className="mt-4 space-y-3"><Select value={referralTenant} onChange={(value) => { setReferralTenant(value); const tenant = eligibleTenants.find((item) => String(item.id) === value); setReferralSales(tenant?.referred_by_sales_id ? String(tenant.referred_by_sales_id) : ''); }} options={tenantOptions} placeholder="Pilih tenant" /><Select value={referralSales} onChange={setReferralSales} options={[{ value: '', label: 'Tanpa referral' }, ...activeSalesOptions]} placeholder="Pilih sales" />{selectedTenant && <p className="rounded-xl bg-slate-50 p-3 text-xs text-slate-500">Saat ini: <strong className="text-slate-700">{selectedTenant.referring_sales?.name ?? 'Tanpa referral'}</strong></p>}<button disabled={!referralTenant || referralProcessing} onClick={updateReferral} className="w-full rounded-xl bg-slate-900 px-4 py-2.5 text-sm font-bold text-white disabled:opacity-40">Simpan atribusi</button></div></div>
+                    <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm"><h2 className="font-bold text-slate-900">Payout terbaru</h2><div className="mt-4 space-y-3">{payouts.map((item) => <div key={item.id} className="rounded-xl border border-slate-100 p-3"><div className="flex justify-between gap-3"><div><p className="text-sm font-semibold text-slate-800">{item.sales_profile.name}</p><p className="mt-0.5 font-mono text-[10px] text-slate-400">{item.number}</p></div><p className="text-sm font-bold text-emerald-600">{money(item.amount)}</p></div><div className="mt-2 flex items-center justify-between text-[11px] text-slate-400"><span>{date(item.paid_at)}</span>{item.proof_url && <a href={item.proof_url} target="_blank" rel="noreferrer" className="font-semibold text-indigo-600">Bukti</a>}</div></div>)}{payouts.length === 0 && <p className="py-5 text-center text-xs text-slate-400">Belum ada payout.</p>}</div></div>
+                </div>
+            </section>
+
+            <SalesFormModal show={modalOpen} onClose={() => setModalOpen(false)} sales={editingSales} />
+            <Modal show={payoutOpen} onClose={() => setPayoutOpen(false)} maxWidth="md"><form onSubmit={submitPayout}><Modal.Header><div><p className="text-[10px] font-bold uppercase tracking-widest text-emerald-600">Payout manual</p><h2 className="mt-1 text-lg font-bold text-slate-900">Konfirmasi pembayaran komisi</h2></div></Modal.Header><Modal.Body><div className="rounded-2xl bg-slate-950 p-5 text-white"><p className="text-xs text-slate-400">Total payout</p><p className="mt-1 text-2xl font-black">{money(selectedTotal)}</p><p className="mt-2 text-xs text-slate-400">{selected.length} komisi · {selectedRows[0]?.sales_profile.name}</p></div><div className="mt-4 space-y-4"><div><label className="mb-1.5 block text-sm font-semibold text-slate-700">Bukti transfer (opsional)</label><input type="file" accept="image/*,.pdf" onChange={(e) => payoutForm.setData('proof', e.target.files[0] ?? null)} className="w-full rounded-xl border border-slate-200 p-2 text-sm" />{payoutForm.errors.proof && <p className="mt-1 text-xs text-rose-600">{payoutForm.errors.proof}</p>}</div><div><label className="mb-1.5 block text-sm font-semibold text-slate-700">Catatan (opsional)</label><textarea rows="3" value={payoutForm.data.note} onChange={(e) => payoutForm.setData('note', e.target.value)} className="w-full rounded-xl border-slate-200 text-sm" /></div></div></Modal.Body><Modal.Footer><button type="button" onClick={() => setPayoutOpen(false)} className="rounded-xl border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-600">Batal</button><button disabled={payoutForm.processing} className="rounded-xl bg-emerald-600 px-4 py-2 text-sm font-bold text-white disabled:opacity-60">{payoutForm.processing ? 'Mencatat...' : 'Tandai sudah dibayar'}</button></Modal.Footer></form></Modal>
+        </AdminLayout>
+    );
+}

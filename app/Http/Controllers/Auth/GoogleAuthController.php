@@ -4,9 +4,11 @@ namespace App\Http\Controllers\Auth;
 
 use App\Enums\UserRole;
 use App\Http\Controllers\Controller;
+use App\Models\SalesProfile;
 use App\Models\Tenant;
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 use Laravel\Socialite\Facades\Socialite;
@@ -15,9 +17,22 @@ use Throwable;
 
 class GoogleAuthController extends Controller
 {
-    public function redirect(): SymfonyRedirectResponse
+    public function redirect(Request $request): SymfonyRedirectResponse
     {
         abort_unless(config('services.google.client_id') && config('services.google.client_secret'), 503, 'Login Google belum dikonfigurasi.');
+
+        $code = SalesProfile::normalizeReferralCode($request->query('referral_code'));
+        if ($code && ! SalesProfile::query()->where('referral_code', $code)->where('status', 'active')->exists()) {
+            return redirect()->route('register')->withErrors([
+                'referral_code' => 'Kode referral tidak ditemukan atau sudah tidak aktif.',
+            ]);
+        }
+
+        if ($code) {
+            $request->session()->put('registration_referral_code', $code);
+        } else {
+            $request->session()->forget('registration_referral_code');
+        }
 
         return Socialite::driver('google')->redirect();
     }

@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Support\Facades\Storage;
 
 #[Fillable(['tenant_id', 'billing_invoice_id', 'amount', 'payment_method', 'proof_path', 'note', 'status', 'rejection_reason', 'submitted_at', 'reviewed_at', 'reviewed_by'])]
@@ -30,6 +31,11 @@ class SubscriptionPayment extends Model
     public function reviewer(): BelongsTo
     {
         return $this->belongsTo(User::class, 'reviewed_by');
+    }
+
+    public function salesCommission(): HasOne
+    {
+        return $this->hasOne(SalesCommission::class);
     }
 
     public function getProofUrlAttribute(): string
