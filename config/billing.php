@@ -1,0 +1,10 @@
+<?php
+
+return [
+    'plan_name' => env('BILLING_PLAN_NAME', 'Rancaka POS Bulanan'),
+    'monthly_price' => (int) env('BILLING_MONTHLY_PRICE', 149000),
+    'trial_days' => (int) env('BILLING_TRIAL_DAYS', 14),
+    'bank_name' => env('BILLING_BANK_NAME', 'Bank belum diatur'),
+    'bank_account' => env('BILLING_BANK_ACCOUNT', '-'),
+    'bank_holder' => env('BILLING_BANK_HOLDER', 'Rancaka POS'),
+];

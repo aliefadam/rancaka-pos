@@ -25,6 +25,11 @@ const navigationByRole = {
                     href: "admin.tenants.index",
                     icon: "fi-rr-building",
                 },
+                {
+                    name: "Billing Tenant",
+                    href: "admin.billing.index",
+                    icon: "fi-rr-credit-card",
+                },
             ],
         },
     ],
@@ -141,6 +146,11 @@ const navigationByRole = {
                     name: "Pengaturan Toko",
                     href: "tenant.settings.edit",
                     icon: "fi-rr-settings",
+                },
+                {
+                    name: "Billing",
+                    href: "tenant.billing.index",
+                    icon: "fi-rr-credit-card",
                 },
             ],
         },

@@ -1,4 +1,4 @@
-import { Head, useForm } from '@inertiajs/react';
+import { Head, Link, useForm } from '@inertiajs/react';
 import BrandLogo from '@/Components/BrandLogo';
 import { useState } from 'react';
 
@@ -211,6 +211,12 @@ export default function Login({ status }) {
                                 Masuk
                             </button>
                         </form>
+                        <p className="mt-6 text-center text-sm text-slate-500">
+                            Belum punya akun?{' '}
+                            <Link href={route('register')} className="font-semibold text-indigo-600 hover:text-indigo-700">
+                                Daftar toko gratis
+                            </Link>
+                        </p>
                     </div>
                 </div>
             </div>

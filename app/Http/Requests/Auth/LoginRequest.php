@@ -50,6 +50,14 @@ class LoginRequest extends FormRequest
             ]);
         }
 
+        if (Auth::user()?->tenant && Auth::user()->tenant->status !== 'active') {
+            Auth::guard('web')->logout();
+
+            throw ValidationException::withMessages([
+                'username' => 'Tenant sedang dinonaktifkan. Hubungi administrator.',
+            ]);
+        }
+
         RateLimiter::clear($this->throttleKey());
     }
 

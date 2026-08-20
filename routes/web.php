@@ -2,8 +2,10 @@
 
 use App\Enums\UserRole;
 use App\Http\Controllers\Admin\TenantController;
+use App\Http\Controllers\Admin\BillingController as AdminBillingController;
 use App\Http\Controllers\BridgeReceiptController;
 use App\Http\Controllers\Tenant\CategoryController as TenantCategoryController;
+use App\Http\Controllers\Tenant\BillingController as TenantBillingController;
 use App\Http\Controllers\Tenant\DashboardController as TenantDashboardController;
 use App\Http\Controllers\Tenant\EmployeeController as TenantEmployeeController;
 use App\Http\Controllers\Tenant\ExpenseController as TenantExpenseController;
@@ -45,9 +47,19 @@ Route::middleware(['auth', 'role:superadmin'])->prefix('admin')->name('admin.')-
     Route::resource('tenants', TenantController::class)
         ->only(['index', 'store', 'update', 'destroy'])
         ->names('tenants');
+
+    Route::get('/billing', [AdminBillingController::class, 'index'])->name('billing.index');
+    Route::patch('/billing/{payment}/approve', [AdminBillingController::class, 'approve'])->name('billing.approve');
+    Route::patch('/billing/{payment}/reject', [AdminBillingController::class, 'reject'])->name('billing.reject');
 });
 
 Route::middleware(['auth', 'role:owner,employee'])->prefix('tenant')->name('tenant.')->group(function () {
+    Route::get('/billing', [TenantBillingController::class, 'index'])->name('billing.index');
+    Route::post('/billing/{invoice}/payment', [TenantBillingController::class, 'submit'])
+        ->name('billing.submit')->middleware('role:owner');
+});
+
+Route::middleware(['auth', 'role:owner,employee', 'subscription.active'])->prefix('tenant')->name('tenant.')->group(function () {
     Route::get('/dashboard', [TenantDashboardController::class, 'index'])
         ->name('dashboard')
         ->middleware('permission:dashboard.view');

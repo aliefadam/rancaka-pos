@@ -22,6 +22,19 @@ class Tenant extends Model
     /** @use HasFactory<TenantFactory> */
     use HasFactory;
 
+    protected static function booted(): void
+    {
+        static::created(function (Tenant $tenant) {
+            $tenant->subscription()->create([
+                'plan_code' => 'monthly',
+                'plan_name' => config('billing.plan_name'),
+                'price' => config('billing.monthly_price'),
+                'status' => 'active',
+                'is_grandfathered' => true,
+            ]);
+        });
+    }
+
     protected $appends = ['logo_url'];
 
     protected function casts(): array
@@ -83,5 +96,15 @@ class Tenant extends Model
     public function activeShift(): HasOne
     {
         return $this->hasOne(Shift::class)->whereNull('closed_at');
+    }
+
+    public function subscription(): HasOne
+    {
+        return $this->hasOne(Subscription::class);
+    }
+
+    public function billingInvoices(): HasMany
+    {
+        return $this->hasMany(BillingInvoice::class);
     }
 }

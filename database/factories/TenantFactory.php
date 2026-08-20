@@ -22,7 +22,7 @@ class TenantFactory extends Factory
             'email' => fake()->unique()->companyEmail(),
             'phone' => fake()->numerify('08##########'),
             'address' => fake()->address(),
-            'status' => fake()->randomElement(['active', 'inactive']),
+            'status' => 'active',
         ];
     }
 }

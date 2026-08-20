@@ -322,10 +322,10 @@ export default function Landing() {
 
                             <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row lg:justify-start">
                                 <Link
-                                    href={route('login')}
+                                    href={route('register')}
                                     className="rounded-lg bg-white px-6 py-3 text-sm font-semibold text-indigo-700 shadow-sm transition hover:bg-indigo-50"
                                 >
-                                    Masuk ke Dashboard
+                                    Coba Gratis 14 Hari
                                 </Link>
                                 <a
                                     href="#fitur"
@@ -564,10 +564,10 @@ export default function Landing() {
                                 di halaman masuk.
                             </p>
                             <Link
-                                href={route('login')}
+                                href={route('register')}
                                 className="mt-6 inline-flex items-center gap-2 rounded-lg bg-white px-6 py-3 text-sm font-semibold text-indigo-700 shadow-sm transition hover:bg-indigo-50"
                             >
-                                Masuk Sekarang
+                                Daftar Sekarang
                                 <i className="fi fi-rr-arrow-right" />
                             </Link>
                         </div>
