@@ -49,6 +49,7 @@ Route::middleware(['auth', 'role:superadmin'])->prefix('admin')->name('admin.')-
         ->names('tenants');
 
     Route::get('/billing', [AdminBillingController::class, 'index'])->name('billing.index');
+    Route::put('/billing/settings', [AdminBillingController::class, 'updateSettings'])->name('billing.settings.update');
     Route::patch('/billing/{payment}/approve', [AdminBillingController::class, 'approve'])->name('billing.approve');
     Route::patch('/billing/{payment}/reject', [AdminBillingController::class, 'reject'])->name('billing.reject');
 });

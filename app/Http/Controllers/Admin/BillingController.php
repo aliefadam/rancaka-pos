@@ -4,11 +4,14 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\BillingInvoice;
+use App\Models\BillingSetting;
 use App\Models\SubscriptionPayment;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Illuminate\Validation\Rules\File;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -16,7 +19,41 @@ class BillingController extends Controller
 {
     public function index(): Response
     {
-        return Inertia::render('Admin/Billing/Index', ['payments' => SubscriptionPayment::with(['tenant:id,name,email', 'invoice'])->latest()->paginate(15)]);
+        return Inertia::render('Admin/Billing/Index', [
+            'payments' => SubscriptionPayment::with(['tenant:id,name,email', 'invoice'])->latest()->paginate(15),
+            'settings' => BillingSetting::query()->first(),
+        ]);
+    }
+
+    public function updateSettings(Request $request): RedirectResponse
+    {
+        $settings = BillingSetting::query()->firstOrFail();
+        $data = $request->validate([
+            'qris_enabled' => ['required', 'boolean'],
+            'qris_merchant_name' => ['nullable', 'string', 'max:255'],
+            'qris_image' => ['nullable', File::image()->max(2048)],
+            'remove_qris' => ['nullable', 'boolean'],
+        ]);
+
+        if ($request->boolean('remove_qris') || $request->hasFile('qris_image')) {
+            if ($settings->qris_image_path) {
+                Storage::disk('public')->delete($settings->qris_image_path);
+            }
+
+            $data['qris_image_path'] = $request->hasFile('qris_image')
+                ? $request->file('qris_image')->store('billing/qris', 'public')
+                : null;
+        }
+
+        unset($data['qris_image'], $data['remove_qris']);
+
+        if ($data['qris_enabled'] && ! ($data['qris_image_path'] ?? $settings->qris_image_path)) {
+            return back()->withErrors(['qris_image' => 'Unggah gambar QRIS sebelum mengaktifkannya.']);
+        }
+
+        $settings->update($data);
+
+        return back()->with('success', 'Pengaturan QRIS diperbarui.');
     }
 
     public function approve(Request $request, SubscriptionPayment $payment): RedirectResponse
