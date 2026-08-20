@@ -21,7 +21,9 @@ class RegisteredTenantController extends Controller
 {
     public function create(): Response
     {
-        return Inertia::render('Auth/Register');
+        return Inertia::render('Auth/Register', [
+            'googleAuthEnabled' => (bool) (config('services.google.client_id') && config('services.google.client_secret')),
+        ]);
     }
 
     public function store(Request $request): RedirectResponse
@@ -37,7 +39,7 @@ class RegisteredTenantController extends Controller
 
         $user = DB::transaction(function () use ($data) {
             $tenant = Tenant::create(['name' => $data['store_name'], 'email' => $data['email'], 'phone' => $data['phone'], 'status' => 'active']);
-            $user = User::create(['tenant_id' => $tenant->id, 'name' => $data['owner_name'], 'username' => $data['username'], 'password' => Hash::make($data['password']), 'role' => UserRole::Owner]);
+            $user = User::create(['tenant_id' => $tenant->id, 'name' => $data['owner_name'], 'username' => $data['username'], 'email' => $data['email'], 'password' => Hash::make($data['password']), 'role' => UserRole::Owner]);
             $trialEnd = now()->addDays(config('billing.trial_days'));
             $subscription = $tenant->subscription;
             $subscription->update(['status' => 'trialing', 'is_grandfathered' => false, 'trial_ends_at' => $trialEnd]);

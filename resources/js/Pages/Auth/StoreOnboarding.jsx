@@ -1,0 +1,13 @@
+import BrandLogo from '@/Components/BrandLogo';
+import { Head, router, useForm } from '@inertiajs/react';
+
+export default function StoreOnboarding({ user }) {
+    const form = useForm({ store_name: '', phone: '', address: '', username: user.username });
+    const submit = (event) => { event.preventDefault(); form.post(route('onboarding.store.store')); };
+    return <><Head title="Lengkapi Toko" /><div className="flex min-h-screen items-center justify-center bg-slate-50 px-5 py-10"><div className="w-full max-w-xl rounded-3xl border border-slate-200 bg-white p-7 shadow-xl shadow-slate-200/50 sm:p-10">
+        <div className="flex items-center justify-between"><div className="flex items-center gap-3"><BrandLogo className="h-11 w-11" /><div><p className="font-bold text-slate-900">Selamat datang, {user.name}</p><p className="text-xs text-slate-500">{user.email}</p></div></div>{user.avatar_url && <img src={user.avatar_url} alt="" className="h-11 w-11 rounded-full" />}</div>
+        <div className="mt-8"><span className="rounded-full bg-indigo-50 px-3 py-1 text-xs font-bold text-indigo-700">Langkah terakhir</span><h1 className="mt-3 text-2xl font-extrabold text-slate-900">Lengkapi informasi toko</h1><p className="mt-1 text-sm text-slate-500">Nama toko wajib diisi sebelum Anda dapat mulai bertransaksi.</p></div>
+        <form onSubmit={submit} className="mt-7 space-y-4">{[['store_name','Nama toko','Contoh: Kedai Bahagia'],['phone','Nomor WhatsApp','08xxxxxxxxxx'],['username','Username akun','Username dapat diganti lagi nanti']].map(([key,label,placeholder]) => <div key={key}><label htmlFor={key} className="mb-1.5 block text-sm font-medium text-slate-700">{label}</label><input id={key} value={form.data[key]} onChange={(e) => form.setData(key,e.target.value)} placeholder={placeholder} className="w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-sm" />{form.errors[key] && <p className="mt-1 text-xs text-red-600">{form.errors[key]}</p>}</div>)}<div><label htmlFor="address" className="mb-1.5 block text-sm font-medium text-slate-700">Alamat toko (opsional)</label><textarea id="address" value={form.data.address} onChange={(e) => form.setData('address',e.target.value)} className="w-full rounded-xl border border-slate-200 p-3 text-sm" /></div><button disabled={form.processing} className="w-full rounded-xl bg-indigo-600 px-4 py-3 text-sm font-bold text-white hover:bg-indigo-700">Buat Toko & Mulai Trial</button></form>
+        <button type="button" onClick={() => router.post(route('logout'))} className="mt-4 w-full text-sm font-medium text-slate-400 hover:text-slate-600">Keluar dari akun</button>
+    </div></div></>;
+}

@@ -1,11 +1,12 @@
 import { Head, Link, useForm } from '@inertiajs/react';
 import BrandLogo from '@/Components/BrandLogo';
+import GoogleAuthButton from '@/Components/GoogleAuthButton';
 import { useState } from 'react';
 
 const DEMO_USERNAME = 'owner.josjis';
 const DEMO_PASSWORD = '123123';
 
-export default function Login({ status }) {
+export default function Login({ status, googleAuthEnabled }) {
     const [showPassword, setShowPassword] = useState(false);
 
     const { data, setData, post, processing, errors, reset } = useForm({
@@ -86,10 +87,17 @@ export default function Login({ status }) {
                             </div>
                         )}
 
+                        {googleAuthEnabled && (
+                            <>
+                                <div className="mt-6"><GoogleAuthButton label="Masuk dengan Google" /></div>
+                                <div className="my-5 flex items-center gap-3 text-xs uppercase tracking-wider text-slate-400"><span className="h-px flex-1 bg-slate-200" /><span>atau username</span><span className="h-px flex-1 bg-slate-200" /></div>
+                            </>
+                        )}
+
                         <button
                             type="button"
                             onClick={fillDemoAccount}
-                            className="mt-6 flex w-full items-center justify-center gap-2 rounded-lg border border-dashed border-indigo-300 bg-indigo-50 px-4 py-2.5 text-sm font-semibold text-indigo-700 transition hover:bg-indigo-100"
+                            className={`${googleAuthEnabled ? '' : 'mt-6'} flex w-full items-center justify-center gap-2 rounded-lg border border-dashed border-indigo-300 bg-indigo-50 px-4 py-2.5 text-sm font-semibold text-indigo-700 transition hover:bg-indigo-100`}
                         >
                             <i className="fi fi-rr-user-add" />
                             Isi Akun Demo

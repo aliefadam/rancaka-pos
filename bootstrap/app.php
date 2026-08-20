@@ -21,6 +21,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'role' => \App\Http\Middleware\EnsureUserHasRole::class,
             'permission' => \App\Http\Middleware\CheckPermission::class,
             'subscription.active' => \App\Http\Middleware\EnsureTenantSubscriptionActive::class,
+            'tenant.onboarded' => \App\Http\Middleware\EnsureTenantOnboarded::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
