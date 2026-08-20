@@ -256,45 +256,55 @@ const navigationByRole = {
 
 const SidebarContent = ({ navigation, onClose }) => (
     <>
-        <div className="flex h-16 shrink-0 items-center justify-between gap-3 px-6">
-            <div className="flex items-center gap-3">
-                <BrandLogo className="h-11 w-11" />
-                <span className="text-lg font-bold text-slate-900">
-                    Rancaka
-                </span>
+        <div className="flex h-[72px] shrink-0 items-center justify-between gap-3 border-b border-slate-100 px-5">
+            <div className="flex min-w-0 items-center gap-3">
+                <BrandLogo className="h-9 w-9" />
+                <div className="min-w-0">
+                    <p className="truncate text-[17px] font-bold leading-tight tracking-[-0.02em] text-slate-900">
+                        Rancaka
+                    </p>
+                    <p className="mt-0.5 text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-400">
+                        Point of Sale
+                    </p>
+                </div>
             </div>
             <button
                 type="button"
                 onClick={onClose}
-                className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 hover:bg-slate-50 hover:text-slate-600"
+                className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-slate-300 transition hover:bg-slate-100 hover:text-slate-600"
+                aria-label="Tutup sidebar"
+                title="Tutup sidebar"
             >
                 <i className="fi fi-rr-cross-small" />
             </button>
         </div>
 
-        <nav className="scrollbar-thin mt-4 min-h-0 flex-1 space-y-6 overflow-y-auto px-3 pb-4">
+        <nav className="scrollbar-thin min-h-0 flex-1 space-y-5 overflow-y-auto px-3 py-5">
             {navigation.map((section) => (
                 <div key={section.group}>
-                    <p className="px-3 text-xs font-semibold uppercase tracking-wider text-slate-400">
+                    <p className="px-3 text-[10px] font-bold uppercase tracking-[0.14em] text-slate-400">
                         {section.group}
                     </p>
-                    <div className="mt-2 space-y-1">
+                    <div className="mt-1.5 space-y-0.5">
                         {section.items.map((item) => {
                             const active = route().current(item.href);
                             return (
                                 <Link
                                     key={item.name}
                                     href={route(item.href)}
-                                    className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition ${
+                                    className={`group relative flex min-h-10 items-center gap-3 overflow-hidden rounded-xl px-3 py-2 text-sm font-medium transition-all duration-200 ${
                                         active
-                                            ? "bg-indigo-50 text-indigo-700"
+                                            ? "bg-indigo-50 text-indigo-700 shadow-sm shadow-indigo-100/40 ring-1 ring-inset ring-indigo-100/70"
                                             : "text-slate-500 hover:bg-slate-50 hover:text-slate-900"
                                     }`}
                                 >
+                                    {active && (
+                                        <span className="absolute inset-y-2 left-0 w-0.5 rounded-r-full bg-indigo-600" />
+                                    )}
                                     <i
-                                        className={`fi ${item.icon} ${active ? "text-indigo-600" : "text-slate-400"}`}
+                                        className={`fi ${item.icon} w-5 shrink-0 text-center text-[15px] transition-colors ${active ? "text-indigo-600" : "text-slate-400 group-hover:text-slate-600"}`}
                                     />
-                                    {item.name}
+                                    <span className="truncate">{item.name}</span>
                                 </Link>
                             );
                         })}
@@ -394,12 +404,14 @@ export default function AdminLayout({ header, children }) {
         return () => clearInterval(interval);
     }, []);
 
-    const currentTime = now.toLocaleTimeString("id-ID", { hour12: false });
+    const hours = String(now.getHours()).padStart(2, "0");
+    const minutes = String(now.getMinutes()).padStart(2, "0");
+    const seconds = String(now.getSeconds()).padStart(2, "0");
 
     return (
         <div className="min-h-screen bg-slate-50 transition-colors duration-300">
             <aside
-                className={`fixed inset-y-0 left-0 z-30 hidden w-64 flex-col border-r border-slate-200 bg-white transition-transform duration-300 xl:flex ${
+                className={`fixed inset-y-0 left-0 z-30 hidden w-64 flex-col border-r border-slate-200/80 bg-white shadow-[4px_0_24px_rgba(15,23,42,0.025)] transition-transform duration-300 xl:flex ${
                     desktopSidebarOpen ? "xl:translate-x-0" : "xl:-translate-x-full"
                 }`}
             >
@@ -435,7 +447,7 @@ export default function AdminLayout({ header, children }) {
                         leaveFrom="translate-x-0"
                         leaveTo="-translate-x-full"
                     >
-                        <aside className="fixed inset-y-0 left-0 flex w-64 flex-col border-r border-slate-200 bg-white shadow-xl">
+                        <aside className="fixed inset-y-0 left-0 flex w-64 flex-col border-r border-slate-200/80 bg-white shadow-2xl shadow-slate-900/10">
                             <SidebarContent
                                 navigation={navigation}
                                 onClose={() => setSidebarOpen(false)}
@@ -531,9 +543,23 @@ export default function AdminLayout({ header, children }) {
                     </div>
 
                     <div className="flex items-center gap-2 sm:gap-3">
-                        <span className="font-digital hidden min-w-[7.8rem] items-center justify-center rounded-lg border border-slate-200 bg-slate-50 px-3 py-1 text-xl font-bold tabular-nums tracking-[0.12em] text-slate-700 sm:inline-flex">
-                            {currentTime}
-                        </span>
+                        <div
+                            className="hidden h-10 items-center gap-2.5 rounded-xl border border-slate-200/80 bg-white px-2.5 shadow-sm shadow-slate-200/50 sm:flex"
+                            aria-label={`Pukul ${hours}:${minutes}:${seconds}`}
+                            title="Waktu lokal"
+                        >
+                            <span className="flex h-6 w-6 items-center justify-center rounded-lg bg-indigo-50 text-[11px] text-indigo-600">
+                                <i className="fi fi-rr-clock-three" />
+                            </span>
+                            <span className="font-mono text-[15px] font-semibold tabular-nums tracking-[0.04em] text-slate-700">
+                                {hours}
+                                <span className="mx-0.5 text-slate-300">:</span>
+                                {minutes}
+                            </span>
+                            <span className="border-l border-slate-100 pl-2 font-mono text-xs font-medium tabular-nums text-slate-400">
+                                {seconds}
+                            </span>
+                        </div>
 
                         <button
                             type="button"
