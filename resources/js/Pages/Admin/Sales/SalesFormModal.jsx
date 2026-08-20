@@ -6,6 +6,8 @@ import { useEffect } from 'react';
 
 const emptyForm = {
     name: '',
+    username: '',
+    password: '',
     email: '',
     phone: '',
     referral_code: '',
@@ -22,6 +24,8 @@ export default function SalesFormModal({ show, onClose, sales }) {
         if (!show) return;
         form.setData(sales ? {
             name: sales.name,
+            username: sales.user?.username ?? '',
+            password: '',
             email: sales.email ?? '',
             phone: sales.phone ?? '',
             referral_code: sales.referral_code,
@@ -58,6 +62,12 @@ export default function SalesFormModal({ show, onClose, sales }) {
                     <div className="grid gap-4 sm:grid-cols-2">
                         <Field label="Nama sales" error={form.errors.name} wide>
                             <input value={form.data.name} onChange={(e) => form.setData('name', e.target.value)} className={inputClass} placeholder="Budi Santoso" />
+                        </Field>
+                        <Field label="Username login" error={form.errors.username}>
+                            <input value={form.data.username} onChange={(e) => form.setData('username', e.target.value.replace(/\s/g, ''))} className={inputClass} placeholder="budi.sales" />
+                        </Field>
+                        <Field label={isEdit ? 'Password baru (opsional)' : 'Password'} error={form.errors.password}>
+                            <input type="password" value={form.data.password} onChange={(e) => form.setData('password', e.target.value)} className={inputClass} placeholder={isEdit ? 'Kosongkan jika tidak diubah' : 'Minimal 8 karakter'} />
                         </Field>
                         <Field label="Email (opsional)" error={form.errors.email}>
                             <input type="email" value={form.data.email} onChange={(e) => form.setData('email', e.target.value)} className={inputClass} placeholder="budi@email.com" />

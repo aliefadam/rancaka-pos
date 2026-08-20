@@ -10,6 +10,7 @@ use App\Models\SubscriptionPayment;
 use App\Models\Tenant;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Inertia\Testing\AssertableInertia as Assert;
 use Laravel\Socialite\Facades\Socialite;
 use Laravel\Socialite\Two\User as SocialiteUser;
 use Tests\TestCase;
@@ -24,6 +25,8 @@ class SalesReferralCommissionTest extends TestCase
 
         $this->actingAs($admin)->post(route('admin.sales.store'), [
             'name' => 'Budi Sales',
+            'username' => 'budi.sales',
+            'password' => 'password123',
             'email' => 'budi@example.com',
             'phone' => '0812345678',
             'referral_code' => ' salesbudi ',
@@ -35,6 +38,11 @@ class SalesReferralCommissionTest extends TestCase
             'name' => 'Budi Sales',
             'referral_code' => 'SALESBUDI',
             'commission_rate' => 10.50,
+        ]);
+        $this->assertDatabaseHas('users', [
+            'username' => 'budi.sales',
+            'role' => UserRole::Sales->value,
+            'tenant_id' => null,
         ]);
         $this->actingAs($admin)->get(route('admin.sales.index'))->assertOk();
 
@@ -56,6 +64,59 @@ class SalesReferralCommissionTest extends TestCase
         $this->assertSame($sales->id, $tenant->referred_by_sales_id);
         $this->assertSame('SALESBUDI', $tenant->referral_code_used);
         $this->assertNotNull($tenant->referred_at);
+    }
+
+    public function test_sales_login_only_sees_own_downline_and_estimated_commission(): void
+    {
+        $salesUser = User::factory()->create([
+            'username' => 'sales.login',
+            'password' => 'password123',
+            'role' => UserRole::Sales,
+            'tenant_id' => null,
+        ]);
+        $sales = $this->sales(['user_id' => $salesUser->id, 'commission_rate' => 10]);
+        $otherUser = User::factory()->create(['role' => UserRole::Sales, 'tenant_id' => null]);
+        $otherSales = $this->sales([
+            'user_id' => $otherUser->id,
+            'name' => 'Sales Lain',
+            'referral_code' => 'SALESLain',
+        ]);
+
+        $ownTenant = Tenant::factory()->create([
+            'name' => 'Tenant Milik Sales',
+            'referred_by_sales_id' => $sales->id,
+            'referral_code_used' => $sales->referral_code,
+            'referred_at' => now(),
+        ]);
+        BillingInvoice::create([
+            'tenant_id' => $ownTenant->id,
+            'subscription_id' => $ownTenant->subscription->id,
+            'number' => 'INV-PROJECTION',
+            'status' => 'open',
+            'amount' => 149000,
+            'due_at' => now()->addDays(14),
+        ]);
+        Tenant::factory()->create([
+            'name' => 'Tenant Sales Lain',
+            'referred_by_sales_id' => $otherSales->id,
+            'referral_code_used' => $otherSales->referral_code,
+            'referred_at' => now(),
+        ]);
+
+        $this->post(route('login'), [
+            'username' => 'sales.login',
+            'password' => 'password123',
+        ])->assertRedirect(route('sales.dashboard'));
+
+        $this->get(route('sales.dashboard'))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->component('Sales/Dashboard')
+                ->where('metrics.referrals', 1)
+                ->where('metrics.estimated_total', 14900)
+                ->has('downlines', 1)
+                ->where('downlines.0.name', 'Tenant Milik Sales')
+                ->where('downlines.0.commission_status', 'projected'));
     }
 
     public function test_only_first_approved_subscription_payment_creates_commission(): void

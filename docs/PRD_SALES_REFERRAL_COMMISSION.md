@@ -4,11 +4,11 @@
 
 - Status: Siap implementasi
 - Tanggal: 20 Agustus 2026
-- Cakupan: referral registrasi tenant, komisi subscription, payout manual, dan manajemen sales oleh superadmin
+- Cakupan: akun dan dashboard sales, referral registrasi tenant, komisi subscription, payout manual, dan manajemen sales oleh superadmin
 
 ## Latar Belakang
 
-Platform SaaS membutuhkan sales yang dapat mengajak calon tenant menggunakan kode referral. Setiap sales mempunyai kode referral unik dan persentase komisi yang dapat berbeda. Pada MVP, sales tidak mempunyai akun atau dashboard sendiri; seluruh pengelolaan referral, komisi, dan payout dilakukan oleh superadmin.
+Platform SaaS membutuhkan sales yang dapat mengajak calon tenant menggunakan kode referral. Setiap sales mempunyai kode referral unik, akun username/password, dan persentase komisi yang dapat berbeda. Sales dapat melihat downline referral dan estimasi komisinya sendiri, sedangkan pengelolaan sales dan payout tetap dilakukan oleh superadmin.
 
 ## Tujuan
 
@@ -17,7 +17,7 @@ Platform SaaS membutuhkan sales yang dapat mengajak calon tenant menggunakan kod
 - Calon tenant dapat memasukkan kode referral saat registrasi.
 - Referral tetap bekerja pada registrasi formulir maupun Google OAuth.
 - Komisi tercatat secara akurat ketika pembayaran tenant disetujui.
-- Superadmin dapat melihat performa referral dan status pembayaran komisi setiap sales.
+- Sales dapat login dan melihat downline, estimasi komisi, komisi aktual, serta payout miliknya sendiri.
 - Sales tidak dapat melihat laporan operasional atau keuangan internal tenant.
 
 ## Role dan Hak Akses
@@ -34,8 +34,9 @@ Platform SaaS membutuhkan sales yang dapat mengajak calon tenant menggunakan kod
 
 - Setiap sales mempunyai kode referral yang berbeda.
 - Sales membagikan kode referral kepada calon tenant.
-- Sales tidak mempunyai akun/login dan dashboard pada MVP.
-- Rekap komisi disampaikan di luar aplikasi oleh superadmin jika diperlukan.
+- Sales login menggunakan username/password yang dibuat superadmin.
+- Sales dapat melihat dashboard, downline referral, estimasi komisi, komisi aktual, dan payout miliknya sendiri.
+- Sales tidak dapat melihat data sales lain atau data operasional internal tenant.
 
 Kode referral hanya digunakan untuk atribusi tenant dan perhitungan komisi. Kode referral bukan kredensial login.
 
@@ -127,7 +128,7 @@ Pembulatan menggunakan rupiah terdekat dan dilakukan di backend.
 
 ## Dashboard Sales
 
-Dashboard sales tidak termasuk cakupan MVP karena sales tidak mempunyai akun/login. Kebutuhan berikut dapat menjadi fase lanjutan jika akses mandiri untuk sales diperlukan.
+Dashboard sales termasuk cakupan MVP dan seluruh query wajib dibatasi menggunakan `sales_profile_id` milik user yang sedang login.
 
 ### Ringkasan
 
@@ -137,6 +138,9 @@ Dashboard sales tidak termasuk cakupan MVP karena sales tidak mempunyai akun/log
 - Total invoice yang sudah dibayar dari referral.
 - Total komisi diperoleh.
 - Total komisi belum dibayar dan sudah dibayar.
+- Total estimasi komisi dari seluruh downline.
+
+Estimasi per downline menggunakan nilai komisi aktual jika pembayaran pertama sudah disetujui. Jika belum, estimasi dihitung dari nominal invoice subscription pertama dikali persentase komisi sales saat ini. Nilai estimasi diberi label sebagai proyeksi dan bukan saldo yang dapat dipayout.
 
 ### Tabel Referral
 
@@ -167,8 +171,9 @@ Dashboard sales tidak termasuk cakupan MVP karena sales tidak mempunyai akun/log
 ### Manajemen Sales
 
 - Daftar sales dengan pencarian dan filter status.
-- Tambah sales: nama, informasi kontak opsional, kode referral, persentase komisi, dan status.
+- Tambah sales: nama, username, email opsional, password, informasi kontak opsional, kode referral, persentase komisi, dan status.
 - Edit identitas, kode referral, persentase, dan status.
+- Reset password sales.
 - Detail performa sales.
 
 ### Laporan Referral dan Komisi
@@ -183,6 +188,7 @@ Dashboard sales tidak termasuk cakupan MVP karena sales tidak mempunyai akun/log
 ### `sales_profiles`
 
 - `id`
+- `user_id` — unique
 - `name`
 - `email` — nullable
 - `phone` — nullable
@@ -230,10 +236,12 @@ Relasi payout ke komisi menggunakan pivot agar satu payout dapat mencakup bebera
 
 ## Login dan Routing
 
-- Tidak ada role `sales`, akun sales, atau route `/sales/*` pada MVP.
-- Seluruh halaman sales, referral, komisi, dan payout berada di area superadmin.
+- Role baru: `sales`.
+- Sales login dengan username/password melalui halaman login yang sama.
+- Setelah login, sales diarahkan ke `/sales/dashboard`.
+- Route `/sales/*` hanya dapat diakses role sales.
+- Seluruh query dashboard mengambil identitas sales dari akun yang login, bukan dari parameter browser.
 - Kode referral tidak dapat digunakan untuk login.
-- Akun dan dashboard sales dapat ditambahkan pada fase berikutnya tanpa mengubah histori referral atau komisi.
 
 ## Audit dan Keamanan
 
@@ -241,7 +249,7 @@ Relasi payout ke komisi menggunakan pivot agar satu payout dapat mencakup bebera
 - Semua perubahan persentase sales dicatat melalui timestamp; audit log rinci dapat menjadi fase berikutnya.
 - Setiap endpoint superadmin tetap memvalidasi `sales_profile_id` dan kepemilikan komisi di server; data dari browser tidak dipercaya sebagai dasar perhitungan.
 - Nominal komisi dihitung ulang oleh server.
-- Bukti payout hanya dapat dilihat superadmin pada MVP.
+- Bukti payout hanya dapat dilihat sales terkait dan superadmin.
 - Kode referral diberi rate limit pada endpoint validasi jika tersedia secara realtime.
 
 ## Migrasi dan Kompatibilitas
@@ -255,7 +263,7 @@ Relasi payout ke komisi menggunakan pivot agar satu payout dapat mencakup bebera
 ## Acceptance Criteria
 
 1. Superadmin dapat membuat dua sales dengan komisi berbeda, misalnya 10% dan 5%.
-2. Kedua sales mempunyai kode referral unik dan tidak memerlukan akun login.
+2. Kedua sales dapat login dengan username/password dan hanya melihat downline serta komisi masing-masing.
 3. Customer dapat registrasi tanpa kode referral.
 4. Customer dapat registrasi dengan kode referral valid melalui formulir maupun Google.
 5. Kode referral invalid/inactive ditolak dengan pesan yang jelas.
@@ -268,11 +276,12 @@ Relasi payout ke komisi menggunakan pivot agar satu payout dapat mencakup bebera
 12. Perhitungan komisi mempunyai automated test untuk rate berbeda, memastikan pembayaran kedua tidak menghasilkan komisi, duplikasi approval, dan isolasi data.
 13. Superadmin dapat membuat payout manual dari komisi `accrued`; komisi yang masuk payout berstatus `paid` dan tidak dapat dibayar dua kali.
 14. Referral tenant hanya dapat dikoreksi superadmin sebelum pembayaran subscription pertama disetujui.
+15. Estimasi komisi dashboard menggunakan invoice pertama untuk downline yang belum membayar dan menggunakan komisi aktual setelah pembayaran disetujui.
 
 ## Keputusan Bisnis Final
 
 1. Komisi hanya berlaku satu kali pada pembayaran subscription pertama yang disetujui. Pembayaran perpanjangan berikutnya tidak menghasilkan komisi.
 2. Komisi langsung berstatus `accrued` ketika pembayaran customer disetujui. Payout kepada sales dicatat manual oleh superadmin dan mengubah status komisi menjadi `paid`.
-3. Sales cukup mempunyai kode referral yang berbeda-beda. Tidak ada akun/login sales pada MVP; kode referral bukan kredensial login.
+3. Setiap sales mempunyai kode referral unik dan akun login username/password. Kode referral bukan kredensial login.
 4. Superadmin hanya boleh mengoreksi referral tenant sebelum pembayaran subscription pertama disetujui.
 5. Tidak ada refund atau pembatalan pembayaran yang sudah disetujui pada MVP, sehingga tidak ada pengurangan/cancellation komisi setelah pembayaran tersebut.

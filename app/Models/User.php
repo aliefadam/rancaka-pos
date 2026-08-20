@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
@@ -53,9 +54,19 @@ class User extends Authenticatable
         return $this->role === UserRole::Owner;
     }
 
+    public function isSales(): bool
+    {
+        return $this->role === UserRole::Sales;
+    }
+
     public function isEmployee(): bool
     {
         return $this->role === UserRole::Employee;
+    }
+
+    public function salesProfile(): HasOne
+    {
+        return $this->hasOne(SalesProfile::class);
     }
 
     public function hasRestrictedCashierAccess(): bool

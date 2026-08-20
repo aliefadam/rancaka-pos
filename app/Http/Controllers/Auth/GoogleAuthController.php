@@ -58,6 +58,10 @@ class GoogleAuthController extends Controller
             ->first()
             ?->owner;
 
+        if ($user?->isSales()) {
+            return redirect()->route('login')->with('status', 'Akun sales masuk menggunakan username dan password.');
+        }
+
         if ($user) {
             $user->update([
                 'google_id' => $googleUser->getId(),

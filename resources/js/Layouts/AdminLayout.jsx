@@ -39,6 +39,18 @@ const navigationByRole = {
             ],
         },
     ],
+    sales: [
+        {
+            group: "Sales",
+            items: [
+                {
+                    name: "Dashboard Referral",
+                    href: "sales.dashboard",
+                    icon: "fi-rr-chart-network",
+                },
+            ],
+        },
+    ],
     owner: [
         {
             group: "Menu",

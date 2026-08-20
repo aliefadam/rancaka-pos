@@ -9,6 +9,7 @@ use App\Http\Controllers\Admin\TenantController;
 use App\Http\Controllers\Auth\StoreOnboardingController;
 use App\Http\Controllers\BridgeReceiptController;
 use App\Http\Controllers\ImpersonationController;
+use App\Http\Controllers\Sales\DashboardController as SalesDashboardController;
 use App\Http\Controllers\Tenant\BillingController as TenantBillingController;
 use App\Http\Controllers\Tenant\CategoryController as TenantCategoryController;
 use App\Http\Controllers\Tenant\CreditSaleController as TenantCreditSaleController;
@@ -36,11 +37,12 @@ Route::get('/', function () {
     }
 
     $user = auth()->user();
-    if (! $user->isSuperadmin() && ! $user->tenant_id) {
+    if ($user->isOwner() && ! $user->tenant_id) {
         return redirect()->route('onboarding.store.create');
     }
     $route = match (true) {
         $user->role === UserRole::Superadmin => 'admin.dashboard',
+        $user->role === UserRole::Sales => 'sales.dashboard',
         $user->hasPermission('dashboard.view') => 'tenant.dashboard',
         default => 'tenant.pos.index',
     };
@@ -222,3 +224,8 @@ Route::get('/bridge/receipts/{transaction}', [BridgeReceiptController::class, 's
     ->name('bridge.receipts.show');
 
 require __DIR__.'/auth.php';
+
+Route::middleware(['auth', 'role:sales'])->prefix('sales')->name('sales.')->group(function () {
+    Route::get('/dashboard', [SalesDashboardController::class, 'index'])->name('dashboard');
+    Route::get('/payouts/{payout}/proof', [SalesDashboardController::class, 'proof'])->name('payouts.proof');
+});

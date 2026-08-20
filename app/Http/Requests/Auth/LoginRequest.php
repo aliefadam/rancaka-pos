@@ -58,6 +58,14 @@ class LoginRequest extends FormRequest
             ]);
         }
 
+        if (Auth::user()?->isSales() && Auth::user()->salesProfile?->status !== 'active') {
+            Auth::guard('web')->logout();
+
+            throw ValidationException::withMessages([
+                'username' => 'Akun sales sedang dinonaktifkan. Hubungi administrator.',
+            ]);
+        }
+
         RateLimiter::clear($this->throttleKey());
     }
 

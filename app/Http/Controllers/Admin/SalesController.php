@@ -2,13 +2,17 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Enums\UserRole;
 use App\Http\Controllers\Controller;
 use App\Models\CommissionPayout;
 use App\Models\SalesCommission;
 use App\Models\SalesProfile;
 use App\Models\Tenant;
+use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -31,6 +35,7 @@ class SalesController extends Controller
                 ->orWhere('referral_code', 'like', "%{$value}%")))
             ->when($salesStatus, fn ($query, $value) => $query->where('status', $value))
             ->withCount('tenants')
+            ->with('user:id,username')
             ->withSum('commissions as total_commission', 'commission_amount')
             ->withSum(['commissions as accrued_commission' => fn ($query) => $query->where('status', 'accrued')], 'commission_amount')
             ->orderBy('name')
@@ -82,7 +87,28 @@ class SalesController extends Controller
     public function store(Request $request): RedirectResponse
     {
         $request->merge(['referral_code' => SalesProfile::normalizeReferralCode($request->input('referral_code'))]);
-        SalesProfile::create($this->validated($request));
+        $data = $this->validated($request);
+
+        DB::transaction(function () use ($data) {
+            $user = User::create([
+                'name' => $data['name'],
+                'username' => $data['username'],
+                'email' => $data['email'] ?? null,
+                'password' => Hash::make($data['password']),
+                'role' => UserRole::Sales,
+                'tenant_id' => null,
+            ]);
+
+            SalesProfile::create([
+                'user_id' => $user->id,
+                'name' => $data['name'],
+                'email' => $data['email'] ?? null,
+                'phone' => $data['phone'] ?? null,
+                'referral_code' => $data['referral_code'],
+                'commission_rate' => $data['commission_rate'],
+                'status' => $data['status'],
+            ]);
+        });
 
         return back()->with('success', 'Sales berhasil ditambahkan.');
     }
@@ -90,7 +116,32 @@ class SalesController extends Controller
     public function update(Request $request, SalesProfile $salesProfile): RedirectResponse
     {
         $request->merge(['referral_code' => SalesProfile::normalizeReferralCode($request->input('referral_code'))]);
-        $salesProfile->update($this->validated($request, $salesProfile));
+        $data = $this->validated($request, $salesProfile);
+
+        DB::transaction(function () use ($data, $salesProfile) {
+            $user = $salesProfile->user ?? new User;
+            $user->fill([
+                'name' => $data['name'],
+                'username' => $data['username'],
+                'email' => $data['email'] ?? null,
+                'role' => UserRole::Sales,
+                'tenant_id' => null,
+            ]);
+            if (! empty($data['password'])) {
+                $user->password = Hash::make($data['password']);
+            }
+            $user->save();
+
+            $salesProfile->update([
+                'user_id' => $user->id,
+                'name' => $data['name'],
+                'email' => $data['email'] ?? null,
+                'phone' => $data['phone'] ?? null,
+                'referral_code' => $data['referral_code'],
+                'commission_rate' => $data['commission_rate'],
+                'status' => $data['status'],
+            ]);
+        });
 
         return back()->with('success', 'Data sales berhasil diperbarui.');
     }
@@ -119,7 +170,9 @@ class SalesController extends Controller
     {
         return $request->validate([
             'name' => ['required', 'string', 'max:255'],
+            'username' => ['required', 'string', 'max:255', 'regex:/^[A-Za-z0-9._-]+$/', Rule::unique('users', 'username')->ignore($salesProfile?->user_id)],
             'email' => ['nullable', 'email', 'max:255'],
+            'password' => [Rule::requiredIf(! $salesProfile?->user_id), 'nullable', 'string', 'min:8'],
             'phone' => ['nullable', 'string', 'max:30'],
             'referral_code' => ['required', 'string', 'min:4', 'max:30', 'regex:/^[A-Z0-9_-]+$/', Rule::unique('sales_profiles')->ignore($salesProfile?->id)],
             'commission_rate' => ['required', 'numeric', 'between:0,100', 'decimal:0,2'],
