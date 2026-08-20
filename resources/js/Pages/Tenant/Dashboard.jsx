@@ -90,21 +90,21 @@ export default function Dashboard() {
                 </div>
             </div>
 
-            <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5">
+            <div className="mt-6 grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-5">
                 {overview.map((stat) => (
                     <div
                         key={stat.key}
-                        className="rounded-2xl border border-slate-200/70 bg-white p-5 shadow-sm shadow-slate-200/40"
+                        className="min-w-0 rounded-2xl border border-slate-200/70 bg-white p-3.5 shadow-sm shadow-slate-200/40 sm:p-5"
                     >
                         <span
-                            className={`flex h-11 w-11 items-center justify-center rounded-xl ${toneStyles[stat.tone]}`}
+                            className={`flex h-9 w-9 items-center justify-center rounded-xl sm:h-11 sm:w-11 ${toneStyles[stat.tone]}`}
                         >
                             <i className={`fi ${stat.icon} text-lg`} />
                         </span>
-                        <p className="mt-4 text-2xl font-bold text-slate-900">
+                        <p className="mt-3 overflow-hidden text-ellipsis whitespace-nowrap text-[clamp(1rem,4vw,1.5rem)] font-bold tracking-tight text-slate-900 sm:mt-4">
                             {stat.value}
                         </p>
-                        <p className="mt-1 text-sm text-slate-500">
+                        <p className="mt-1 truncate text-xs text-slate-500 sm:text-sm">
                             {stat.label}
                         </p>
                     </div>
@@ -255,7 +255,7 @@ export default function Dashboard() {
                                         {product.sold} terjual
                                     </p>
                                 </div>
-                                <p className="shrink-0 text-sm font-semibold text-slate-900">
+                                <p className="shrink-0 whitespace-nowrap text-sm font-semibold text-slate-900">
                                     {product.revenue}
                                 </p>
                             </div>

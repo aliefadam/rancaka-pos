@@ -93,6 +93,11 @@ class Tenant extends Model
         return $this->hasMany(Transaction::class);
     }
 
+    public function expenses(): HasMany
+    {
+        return $this->hasMany(Expense::class);
+    }
+
     public function activeShift(): HasOne
     {
         return $this->hasOne(Shift::class)->whereNull('closed_at');

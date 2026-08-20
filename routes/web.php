@@ -6,6 +6,7 @@ use App\Http\Controllers\Admin\BillingController as AdminBillingController;
 use App\Http\Controllers\Admin\TenantController;
 use App\Http\Controllers\Auth\StoreOnboardingController;
 use App\Http\Controllers\BridgeReceiptController;
+use App\Http\Controllers\ImpersonationController;
 use App\Http\Controllers\Tenant\BillingController as TenantBillingController;
 use App\Http\Controllers\Tenant\CategoryController as TenantCategoryController;
 use App\Http\Controllers\Tenant\DashboardController as TenantDashboardController;
@@ -49,6 +50,10 @@ Route::middleware(['auth', 'role:owner'])->group(function () {
     Route::post('/onboarding/store', [StoreOnboardingController::class, 'store'])->name('onboarding.store.store');
 });
 
+Route::post('/impersonation/stop', [ImpersonationController::class, 'stop'])
+    ->middleware('auth')
+    ->name('impersonation.stop');
+
 Route::middleware(['auth', 'tenant.onboarded', 'subscription.active'])->group(function () {
     Route::get('/account', [AccountController::class, 'edit'])->name('account.edit');
     Route::put('/account', [AccountController::class, 'update'])->name('account.update');
@@ -60,8 +65,10 @@ Route::middleware(['auth', 'role:superadmin'])->prefix('admin')->name('admin.')-
     })->name('dashboard');
 
     Route::resource('tenants', TenantController::class)
-        ->only(['index', 'store', 'update', 'destroy'])
+        ->only(['index', 'show', 'store', 'update', 'destroy'])
         ->names('tenants');
+    Route::post('/tenants/{tenant}/impersonate', [ImpersonationController::class, 'start'])
+        ->name('tenants.impersonate');
 
     Route::get('/billing', [AdminBillingController::class, 'index'])->name('billing.index');
     Route::post('/billing/settings', [AdminBillingController::class, 'updateSettings'])->name('billing.settings.update');

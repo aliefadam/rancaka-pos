@@ -71,27 +71,27 @@ export default function Dashboard() {
                 </div>
             </div>
 
-            <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <div className="mt-6 grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
                 {stats.map((stat) => (
                     <div
                         key={stat.label}
-                        className="rounded-2xl border border-slate-200/70 bg-white p-5 shadow-sm shadow-slate-200/40"
+                        className="min-w-0 rounded-2xl border border-slate-200/70 bg-white p-3.5 shadow-sm shadow-slate-200/40 sm:p-5"
                     >
                         <div className="flex items-center justify-between">
                             <span
-                                className={`flex h-11 w-11 items-center justify-center rounded-xl ${stat.soft}`}
+                                className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl sm:h-11 sm:w-11 ${stat.soft}`}
                             >
                                 <i className={`fi ${stat.icon} text-lg`} />
                             </span>
-                            <span className="flex items-center gap-1 text-xs font-semibold text-emerald-600">
+                            <span className="flex items-center gap-1 whitespace-nowrap text-[10px] font-semibold text-emerald-600 sm:text-xs">
                                 <i className="fi fi-rr-arrow-trend-up" />
                                 {stat.delta}
                             </span>
                         </div>
-                        <p className="mt-4 text-2xl font-bold text-slate-900">
+                        <p className="mt-3 overflow-hidden text-ellipsis whitespace-nowrap text-[clamp(1rem,4vw,1.5rem)] font-bold tracking-tight text-slate-900 sm:mt-4">
                             {stat.value}
                         </p>
-                        <p className="mt-1 text-sm text-slate-500">
+                        <p className="mt-1 truncate text-xs text-slate-500 sm:text-sm">
                             {stat.label}
                         </p>
                     </div>

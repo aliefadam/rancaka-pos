@@ -4,7 +4,7 @@ import Select from '@/Components/Select';
 import { useToast } from '@/Contexts/ToastContext';
 import AdminLayout from '@/Layouts/AdminLayout';
 import TenantFormModal from '@/Pages/Admin/Tenants/TenantFormModal';
-import { Head, router } from '@inertiajs/react';
+import { Head, Link, router } from '@inertiajs/react';
 import { useEffect, useRef, useState } from 'react';
 
 const formatDate = (value) =>
@@ -49,6 +49,8 @@ export default function Index({ tenants, filters }) {
     const [editingTenant, setEditingTenant] = useState(null);
     const [deleteTarget, setDeleteTarget] = useState(null);
     const [deleting, setDeleting] = useState(false);
+    const [impersonateTarget, setImpersonateTarget] = useState(null);
+    const [impersonating, setImpersonating] = useState(false);
     const isFirstRun = useRef(true);
 
     useEffect(() => {
@@ -116,6 +118,24 @@ export default function Index({ tenants, filters }) {
                 setDeleteTarget(null);
             },
         });
+    };
+
+    const confirmImpersonate = () => {
+        if (!impersonateTarget) return;
+
+        setImpersonating(true);
+        router.post(
+            route('admin.tenants.impersonate', impersonateTarget.id),
+            {},
+            {
+                onError: (errors) =>
+                    toast.error(
+                        errors.impersonation ??
+                            'Gagal masuk ke tenant. Silakan coba lagi.',
+                    ),
+                onFinish: () => setImpersonating(false),
+            },
+        );
     };
 
     return (
@@ -240,6 +260,33 @@ export default function Index({ tenants, filters }) {
                                     </td>
                                     <td className="px-6 py-4">
                                         <div className="flex items-center justify-end gap-1.5">
+                                            <Link
+                                                href={route(
+                                                    'admin.tenants.show',
+                                                    tenant.id,
+                                                )}
+                                                className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 transition hover:bg-indigo-50 hover:text-indigo-600"
+                                                title={`Lihat detail ${tenant.name}`}
+                                                aria-label={`Lihat detail ${tenant.name}`}
+                                            >
+                                                <i className="fi fi-rr-eye" />
+                                            </Link>
+                                            <button
+                                                type="button"
+                                                disabled={!tenant.can_impersonate}
+                                                onClick={() =>
+                                                    setImpersonateTarget(tenant)
+                                                }
+                                                className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 transition hover:bg-amber-50 hover:text-amber-600 disabled:cursor-not-allowed disabled:opacity-30"
+                                                title={
+                                                    tenant.can_impersonate
+                                                        ? `Masuk sebagai ${tenant.name}`
+                                                        : 'Tenant belum memiliki owner'
+                                                }
+                                                aria-label={`Impersonate ${tenant.name}`}
+                                            >
+                                                <i className="fi fi-rr-sign-in-alt" />
+                                            </button>
                                             <button
                                                 type="button"
                                                 onClick={() =>
@@ -332,6 +379,25 @@ export default function Index({ tenants, filters }) {
                             </dl>
 
                             <div className="mt-3 flex items-center justify-end gap-1.5">
+                                <Link
+                                    href={route(
+                                        'admin.tenants.show',
+                                        tenant.id,
+                                    )}
+                                    className="flex h-8 items-center gap-2 rounded-lg bg-indigo-50 px-3 text-xs font-semibold text-indigo-700 transition hover:bg-indigo-100"
+                                >
+                                    <i className="fi fi-rr-eye" />
+                                    Detail
+                                </Link>
+                                <button
+                                    type="button"
+                                    disabled={!tenant.can_impersonate}
+                                    onClick={() => setImpersonateTarget(tenant)}
+                                    className="flex h-8 items-center gap-2 rounded-lg bg-amber-50 px-3 text-xs font-semibold text-amber-700 transition hover:bg-amber-100 disabled:cursor-not-allowed disabled:opacity-40"
+                                >
+                                    <i className="fi fi-rr-sign-in-alt" />
+                                    Masuk sebagai tenant
+                                </button>
                                 <button
                                     type="button"
                                     onClick={() => openEditModal(tenant)}
@@ -380,6 +446,21 @@ export default function Index({ tenants, filters }) {
                 show={modalOpen}
                 onClose={closeModal}
                 tenant={editingTenant}
+            />
+
+            <ConfirmDialog
+                show={Boolean(impersonateTarget)}
+                onClose={() => {
+                    if (!impersonating) setImpersonateTarget(null);
+                }}
+                onConfirm={confirmImpersonate}
+                processing={impersonating}
+                title="Masuk sebagai Tenant"
+                message={
+                    impersonateTarget &&
+                    `Anda akan masuk sebagai owner tenant “${impersonateTarget.name}”. Semua aktivitas berikutnya menggunakan akses tenant sampai mode impersonate dihentikan.`
+                }
+                confirmText="Ya, Masuk"
             />
 
             <ConfirmDialog

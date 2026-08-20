@@ -23,6 +23,7 @@ const navigationByRole = {
                 {
                     name: "Tenant",
                     href: "admin.tenants.index",
+                    activePattern: "admin.tenants.*",
                     icon: "fi-rr-building",
                 },
                 {
@@ -287,7 +288,9 @@ const SidebarContent = ({ navigation, onClose }) => (
                     </p>
                     <div className="mt-1.5 space-y-0.5">
                         {section.items.map((item) => {
-                            const active = route().current(item.href);
+                            const active = route().current(
+                                item.activePattern ?? item.href,
+                            );
                             return (
                                 <Link
                                     key={item.name}
@@ -319,6 +322,7 @@ export default function AdminLayout({ header, children }) {
     const page = usePage();
     const { auth, flash } = page.props;
     const user = auth.user;
+    const impersonation = auth.impersonation;
     const navigation = useMemo(() => {
         const sections = navigationByRole[user.role] ?? [];
 
@@ -340,6 +344,7 @@ export default function AdminLayout({ header, children }) {
     const [desktopSidebarOpen, setDesktopSidebarOpen] = useState(true);
     const [searchQuery, setSearchQuery] = useState("");
     const [searchOpen, setSearchOpen] = useState(false);
+    const [stoppingImpersonation, setStoppingImpersonation] = useState(false);
     const [darkMode, setDarkMode] = useState(() => {
         if (typeof window === "undefined") return false;
 
@@ -460,7 +465,47 @@ export default function AdminLayout({ header, children }) {
             <div
                 className={`transition-all duration-300 ${desktopSidebarOpen ? "xl:pl-64" : "xl:pl-0"}`}
             >
-                <header className="sticky top-0 z-20 flex h-16 items-center justify-between gap-4 border-b border-slate-200 bg-white/80 px-4 backdrop-blur sm:px-6">
+                <div className="sticky top-0 z-20">
+                    {impersonation && (
+                        <div className="flex min-h-10 items-center justify-between gap-4 border-b border-amber-200 bg-amber-50 px-4 py-2 text-amber-900 sm:px-6">
+                            <div className="flex min-w-0 items-center gap-2.5">
+                                <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-amber-100 text-xs text-amber-700 ring-1 ring-amber-200">
+                                    <i className="fi fi-rr-eye" />
+                                </span>
+                                <p className="truncate text-xs sm:text-sm">
+                                    <span className="font-semibold">Mode Impersonate</span>
+                                    <span className="hidden text-amber-700 sm:inline">
+                                        {' '}· Anda sedang mengakses{' '}
+                                        <strong>{impersonation.tenant_name}</strong>
+                                    </span>
+                                </p>
+                            </div>
+                            <button
+                                type="button"
+                                disabled={stoppingImpersonation}
+                                onClick={() => {
+                                    setStoppingImpersonation(true);
+                                    router.post(
+                                        route('impersonation.stop'),
+                                        {},
+                                        {
+                                            onFinish: () =>
+                                                setStoppingImpersonation(false),
+                                        },
+                                    );
+                                }}
+                                className="flex shrink-0 items-center gap-2 rounded-lg border border-amber-300 bg-white px-3 py-1.5 text-xs font-semibold text-amber-800 shadow-sm transition hover:bg-amber-100 disabled:cursor-wait disabled:opacity-60"
+                            >
+                                <i
+                                    className={`fi ${stoppingImpersonation ? 'fi-rr-spinner animate-spin' : 'fi-rr-sign-out-alt'}`}
+                                />
+                                <span className="hidden sm:inline">Kembali ke Admin</span>
+                                <span className="sm:hidden">Keluar</span>
+                            </button>
+                        </div>
+                    )}
+
+                <header className="flex h-16 items-center justify-between gap-4 border-b border-slate-200 bg-white/90 px-4 backdrop-blur sm:px-6">
                     <div className="flex items-center gap-4">
                         <button
                             type="button"
@@ -612,6 +657,7 @@ export default function AdminLayout({ header, children }) {
                         </Dropdown>
                     </div>
                 </header>
+                </div>
 
                 <main className="p-4 sm:p-6">{children}</main>
             </div>
