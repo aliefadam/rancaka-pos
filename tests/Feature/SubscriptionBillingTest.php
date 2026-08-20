@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Enums\UserRole;
 use App\Models\BillingInvoice;
+use App\Models\BillingSetting;
 use App\Models\SubscriptionPayment;
 use App\Models\Tenant;
 use App\Models\User;
@@ -81,6 +82,7 @@ class SubscriptionBillingTest extends TestCase
         $invoice = BillingInvoice::create(['tenant_id' => $tenant->id, 'subscription_id' => $subscription->id, 'number' => 'INV-TEST', 'status' => 'open', 'amount' => 149000, 'due_at' => now()->addDays(14)]);
 
         $this->actingAs($owner)->post(route('tenant.billing.submit', $invoice), [
+            'payment_method' => 'bank_transfer',
             'proof' => UploadedFile::fake()->image('transfer.jpg'),
             'note' => 'Transfer hari ini',
         ])->assertSessionHasNoErrors();
@@ -96,6 +98,36 @@ class SubscriptionBillingTest extends TestCase
         $this->assertSame('paid', $invoice->fresh()->status);
         $this->assertSame('active', $subscription->fresh()->status);
         $this->assertDatabaseCount('billing_invoices', 2);
+    }
+
+    public function test_superadmin_can_upload_qris_and_tenant_can_use_it(): void
+    {
+        Storage::fake('public');
+        $admin = User::factory()->create(['role' => UserRole::Superadmin, 'tenant_id' => null]);
+
+        $this->actingAs($admin)->post(route('admin.billing.settings.update'), [
+            'qris_enabled' => true,
+            'qris_merchant_name' => 'Rancaka Digital',
+            'qris_image' => UploadedFile::fake()->image('qris.png', 500, 500),
+        ])->assertSessionHasNoErrors();
+
+        $settings = BillingSetting::firstOrFail();
+        $this->assertTrue($settings->qris_enabled);
+        Storage::disk('public')->assertExists($settings->qris_image_path);
+
+        [$tenant, $owner] = $this->tenantOwner();
+        $subscription = $tenant->subscription;
+        $invoice = BillingInvoice::create(['tenant_id' => $tenant->id, 'subscription_id' => $subscription->id, 'number' => 'INV-QRIS', 'status' => 'open', 'amount' => 149000, 'due_at' => now()->addDay()]);
+
+        $this->actingAs($owner)->post(route('tenant.billing.submit', $invoice), [
+            'payment_method' => 'qris',
+            'proof' => UploadedFile::fake()->image('proof.jpg'),
+        ])->assertSessionHasNoErrors();
+
+        $this->assertDatabaseHas('subscription_payments', [
+            'billing_invoice_id' => $invoice->id,
+            'payment_method' => 'qris',
+        ]);
     }
 
     /** @return array{Tenant, User} */

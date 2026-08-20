@@ -1,4 +1,5 @@
 import BrandLogo from '@/Components/BrandLogo';
+import GoogleAuthButton from '@/Components/GoogleAuthButton';
 import { Head, Link, useForm } from '@inertiajs/react';
 
 const fields = [
@@ -11,7 +12,7 @@ const fields = [
     ['password_confirmation', 'Ulangi password', 'Ketik ulang password'],
 ];
 
-export default function Register() {
+export default function Register({ googleAuthEnabled }) {
     const { data, setData, post, processing, errors } = useForm(
         Object.fromEntries(fields.map(([key]) => [key, ''])),
     );
@@ -53,9 +54,15 @@ export default function Register() {
                         <p className="mt-1 text-sm text-slate-500">
                             Akun owner langsung aktif setelah pendaftaran.
                         </p>
+                        {googleAuthEnabled && (
+                            <>
+                                <div className="mt-6"><GoogleAuthButton label="Daftar dengan Google" /></div>
+                                <div className="my-5 flex items-center gap-3 text-xs uppercase tracking-wider text-slate-400"><span className="h-px flex-1 bg-slate-200" /><span>atau isi formulir</span><span className="h-px flex-1 bg-slate-200" /></div>
+                            </>
+                        )}
                         <form
                             onSubmit={submit}
-                            className="mt-7 grid gap-4 sm:grid-cols-2"
+                            className={`${googleAuthEnabled ? '' : 'mt-7'} grid gap-4 sm:grid-cols-2`}
                         >
                             {fields.map(([key, label, placeholder]) => (
                                 <div

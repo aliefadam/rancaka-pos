@@ -1,8 +1,10 @@
 <?php
 
 use App\Enums\UserRole;
+use App\Http\Controllers\AccountController;
 use App\Http\Controllers\Admin\BillingController as AdminBillingController;
 use App\Http\Controllers\Admin\TenantController;
+use App\Http\Controllers\Auth\StoreOnboardingController;
 use App\Http\Controllers\BridgeReceiptController;
 use App\Http\Controllers\Tenant\BillingController as TenantBillingController;
 use App\Http\Controllers\Tenant\CategoryController as TenantCategoryController;
@@ -30,6 +32,9 @@ Route::get('/', function () {
     }
 
     $user = auth()->user();
+    if (! $user->isSuperadmin() && ! $user->tenant_id) {
+        return redirect()->route('onboarding.store.create');
+    }
     $route = match (true) {
         $user->role === UserRole::Superadmin => 'admin.dashboard',
         $user->hasPermission('dashboard.view') => 'tenant.dashboard',
@@ -38,6 +43,16 @@ Route::get('/', function () {
 
     return redirect()->route($route);
 })->name('home');
+
+Route::middleware(['auth', 'role:owner'])->group(function () {
+    Route::get('/onboarding/store', [StoreOnboardingController::class, 'create'])->name('onboarding.store.create');
+    Route::post('/onboarding/store', [StoreOnboardingController::class, 'store'])->name('onboarding.store.store');
+});
+
+Route::middleware(['auth', 'tenant.onboarded', 'subscription.active'])->group(function () {
+    Route::get('/account', [AccountController::class, 'edit'])->name('account.edit');
+    Route::put('/account', [AccountController::class, 'update'])->name('account.update');
+});
 
 Route::middleware(['auth', 'role:superadmin'])->prefix('admin')->name('admin.')->group(function () {
     Route::get('/dashboard', function () {
@@ -49,17 +64,18 @@ Route::middleware(['auth', 'role:superadmin'])->prefix('admin')->name('admin.')-
         ->names('tenants');
 
     Route::get('/billing', [AdminBillingController::class, 'index'])->name('billing.index');
+    Route::post('/billing/settings', [AdminBillingController::class, 'updateSettings'])->name('billing.settings.update');
     Route::patch('/billing/{payment}/approve', [AdminBillingController::class, 'approve'])->name('billing.approve');
     Route::patch('/billing/{payment}/reject', [AdminBillingController::class, 'reject'])->name('billing.reject');
 });
 
-Route::middleware(['auth', 'role:owner,employee'])->prefix('tenant')->name('tenant.')->group(function () {
+Route::middleware(['auth', 'role:owner,employee', 'tenant.onboarded'])->prefix('tenant')->name('tenant.')->group(function () {
     Route::get('/billing', [TenantBillingController::class, 'index'])->name('billing.index');
     Route::post('/billing/{invoice}/payment', [TenantBillingController::class, 'submit'])
         ->name('billing.submit')->middleware('role:owner');
 });
 
-Route::middleware(['auth', 'role:owner,employee', 'subscription.active'])->prefix('tenant')->name('tenant.')->group(function () {
+Route::middleware(['auth', 'role:owner,employee', 'tenant.onboarded', 'subscription.active'])->prefix('tenant')->name('tenant.')->group(function () {
     Route::get('/dashboard', [TenantDashboardController::class, 'index'])
         ->name('dashboard')
         ->middleware('permission:dashboard.view');

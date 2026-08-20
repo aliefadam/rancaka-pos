@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Facades\Storage;
 
-#[Fillable(['tenant_id', 'billing_invoice_id', 'amount', 'proof_path', 'note', 'status', 'rejection_reason', 'submitted_at', 'reviewed_at', 'reviewed_by'])]
+#[Fillable(['tenant_id', 'billing_invoice_id', 'amount', 'payment_method', 'proof_path', 'note', 'status', 'rejection_reason', 'submitted_at', 'reviewed_at', 'reviewed_by'])]
 class SubscriptionPayment extends Model
 {
     protected $appends = ['proof_url'];

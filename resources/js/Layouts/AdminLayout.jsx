@@ -152,6 +152,11 @@ const navigationByRole = {
                     href: "tenant.billing.index",
                     icon: "fi-rr-credit-card",
                 },
+                {
+                    name: "Akun Saya",
+                    href: "account.edit",
+                    icon: "fi-rr-user",
+                },
             ],
         },
     ],

@@ -1,0 +1,8 @@
+import AdminLayout from '@/Layouts/AdminLayout';
+import { Head, useForm } from '@inertiajs/react';
+
+export default function Edit({ account }) {
+    const form = useForm({ name: account.name, username: account.username });
+    const submit = (event) => { event.preventDefault(); form.put(route('account.update')); };
+    return <AdminLayout header="Akun Saya"><Head title="Akun Saya" /><div className="mx-auto max-w-2xl rounded-2xl border border-slate-200 bg-white p-6"><div className="flex items-center gap-4">{account.avatar_url ? <img src={account.avatar_url} alt="" className="h-16 w-16 rounded-2xl" /> : <span className="flex h-16 w-16 items-center justify-center rounded-2xl bg-indigo-50 text-xl font-bold text-indigo-600">{account.name.charAt(0)}</span>}<div><h2 className="font-bold text-slate-900">Informasi akun</h2><p className="text-sm text-slate-500">{account.email || 'Akun username dan password'}</p>{account.google_id && <span className="mt-1 inline-block text-xs font-semibold text-emerald-600">Terhubung dengan Google</span>}</div></div><form onSubmit={submit} className="mt-7 space-y-5">{[['name','Nama'],['username','Username']].map(([key,label]) => <div key={key}><label htmlFor={key} className="mb-1.5 block text-sm font-medium text-slate-700">{label}</label><input id={key} value={form.data[key]} onChange={(e) => form.setData(key,e.target.value)} className="w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-sm" />{form.errors[key] && <p className="mt-1 text-sm text-red-600">{form.errors[key]}</p>}</div>)}<button disabled={form.processing} className="rounded-xl bg-indigo-600 px-5 py-2.5 text-sm font-bold text-white">Simpan Perubahan</button></form></div></AdminLayout>;
+}
