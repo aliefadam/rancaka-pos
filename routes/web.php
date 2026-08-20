@@ -11,6 +11,7 @@ use App\Http\Controllers\BridgeReceiptController;
 use App\Http\Controllers\ImpersonationController;
 use App\Http\Controllers\Tenant\BillingController as TenantBillingController;
 use App\Http\Controllers\Tenant\CategoryController as TenantCategoryController;
+use App\Http\Controllers\Tenant\CreditSaleController as TenantCreditSaleController;
 use App\Http\Controllers\Tenant\DashboardController as TenantDashboardController;
 use App\Http\Controllers\Tenant\EmployeeController as TenantEmployeeController;
 use App\Http\Controllers\Tenant\ExpenseController as TenantExpenseController;
@@ -158,6 +159,10 @@ Route::middleware(['auth', 'role:owner,employee', 'tenant.onboarded', 'subscript
         Route::post('/hold', [TenantPosController::class, 'hold'])->name('hold');
         Route::delete('/held/{transaction}', [TenantPosController::class, 'destroyHeld'])->name('held.destroy');
     });
+
+    Route::get('/credit-sales', [TenantCreditSaleController::class, 'index'])->name('credit-sales.index');
+    Route::get('/credit-sales/{creditSale}', [TenantCreditSaleController::class, 'show'])->name('credit-sales.show');
+    Route::post('/credit-sales/{creditSale}/payments', [TenantCreditSaleController::class, 'pay'])->name('credit-sales.pay');
 
     Route::get('/transactions/{transaction}/receipt', [TenantReceiptController::class, 'show'])
         ->name('transactions.receipt');

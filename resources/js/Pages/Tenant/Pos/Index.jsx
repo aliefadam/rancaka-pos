@@ -159,6 +159,7 @@ export default function Index({
     heldTransactionCount,
     shiftSummary,
     storeSettings,
+    creditCustomers,
 }) {
     const toast = useToast();
     const { flash } = usePage().props;
@@ -185,6 +186,8 @@ export default function Index({
     const [amountReceived, setAmountReceived] = useState(
         () => restoredDraft?.amountReceived ?? '',
     );
+    const [creditCustomerName, setCreditCustomerName] = useState('');
+    const [creditInitialPayment, setCreditInitialPayment] = useState('0');
     const [processing, setProcessing] = useState(false);
     const [closeShiftOpen, setCloseShiftOpen] = useState(false);
     const [heldPanelOpen, setHeldPanelOpen] = useState(false);
@@ -368,6 +371,8 @@ export default function Index({
         setDiscountValue('');
         setAdditionalFee('');
         setAmountReceived('');
+        setCreditCustomerName('');
+        setCreditInitialPayment('0');
     };
 
     const confirmClearCart = () => {
@@ -458,6 +463,9 @@ export default function Index({
             paymentMethod === 'cash' && amountReceived !== ''
                 ? Number(amountReceived)
                 : null,
+        credit_customer_id: paymentMethod === 'credit' ? (creditCustomers.find((c) => c.name.toLowerCase() === creditCustomerName.trim().toLowerCase())?.id ?? null) : null,
+        credit_customer_name: paymentMethod === 'credit' ? creditCustomerName.trim() : null,
+        credit_initial_payment: paymentMethod === 'credit' ? Math.min(Number(creditInitialPayment || 0), total) : null,
     });
 
     const handleHold = () => {
@@ -496,6 +504,8 @@ export default function Index({
                         errors.discount_type ??
                         errors.discount_value ??
                         errors.amount_received ??
+                        errors.credit_customer_id ??
+                        errors.credit_customer_name ??
                         'Gagal memproses pembayaran.',
                 ),
             onFinish: () => setProcessing(false),
@@ -648,6 +658,11 @@ export default function Index({
         onAdditionalFeeChange: setAdditionalFee,
         amountReceived,
         onAmountReceivedChange: setAmountReceived,
+        creditCustomers,
+        creditCustomerName,
+        onCreditCustomerNameChange: setCreditCustomerName,
+        creditInitialPayment,
+        onCreditInitialPaymentChange: setCreditInitialPayment,
         subtotal,
         taxAmount,
         taxPercentage: storeSettings.tax_percentage,

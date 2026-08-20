@@ -1,3 +1,6 @@
+import Select from '@/Components/Select';
+import { useState } from 'react';
+
 function initials(name) {
     return name
         .split(' ')
@@ -15,6 +18,7 @@ function formatRupiah(value) {
 const paymentMethods = [
     { value: 'cash', label: 'Tunai', icon: 'fi-rr-camera' },
     { value: 'qris', label: 'QRIS', icon: 'fi-rr-qrcode' },
+    { value: 'credit', label: 'Hutang', icon: 'fi-rr-hand-holding-usd' },
 ];
 
 export default function CartPanel({
@@ -34,6 +38,11 @@ export default function CartPanel({
     onAdditionalFeeChange,
     amountReceived,
     onAmountReceivedChange,
+    creditCustomers,
+    creditCustomerName,
+    onCreditCustomerNameChange,
+    creditInitialPayment,
+    onCreditInitialPaymentChange,
     subtotal,
     taxAmount,
     taxPercentage,
@@ -45,11 +54,24 @@ export default function CartPanel({
     onHold,
     onPay,
 }) {
+    const [creditPaymentChoice, setCreditPaymentChoice] = useState('full-credit');
     const roundedTo5k = Math.ceil(total / 5000) * 5000;
     const receivedAmount =
         amountReceived === '' ? null : Number(amountReceived);
     const changeAmount =
         receivedAmount !== null ? receivedAmount - total : null;
+    const creditCustomerOptions = creditCustomers
+        .map((customer) => ({ value: customer.name, label: customer.name }))
+        .concat(
+            creditCustomerName.trim() &&
+                !creditCustomers.some(
+                    (customer) =>
+                        customer.name.toLowerCase() ===
+                        creditCustomerName.trim().toLowerCase(),
+                )
+                ? [{ value: creditCustomerName.trim(), label: creditCustomerName.trim() }]
+                : [],
+        );
 
     return (
         <div className="flex h-full min-h-0 flex-1 flex-col">
@@ -171,7 +193,7 @@ export default function CartPanel({
                 )}
 
                 <div className="mt-4 space-y-3 border-t border-slate-100 pt-4">
-                    <div className="grid grid-cols-2 gap-2">
+                    <div className="grid grid-cols-3 gap-2">
                         {paymentMethods.map((method) => (
                             <button
                                 key={method.value}
@@ -190,6 +212,33 @@ export default function CartPanel({
                             </button>
                         ))}
                     </div>
+
+                    {paymentMethod === 'credit' && (
+                        <div className="space-y-3 rounded-xl border border-amber-200 bg-amber-50/70 p-3">
+                            <div>
+                                <label className="mb-1.5 block text-xs font-bold text-amber-900">Nama pemilik hutang</label>
+                                <Select
+                                    value={creditCustomerName}
+                                    onChange={onCreditCustomerNameChange}
+                                    options={creditCustomerOptions}
+                                    placeholder="Pilih nama pelanggan..."
+                                    searchable
+                                    searchPlaceholder="Cari atau tulis nama baru..."
+                                    onCreateOption={onCreditCustomerNameChange}
+                                    createLabel={(name) => `Tambah “${name}”`}
+                                />
+                            </div>
+                            <div>
+                                <label className="mb-1.5 block text-xs font-bold text-amber-900">Pembayaran awal</label>
+                                <div className="mb-2 grid grid-cols-2 gap-2">
+                                    <button type="button" onClick={() => { setCreditPaymentChoice('full-credit'); onCreditInitialPaymentChange('0'); }} className={`rounded-lg border px-2 py-2 text-xs font-semibold ${creditPaymentChoice === 'full-credit' ? 'border-amber-500 bg-amber-500 text-white' : 'border-amber-200 bg-white text-amber-800'}`}>Hutang penuh</button>
+                                    <button type="button" onClick={() => { setCreditPaymentChoice('partial'); onCreditInitialPaymentChange(''); }} className={`rounded-lg border px-2 py-2 text-xs font-semibold ${creditPaymentChoice === 'partial' ? 'border-amber-500 bg-amber-500 text-white' : 'border-amber-200 bg-white text-amber-800'}`}>Bayar sebagian</button>
+                                </div>
+                                <input type="number" min="0" max={total} value={creditInitialPayment} onChange={(e) => { setCreditPaymentChoice(Number(e.target.value) > 0 ? 'partial' : 'full-credit'); onCreditInitialPaymentChange(e.target.value); }} placeholder={creditPaymentChoice === 'partial' ? 'Masukkan nominal yang dibayar' : '0'} className="w-full rounded-lg border border-amber-200 bg-white px-3 py-2.5 text-sm focus:border-amber-400 focus:outline-none focus:ring-2 focus:ring-amber-100" />
+                                <p className="mt-1.5 text-[11px] text-amber-700">Sisa hutang: {formatRupiah(Math.max(total - Number(creditInitialPayment || 0), 0))}</p>
+                            </div>
+                        </div>
+                    )}
 
                     <div className="rounded-xl border border-slate-200 bg-slate-50/60 p-3">
                         <div className="mb-2 flex items-center justify-between gap-3">

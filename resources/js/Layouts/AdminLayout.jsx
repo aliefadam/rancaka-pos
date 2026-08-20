@@ -60,6 +60,12 @@ const navigationByRole = {
                     icon: "fi-rr-cash-register",
                 },
                 {
+                    name: "Penjualan Kredit",
+                    href: "tenant.credit-sales.index",
+                    activePattern: "tenant.credit-sales.*",
+                    icon: "fi-rr-hand-holding-usd",
+                },
+                {
                     name: "Pengeluaran",
                     href: "tenant.expenses.index",
                     icon: "fi-rr-money-bill-wave",
@@ -185,6 +191,12 @@ const navigationByRole = {
                     name: "Kasir",
                     href: "tenant.pos.index",
                     icon: "fi-rr-cash-register",
+                },
+                {
+                    name: "Penjualan Kredit",
+                    href: "tenant.credit-sales.index",
+                    activePattern: "tenant.credit-sales.*",
+                    icon: "fi-rr-hand-holding-usd",
                 },
                 {
                     name: "Pengeluaran",

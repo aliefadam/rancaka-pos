@@ -7,6 +7,7 @@ use App\Enums\StockMovementType;
 use App\Enums\TransactionStatus;
 use App\Http\Controllers\Controller;
 use App\Models\Product;
+use App\Models\CreditCustomer;
 use App\Models\RawMaterial;
 use App\Models\Shift;
 use App\Models\Transaction;
@@ -114,6 +115,7 @@ class PosController extends Controller
                 'tax_percentage' => (float) $tenant->tax_percentage,
                 'service_charge_percentage' => (float) $tenant->service_charge_percentage,
             ],
+            'creditCustomers' => CreditCustomer::where('tenant_id', $tenantId)->orderBy('name')->get(['id', 'name']),
         ]);
     }
 
@@ -170,7 +172,10 @@ class PosController extends Controller
             ],
             'items.*.quantity' => ['required', 'integer', 'min:1'],
             'items.*.note' => ['nullable', 'string', 'max:255'],
-            'payment_method' => ['required', Rule::in(['cash', 'qris'])],
+            'payment_method' => ['required', Rule::in(['cash', 'qris', 'credit'])],
+            'credit_customer_id' => ['nullable', Rule::exists('credit_customers', 'id')->where('tenant_id', $tenantId)],
+            'credit_customer_name' => ['nullable', 'string', 'max:120', 'required_if:payment_method,credit'],
+            'credit_initial_payment' => ['nullable', 'integer', 'min:0'],
             'discount_type' => ['nullable', Rule::in(['fixed', 'percentage'])],
             'discount_value' => ['nullable', 'integer', 'min:0'],
             'additional_fee' => ['nullable', 'integer', 'min:0'],
@@ -296,6 +301,11 @@ class PosController extends Controller
             $total = $netSubtotal + $taxAmount + $serviceChargeAmount + $additionalFee;
             $amountReceived = $data['amount_received'] ?? null;
             $isCashPayment = $data['payment_method'] === PaymentMethod::Cash->value;
+            $isCreditPayment = $data['payment_method'] === PaymentMethod::Credit->value;
+
+            if ($status === TransactionStatus::Completed && $isCreditPayment && (int) ($data['credit_initial_payment'] ?? 0) > $total) {
+                throw ValidationException::withMessages(['credit_initial_payment' => 'Pembayaran awal tidak boleh melebihi total transaksi.']);
+            }
 
             if ($status === TransactionStatus::Completed && $isCashPayment && $amountReceived === null) {
                 throw ValidationException::withMessages([
@@ -341,6 +351,22 @@ class PosController extends Controller
                 'amount_received' => $amountReceived,
                 'change_amount' => $changeAmount,
             ]);
+
+            if ($status === TransactionStatus::Completed && $isCreditPayment) {
+                $customer = ! empty($data['credit_customer_id'])
+                    ? CreditCustomer::where('tenant_id', $tenantId)->findOrFail($data['credit_customer_id'])
+                    : CreditCustomer::firstOrCreate(['tenant_id' => $tenantId, 'name' => trim($data['credit_customer_name'] ?? '')]);
+                $initialPayment = min((int) ($data['credit_initial_payment'] ?? 0), $total);
+                $creditSale = $transaction->creditSale()->create([
+                    'tenant_id' => $tenantId, 'credit_customer_id' => $customer->id,
+                    'total_amount' => $total, 'paid_amount' => $initialPayment,
+                    'status' => $initialPayment >= $total ? 'paid' : 'outstanding',
+                ]);
+                if ($initialPayment > 0) $creditSale->payments()->create([
+                    'tenant_id' => $tenantId, 'user_id' => $request->user()->id,
+                    'amount' => $initialPayment, 'note' => 'Pembayaran awal saat transaksi',
+                ]);
+            }
 
             foreach ($itemsToInsert as $entry) {
                 $product = $entry['product'];
