@@ -14,6 +14,8 @@ export default function Select({
     placeholder = 'Pilih...',
     searchable = false,
     searchPlaceholder = 'Cari...',
+    onCreateOption,
+    createLabel = (query) => `Tambah “${query}”`,
     className = '',
 }) {
     const [query, setQuery] = useState('');
@@ -76,9 +78,23 @@ export default function Select({
                         )}
 
                         {filteredOptions.length === 0 && (
-                            <p className="px-3 py-2 text-sm text-slate-400">
-                                Tidak ada hasil.
-                            </p>
+                            onCreateOption && query.trim() ? (
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        onCreateOption(query.trim());
+                                        setQuery('');
+                                    }}
+                                    className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm font-semibold text-indigo-600 transition hover:bg-indigo-50"
+                                >
+                                    <i className="fi fi-rr-plus-small" />
+                                    {createLabel(query.trim())}
+                                </button>
+                            ) : (
+                                <p className="px-3 py-2 text-sm text-slate-400">
+                                    Tidak ada hasil.
+                                </p>
+                            )
                         )}
 
                         {filteredOptions.map((option) => (
