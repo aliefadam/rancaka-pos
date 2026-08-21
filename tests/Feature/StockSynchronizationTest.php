@@ -112,6 +112,34 @@ class StockSynchronizationTest extends TestCase
         ]);
     }
 
+    public function test_checkout_applies_and_stores_discount_per_item(): void
+    {
+        [$user, $category] = $this->inventory();
+        $product = $this->product($category, 'Kopi Hitam', 5);
+        $payload = $this->payload([[
+            'product_id' => $product->id,
+            'quantity' => 2,
+            'discount_type' => 'percentage',
+            'discount_value' => 10,
+        ]]);
+
+        $this->actingAs($user)
+            ->post(route('tenant.pos.checkout'), $payload)
+            ->assertRedirect(route('tenant.pos.index'));
+
+        $this->assertDatabaseHas('transaction_items', [
+            'product_id' => $product->id,
+            'discount_type' => 'percentage',
+            'discount_value' => 10,
+            'discount_amount' => 3000,
+            'subtotal' => 27000,
+        ]);
+        $this->assertDatabaseHas('transactions', [
+            'subtotal' => 27000,
+            'total' => 27000,
+        ]);
+    }
+
     public function test_checkout_rejects_discount_greater_than_subtotal(): void
     {
         [$user, $category] = $this->inventory();

@@ -73,6 +73,7 @@ export default function CartPanel({
     onQuantityChange,
     onRemove,
     onNoteChange,
+    onItemDiscountChange,
     paymentMethod,
     onPaymentMethodChange,
     discountType,
@@ -157,6 +158,18 @@ export default function CartPanel({
                 ) : (
                     <div className="space-y-3 pb-2">
                         {items.map((item) => (
+                            (() => {
+                            const lineGross = item.price * item.quantity;
+                            const itemDiscountValue = Math.max(Number(item.discount_value) || 0, 0);
+                            const itemDiscountAmount = Math.min(
+                                item.discount_type === 'percentage'
+                                    ? Math.round(lineGross * (Math.min(itemDiscountValue, 100) / 100))
+                                    : itemDiscountValue,
+                                lineGross,
+                            );
+                            const lineTotal = lineGross - itemDiscountAmount;
+
+                            return (
                             <div
                                 key={item.product_id}
                                 className="rounded-xl border border-slate-100 p-3 transition"
@@ -197,6 +210,32 @@ export default function CartPanel({
                                             className="mt-2 w-full rounded-lg border border-slate-200 px-2.5 py-1.5 text-xs text-slate-700 placeholder-slate-400 focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-100"
                                         />
 
+                                        <div className="mt-2 flex items-center gap-2 rounded-lg bg-emerald-50/70 p-1.5">
+                                            <span className="pl-1 text-[10px] font-bold uppercase tracking-wide text-emerald-700">Diskon</span>
+                                            <div className="ml-auto flex items-center overflow-hidden rounded-md border border-emerald-200 bg-white">
+                                                {['fixed', 'percentage'].map((type) => (
+                                                    <button
+                                                        key={type}
+                                                        type="button"
+                                                        onClick={() => onItemDiscountChange(item.product_id, type, '')}
+                                                        className={`h-7 px-2 text-[11px] font-bold transition ${item.discount_type === type ? 'bg-emerald-600 text-white' : 'text-emerald-700 hover:bg-emerald-50'}`}
+                                                    >
+                                                        {type === 'fixed' ? 'Rp' : '%'}
+                                                    </button>
+                                                ))}
+                                            </div>
+                                            <input
+                                                type="number"
+                                                min="0"
+                                                max={item.discount_type === 'percentage' ? 100 : lineGross}
+                                                value={item.discount_value}
+                                                onChange={(event) => onItemDiscountChange(item.product_id, item.discount_type, event.target.value)}
+                                                placeholder="0"
+                                                aria-label={`Diskon ${item.name}`}
+                                                className="h-7 w-20 rounded-md border border-emerald-200 bg-white px-2 text-right text-xs font-semibold text-slate-700 outline-none focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100"
+                                            />
+                                        </div>
+
                                         <div className="mt-2 flex items-center justify-between">
                                             <div className="flex items-center gap-2">
                                                 <button
@@ -228,15 +267,16 @@ export default function CartPanel({
                                                     <i className="fi fi-rr-plus text-[10px]" />
                                                 </button>
                                             </div>
-                                            <span className="text-sm font-semibold text-slate-900">
-                                                {formatRupiah(
-                                                    item.price * item.quantity,
-                                                )}
-                                            </span>
+                                            <div className="text-right">
+                                                {itemDiscountAmount > 0 && <span className="block text-[10px] text-slate-400 line-through">{formatRupiah(lineGross)}</span>}
+                                                <span className="text-sm font-semibold text-slate-900">{formatRupiah(lineTotal)}</span>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
                             </div>
+                            );
+                            })()
                         ))}
                     </div>
                 )}

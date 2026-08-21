@@ -285,6 +285,17 @@ export default function Show({
                                     </span>
                                     <span>{money(item.line_total)}</span>
                                 </div>
+                                {item.discount_amount > 0 && (
+                                    <div className="flex justify-between gap-2 text-[11px]">
+                                        <span>
+                                            Diskon item
+                                            {item.discount_type === 'percentage'
+                                                ? ` (${item.discount_value}%)`
+                                                : ''}
+                                        </span>
+                                        <span>-{money(item.discount_amount)}</span>
+                                    </div>
+                                )}
                                 {item.note && (
                                     <div className="text-[11px]">
                                         Catatan: {item.note}

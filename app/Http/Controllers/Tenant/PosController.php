@@ -172,6 +172,8 @@ class PosController extends Controller
             ],
             'items.*.quantity' => ['required', 'integer', 'min:1'],
             'items.*.note' => ['nullable', 'string', 'max:255'],
+            'items.*.discount_type' => ['nullable', Rule::in(['fixed', 'percentage'])],
+            'items.*.discount_value' => ['nullable', 'integer', 'min:0'],
             'payment_method' => ['required', Rule::in(['cash', 'qris', 'credit'])],
             'credit_customer_id' => ['nullable', Rule::exists('credit_customers', 'id')->where('tenant_id', $tenantId)],
             'credit_customer_name' => ['nullable', 'string', 'max:120', 'required_if:payment_method,credit'],
@@ -241,13 +243,44 @@ class PosController extends Controller
                     ]);
                 }
 
-                $lineSubtotal = $product->price * $quantity;
+                $lineGross = $product->price * $quantity;
+                $itemDiscountType = $item['discount_type'] ?? null;
+                $itemDiscountValue = (int) ($item['discount_value'] ?? 0);
+
+                if ($itemDiscountValue > 0 && $itemDiscountType === null) {
+                    throw ValidationException::withMessages([
+                        'items' => "Jenis diskon untuk {$product->name} wajib dipilih.",
+                    ]);
+                }
+
+                if ($itemDiscountType === 'percentage' && $itemDiscountValue > 100) {
+                    throw ValidationException::withMessages([
+                        'items' => "Diskon {$product->name} maksimal 100%.",
+                    ]);
+                }
+
+                $itemDiscountAmount = match ($itemDiscountType) {
+                    'percentage' => (int) round($lineGross * ($itemDiscountValue / 100)),
+                    'fixed' => $itemDiscountValue,
+                    default => 0,
+                };
+
+                if ($itemDiscountAmount > $lineGross) {
+                    throw ValidationException::withMessages([
+                        'items' => "Diskon {$product->name} tidak boleh melebihi total item.",
+                    ]);
+                }
+
+                $lineSubtotal = $lineGross - $itemDiscountAmount;
                 $subtotal += $lineSubtotal;
 
                 $itemsToInsert[] = [
                     'product' => $product,
                     'quantity' => $quantity,
                     'note' => $item['note'] ?? null,
+                    'discount_type' => $itemDiscountAmount > 0 ? $itemDiscountType : null,
+                    'discount_value' => $itemDiscountAmount > 0 ? $itemDiscountValue : 0,
+                    'discount_amount' => $itemDiscountAmount,
                     'subtotal' => $lineSubtotal,
                 ];
             }
@@ -377,6 +410,9 @@ class PosController extends Controller
                     'unit_price' => $product->price,
                     'quantity' => $entry['quantity'],
                     'note' => $entry['note'],
+                    'discount_type' => $entry['discount_type'],
+                    'discount_value' => $entry['discount_value'],
+                    'discount_amount' => $entry['discount_amount'],
                     'subtotal' => $entry['subtotal'],
                 ]);
 

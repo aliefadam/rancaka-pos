@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-#[Fillable(['transaction_id', 'product_id', 'product_name', 'unit_price', 'quantity', 'note', 'subtotal'])]
+#[Fillable(['transaction_id', 'product_id', 'product_name', 'unit_price', 'quantity', 'note', 'discount_type', 'discount_value', 'discount_amount', 'subtotal'])]
 class TransactionItem extends Model
 {
     /** @use HasFactory<TransactionItemFactory> */
