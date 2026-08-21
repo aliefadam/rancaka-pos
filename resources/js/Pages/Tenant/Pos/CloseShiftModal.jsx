@@ -112,6 +112,18 @@ export default function CloseShiftModal({ show, onClose, summary, heldCount = 0 
                                         {formatRupiah(summary.qris_sales)}
                                     </span>
                                 </div>
+                                <div className="flex items-center justify-between">
+                                    <span className="text-slate-500">Penjualan Online</span>
+                                    <span className="font-medium text-slate-800">{formatRupiah(summary.online_sales)}</span>
+                                </div>
+                                <div className="flex items-center justify-between">
+                                    <span className="text-slate-500">Penjualan Kredit</span>
+                                    <span className="font-medium text-slate-800">{formatRupiah(summary.credit_sales)}</span>
+                                </div>
+                                <div className="flex items-center justify-between border-t border-slate-200 pt-2">
+                                    <span className="font-semibold text-slate-700">Total Penjualan</span>
+                                    <span className="font-bold text-slate-900">{formatRupiah(summary.total_sales)}</span>
+                                </div>
                                 <div className="flex items-center justify-between border-t border-slate-200 pt-2 text-base font-bold text-slate-900">
                                     <span>Kas Seharusnya</span>
                                     <span>

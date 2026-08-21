@@ -2,6 +2,7 @@ import { Head, Link } from '@inertiajs/react';
 import { useRef, useState } from 'react';
 
 const money = (value) => `Rp ${Number(value || 0).toLocaleString('id-ID')}`;
+const paymentLabels = { cash: 'Tunai', qris: 'QRIS', online: 'Online', credit: 'Kredit' };
 
 export default function Show({
     store,
@@ -378,7 +379,7 @@ export default function Show({
                         )}
                         <div className="flex justify-between uppercase">
                             <span>Metode</span>
-                            <span>{sale.payment?.method || '-'}</span>
+                            <span>{paymentLabels[sale.payment?.method] ?? sale.payment?.method ?? '-'}</span>
                         </div>
                     </div>
                         </>

@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Enums\PaymentMethod;
 use App\Enums\StockMovementType;
 use App\Enums\UserRole;
 use App\Models\Category;
@@ -77,6 +78,29 @@ class StockSynchronizationTest extends TestCase
         $this->assertSame(5, $product->fresh()->stock);
         $this->assertDatabaseCount('transactions', 0);
         $this->assertDatabaseCount('stock_movements', 0);
+    }
+
+    public function test_online_checkout_is_recorded_without_cash_received(): void
+    {
+        [$user, $category] = $this->inventory();
+        $product = $this->product($category, 'Pesanan Marketplace', 5);
+        $payload = $this->payload([[
+            'product_id' => $product->id,
+            'quantity' => 1,
+        ]]);
+        $payload['payment_method'] = 'online';
+        $payload['amount_received'] = null;
+
+        $this->actingAs($user)
+            ->post(route('tenant.pos.checkout'), $payload)
+            ->assertRedirect(route('tenant.pos.index'));
+
+        $this->assertDatabaseHas('transactions', [
+            'payment_method' => PaymentMethod::Online->value,
+            'amount_received' => null,
+            'change_amount' => null,
+            'total' => 15000,
+        ]);
     }
 
     public function test_checkout_applies_percentage_discount_before_tax_and_service_charge(): void

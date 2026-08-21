@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Tenant\Reports;
 
+use App\Enums\PaymentMethod;
 use App\Enums\TransactionStatus;
 use App\Http\Controllers\Controller;
 use App\Models\Transaction;
@@ -21,6 +22,11 @@ class TransactionHistoryController extends Controller
             ? now()->toDateString()
             : $request->string('date')->toString();
         $status = $request->string('status')->toString();
+        $paymentMethod = $request->string('payment_method')->toString();
+
+        if (! in_array($paymentMethod, array_column(PaymentMethod::cases(), 'value'), true)) {
+            $paymentMethod = '';
+        }
 
         $transactions = Transaction::query()
             ->where('tenant_id', $request->user()->tenant_id)
@@ -38,6 +44,7 @@ class TransactionHistoryController extends Controller
             })
             ->when($date, fn ($query, $date) => $query->whereDate('created_at', $date))
             ->when($status, fn ($query, $status) => $query->where('status', $status))
+            ->when($paymentMethod, fn ($query, $method) => $query->where('payment_method', $method))
             ->latest()
             ->paginate(15)
             ->withQueryString();
@@ -55,7 +62,7 @@ class TransactionHistoryController extends Controller
 
         return Inertia::render('Tenant/Reports/Transactions/Index', [
             'transactions' => $transactions,
-            'filters' => ['search' => $search, 'date' => $date, 'status' => $status],
+            'filters' => ['search' => $search, 'date' => $date, 'status' => $status, 'payment_method' => $paymentMethod],
             'limitedToOwnToday' => $limitedToOwnToday,
         ]);
     }

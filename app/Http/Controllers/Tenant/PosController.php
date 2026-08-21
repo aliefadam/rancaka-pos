@@ -6,8 +6,8 @@ use App\Enums\PaymentMethod;
 use App\Enums\StockMovementType;
 use App\Enums\TransactionStatus;
 use App\Http\Controllers\Controller;
-use App\Models\Product;
 use App\Models\CreditCustomer;
+use App\Models\Product;
 use App\Models\RawMaterial;
 use App\Models\Shift;
 use App\Models\Transaction;
@@ -58,13 +58,17 @@ class PosController extends Controller
                 $transactionCount = (clone $completed)->count();
                 $cashSales = (int) (clone $completed)->where('payment_method', PaymentMethod::Cash)->sum('total');
                 $qrisSales = (int) (clone $completed)->where('payment_method', PaymentMethod::Qris)->sum('total');
+                $onlineSales = (int) (clone $completed)->where('payment_method', PaymentMethod::Online)->sum('total');
+                $creditSales = (int) (clone $completed)->where('payment_method', PaymentMethod::Credit)->sum('total');
 
                 $shiftSummary = [
                     'transaction_count' => $transactionCount,
                     'opening_cash' => $activeShift->opening_cash,
                     'cash_sales' => $cashSales,
                     'qris_sales' => $qrisSales,
-                    'total_sales' => $cashSales + $qrisSales,
+                    'online_sales' => $onlineSales,
+                    'credit_sales' => $creditSales,
+                    'total_sales' => $cashSales + $qrisSales + $onlineSales + $creditSales,
                     'expected_cash' => $activeShift->opening_cash + $cashSales,
                 ];
             }
@@ -174,7 +178,7 @@ class PosController extends Controller
             'items.*.note' => ['nullable', 'string', 'max:255'],
             'items.*.discount_type' => ['nullable', Rule::in(['fixed', 'percentage'])],
             'items.*.discount_value' => ['nullable', 'integer', 'min:0'],
-            'payment_method' => ['required', Rule::in(['cash', 'qris', 'credit'])],
+            'payment_method' => ['required', Rule::enum(PaymentMethod::class)],
             'credit_customer_id' => ['nullable', Rule::exists('credit_customers', 'id')->where('tenant_id', $tenantId)],
             'credit_customer_name' => ['nullable', 'string', 'max:120', 'required_if:payment_method,credit'],
             'credit_initial_payment' => ['nullable', 'integer', 'min:0'],
@@ -395,10 +399,12 @@ class PosController extends Controller
                     'total_amount' => $total, 'paid_amount' => $initialPayment,
                     'status' => $initialPayment >= $total ? 'paid' : 'outstanding',
                 ]);
-                if ($initialPayment > 0) $creditSale->payments()->create([
-                    'tenant_id' => $tenantId, 'user_id' => $request->user()->id,
-                    'amount' => $initialPayment, 'note' => 'Pembayaran awal saat transaksi',
-                ]);
+                if ($initialPayment > 0) {
+                    $creditSale->payments()->create([
+                        'tenant_id' => $tenantId, 'user_id' => $request->user()->id,
+                        'amount' => $initialPayment, 'note' => 'Pembayaran awal saat transaksi',
+                    ]);
+                }
             }
 
             foreach ($itemsToInsert as $entry) {

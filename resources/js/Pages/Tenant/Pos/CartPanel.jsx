@@ -18,7 +18,8 @@ function formatRupiah(value) {
 const paymentMethods = [
     { value: 'cash', label: 'Tunai', icon: 'fi-rr-camera' },
     { value: 'qris', label: 'QRIS', icon: 'fi-rr-qrcode' },
-    { value: 'credit', label: 'Hutang', icon: 'fi-rr-hand-holding-usd' },
+    { value: 'online', label: 'Online', icon: 'fi-rr-globe' },
+    { value: 'credit', label: 'Kredit', icon: 'fi-rr-hand-holding-usd' },
 ];
 
 function QuantityInput({ item, onQuantityChange }) {
@@ -282,7 +283,7 @@ export default function CartPanel({
                 )}
 
                 <div className="mt-4 space-y-3 border-t border-slate-100 pt-4">
-                    <div className="grid grid-cols-3 gap-2">
+                    <div className="grid grid-cols-2 gap-2 sm:grid-cols-4 xl:grid-cols-2 2xl:grid-cols-4">
                         {paymentMethods.map((method) => (
                             <button
                                 key={method.value}

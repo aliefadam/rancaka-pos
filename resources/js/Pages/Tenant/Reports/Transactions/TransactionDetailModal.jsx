@@ -27,6 +27,8 @@ function formatDateTime(value) {
 const paymentLabels = {
     cash: 'Tunai',
     qris: 'QRIS',
+    online: 'Online',
+    credit: 'Kredit',
 };
 
 function StatusBadge({ status }) {

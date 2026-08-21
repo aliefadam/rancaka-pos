@@ -16,9 +16,19 @@ const statusFilterOptions = [
     { value: 'voided', label: 'Dibatalkan' },
 ];
 
+const paymentFilterOptions = [
+    { value: '', label: 'Semua Pembayaran' },
+    { value: 'cash', label: 'Tunai' },
+    { value: 'qris', label: 'QRIS' },
+    { value: 'online', label: 'Online' },
+    { value: 'credit', label: 'Kredit' },
+];
+
 const paymentLabels = {
     cash: 'Tunai',
     qris: 'QRIS',
+    online: 'Online',
+    credit: 'Kredit',
 };
 
 function formatDateTime(value) {
@@ -61,6 +71,7 @@ export default function Index({ transactions, filters, limitedToOwnToday = false
     const [search, setSearch] = useState(filters.search ?? '');
     const [date, setDate] = useState(filters.date ?? '');
     const [status, setStatus] = useState(filters.status ?? '');
+    const [paymentMethod, setPaymentMethod] = useState(filters.payment_method ?? '');
     const [refreshing, setRefreshing] = useState(false);
     const [detailTransaction, setDetailTransaction] = useState(null);
     const [selected, setSelected] = useState([]);
@@ -90,6 +101,7 @@ export default function Index({ transactions, filters, limitedToOwnToday = false
                     ...(search ? { search } : {}),
                     ...(date ? { date } : {}),
                     ...(status ? { status } : {}),
+                    ...(paymentMethod ? { payment_method: paymentMethod } : {}),
                 },
                 {
                     preserveState: true,
@@ -102,7 +114,7 @@ export default function Index({ transactions, filters, limitedToOwnToday = false
 
         return () => clearTimeout(timeout);
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [search, date, status]);
+    }, [search, date, status, paymentMethod]);
 
     const refresh = () => {
         setRefreshing(true);
@@ -239,6 +251,13 @@ export default function Index({ transactions, filters, limitedToOwnToday = false
                         onChange={setStatus}
                         options={statusFilterOptions}
                         placeholder="Semua Status"
+                        className="w-full sm:w-48"
+                    />
+                    <Select
+                        value={paymentMethod}
+                        onChange={setPaymentMethod}
+                        options={paymentFilterOptions}
+                        placeholder="Semua Pembayaran"
                         className="w-full sm:w-48"
                     />
                 </div>

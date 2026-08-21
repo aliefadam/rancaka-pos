@@ -6,5 +6,6 @@ enum PaymentMethod: string
 {
     case Cash = 'cash';
     case Qris = 'qris';
+    case Online = 'online';
     case Credit = 'credit';
 }

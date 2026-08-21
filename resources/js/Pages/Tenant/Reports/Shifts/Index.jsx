@@ -136,7 +136,7 @@ export default function Index({ shifts, filters }) {
                 </div>
 
                 <div className="scrollbar-thin hidden overflow-x-auto md:block">
-                    <table className="w-full min-w-[1320px] text-left text-sm">
+                    <table className="w-full min-w-[1520px] text-left text-sm">
                         <thead>
                             <tr className="border-b border-slate-100 text-xs font-semibold uppercase tracking-wider text-slate-400">
                                 <th className="px-6 py-3.5 font-semibold">
@@ -157,6 +157,8 @@ export default function Index({ shifts, filters }) {
                                 <th className="px-6 py-3.5 font-semibold">
                                     Penjualan QRIS
                                 </th>
+                                <th className="px-6 py-3.5 font-semibold">Penjualan Online</th>
+                                <th className="px-6 py-3.5 font-semibold">Penjualan Kredit</th>
                                 <th className="px-6 py-3.5 font-semibold">
                                     Modal Akhir Sistem
                                 </th>
@@ -201,6 +203,8 @@ export default function Index({ shifts, filters }) {
                                     <td className="px-6 py-4 text-slate-700">
                                         {formatRupiah(shift.qris_sales)}
                                     </td>
+                                    <td className="px-6 py-4 text-slate-700">{formatRupiah(shift.online_sales)}</td>
+                                    <td className="px-6 py-4 text-slate-700">{formatRupiah(shift.credit_sales)}</td>
                                     <td className="px-6 py-4 font-medium text-slate-800">
                                         {formatRupiah(
                                             shift.expected_closing_cash,
@@ -240,7 +244,7 @@ export default function Index({ shifts, filters }) {
                             {shifts.data.length === 0 && (
                                 <tr>
                                     <td
-                                        colSpan={12}
+                                        colSpan={14}
                                         className="px-6 py-20 text-center"
                                     >
                                         <span className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-slate-50 text-slate-400">
@@ -303,6 +307,14 @@ export default function Index({ shifts, filters }) {
                                     <dd className="text-right text-slate-600">
                                         {formatRupiah(shift.qris_sales)}
                                     </dd>
+                                </div>
+                                <div className="flex items-center justify-between gap-3">
+                                    <dt className="text-slate-400">Penjualan Online</dt>
+                                    <dd className="text-right text-slate-600">{formatRupiah(shift.online_sales)}</dd>
+                                </div>
+                                <div className="flex items-center justify-between gap-3">
+                                    <dt className="text-slate-400">Penjualan Kredit</dt>
+                                    <dd className="text-right text-slate-600">{formatRupiah(shift.credit_sales)}</dd>
                                 </div>
                                 <div className="flex items-center justify-between gap-3">
                                     <dt className="text-slate-400">

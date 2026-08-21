@@ -33,6 +33,8 @@ class ShiftReconciliationTest extends TestCase
         [$owner, $shift] = $this->openShift(openingCash: 500);
         $this->transaction($shift, $owner, PaymentMethod::Cash, 104000);
         $this->transaction($shift, $owner, PaymentMethod::Qris, 50000);
+        $this->transaction($shift, $owner, PaymentMethod::Online, 75000);
+        $this->transaction($shift, $owner, PaymentMethod::Credit, 25000);
         $this->transaction(
             $shift,
             $owner,
@@ -40,6 +42,16 @@ class ShiftReconciliationTest extends TestCase
             999000,
             TransactionStatus::Voided,
         );
+
+        $this->actingAs($owner)
+            ->get(route('tenant.pos.index'))
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('shiftSummary.cash_sales', 104000)
+                ->where('shiftSummary.qris_sales', 50000)
+                ->where('shiftSummary.online_sales', 75000)
+                ->where('shiftSummary.credit_sales', 25000)
+                ->where('shiftSummary.total_sales', 254000)
+                ->where('shiftSummary.expected_cash', 104500));
 
         $this->actingAs($owner)
             ->post(route('tenant.shift.close'), ['closing_cash' => 104400])
@@ -59,11 +71,13 @@ class ShiftReconciliationTest extends TestCase
             ->assertInertia(fn (Assert $page) => $page
                 ->where('shifts.data.0.cash_sales', 104000)
                 ->where('shifts.data.0.qris_sales', 50000)
-                ->where('shifts.data.0.total_sales', 154000)
+                ->where('shifts.data.0.online_sales', 75000)
+                ->where('shifts.data.0.credit_sales', 25000)
+                ->where('shifts.data.0.total_sales', 254000)
                 ->where('shifts.data.0.expected_closing_cash', 104500)
                 ->where('shifts.data.0.closing_cash', 104500)
                 ->where('shifts.data.0.cash_difference', 0)
-                ->where('shifts.data.0.transaction_count', 2));
+                ->where('shifts.data.0.transaction_count', 4));
     }
 
     public function test_shift_history_can_be_filtered_by_opening_date(): void

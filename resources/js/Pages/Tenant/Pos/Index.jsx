@@ -54,7 +54,9 @@ function restoreCartDraft(activeShift, products) {
 
         return {
             items,
-            paymentMethod: saved.paymentMethod === 'qris' ? 'qris' : 'cash',
+            paymentMethod: ['cash', 'qris', 'online', 'credit'].includes(saved.paymentMethod)
+                ? saved.paymentMethod
+                : 'cash',
             discountType:
                 saved.discountType === 'percentage' ? 'percentage' : 'fixed',
             discountValue: String(saved.discountValue ?? ''),

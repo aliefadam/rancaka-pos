@@ -17,7 +17,8 @@ function formatDateTime(value) {
 const paymentLabels = {
     cash: 'Tunai',
     qris: 'QRIS',
-    credit: 'Hutang',
+    online: 'Online',
+    credit: 'Kredit',
 };
 
 export default function ReceiptModal({ show, onClose, transaction, tenant }) {
