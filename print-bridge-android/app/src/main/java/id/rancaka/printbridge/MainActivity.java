@@ -921,7 +921,8 @@ public class MainActivity extends Activity {
     private byte[] buildReceiptBytes(JSONObject payload) throws Exception {
         JSONObject store = payload.optJSONObject("store");
         JSONObject sale = payload.getJSONObject("sale");
-        JSONArray items = sale.getJSONArray("items");
+        JSONArray items = sale.optJSONArray("items");
+        if (items == null) items = new JSONArray();
         JSONObject payment = sale.optJSONObject("payment");
         JSONObject membershipPoints = sale.optJSONObject("membership_points");
         String receiptSize = store == null ? "58mm" : store.optString("receipt_size", "58mm");
@@ -949,6 +950,32 @@ public class MainActivity extends Activity {
         formatter.leftRight("Tanggal", sale.optString("sold_at", "-"));
         formatter.leftRight("Kasir", sale.optString("cashier", "-"));
         formatter.hr();
+
+        if ("credit_payment".equals(sale.optString("receipt_type", ""))) {
+            formatter.bold(true);
+            formatter.center("BUKTI PEMBAYARAN HUTANG");
+            formatter.bold(false);
+            formatter.center(sale.optString("payment_number", "-"));
+            formatter.hr();
+            formatter.leftRight("Pelanggan", sale.optString("customer", "-"));
+            formatter.leftRight("Total hutang", ReceiptFormatter.money(sale.optDouble("total_credit", 0)));
+            formatter.leftRight("Sisa sebelumnya", ReceiptFormatter.money(sale.optDouble("remaining_before", 0)));
+            formatter.bold(true);
+            formatter.leftRight("Pembayaran", "-" + ReceiptFormatter.money(sale.optDouble("payment_amount", 0)));
+            formatter.leftRight("Sisa hutang", ReceiptFormatter.money(sale.optDouble("remaining_after", 0)));
+            formatter.bold(false);
+            formatter.leftRight("Status", sale.optBoolean("is_paid", false) ? "LUNAS" : "BELUM LUNAS");
+            if (!sale.optString("note", "").isEmpty()) {
+                formatter.text("Catatan: " + sale.optString("note"));
+            }
+            formatter.hr();
+            String creditFooter = store == null ? "" : store.optString("receipt_footer", "");
+            formatter.center(creditFooter.isEmpty() ? "Terima kasih" : creditFooter);
+            formatter.center("Simpan sebagai bukti pembayaran");
+            formatter.feed(3);
+            formatter.cut();
+            return formatter.toBytes();
+        }
 
         if (sale.optBoolean("is_void", false) || "void".equalsIgnoreCase(sale.optString("status", ""))) {
             formatter.bold(true);
@@ -997,9 +1024,20 @@ public class MainActivity extends Activity {
 
         if (payment != null) {
             formatter.hr();
-            formatter.leftRight("Metode", payment.optString("method", "-").toUpperCase());
-            formatter.leftRight("Bayar", ReceiptFormatter.money(payment.optDouble("paid_amount", payment.optDouble("amount", 0))));
-            formatter.leftRight("Kembali", ReceiptFormatter.money(payment.optDouble("change_amount", 0)));
+            String paymentMethod = payment.optString("method", "-");
+            formatter.leftRight("Metode", paymentMethod.toUpperCase());
+            if ("credit".equalsIgnoreCase(paymentMethod)) {
+                if (!payment.optString("credit_customer", "").isEmpty()) {
+                    formatter.leftRight("Pelanggan", payment.optString("credit_customer", "-"));
+                }
+                formatter.leftRight("Sudah dibayar", ReceiptFormatter.money(payment.optDouble("paid_amount", 0)));
+                formatter.bold(true);
+                formatter.leftRight("Sisa hutang", ReceiptFormatter.money(payment.optDouble("remaining_amount", 0)));
+                formatter.bold(false);
+            } else {
+                formatter.leftRight("Bayar", ReceiptFormatter.money(payment.optDouble("paid_amount", payment.optDouble("amount", 0))));
+                formatter.leftRight("Kembali", ReceiptFormatter.money(payment.optDouble("change_amount", 0)));
+            }
         }
 
         if (membershipPoints != null) {

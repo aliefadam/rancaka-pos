@@ -165,6 +165,8 @@ Route::middleware(['auth', 'role:owner,employee', 'tenant.onboarded', 'subscript
     Route::get('/credit-sales', [TenantCreditSaleController::class, 'index'])->name('credit-sales.index');
     Route::get('/credit-sales/{creditSale}', [TenantCreditSaleController::class, 'show'])->name('credit-sales.show');
     Route::post('/credit-sales/{creditSale}/payments', [TenantCreditSaleController::class, 'pay'])->name('credit-sales.pay');
+    Route::get('/credit-payments/{creditPayment}/receipt', [TenantCreditSaleController::class, 'paymentReceipt'])
+        ->name('credit-payments.receipt');
 
     Route::get('/transactions/{transaction}/receipt', [TenantReceiptController::class, 'show'])
         ->name('transactions.receipt');
@@ -222,6 +224,9 @@ Route::middleware(['auth', 'role:owner,employee', 'tenant.onboarded', 'subscript
 Route::get('/bridge/receipts/{transaction}', [BridgeReceiptController::class, 'show'])
     ->middleware('signed')
     ->name('bridge.receipts.show');
+Route::get('/bridge/credit-payments/{creditPayment}', [BridgeReceiptController::class, 'creditPayment'])
+    ->middleware('signed')
+    ->name('bridge.credit-payments.show');
 
 require __DIR__.'/auth.php';
 

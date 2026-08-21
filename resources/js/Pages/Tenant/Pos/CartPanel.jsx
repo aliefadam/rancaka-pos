@@ -61,7 +61,7 @@ function QuantityInput({ item, onQuantityChange }) {
             onKeyDown={(event) => {
                 if (event.key === 'Enter') event.currentTarget.blur();
             }}
-            className="h-7 w-11 rounded-lg border border-slate-200 bg-white px-1 text-center text-sm font-semibold text-slate-800 outline-none transition focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100"
+            className="h-7 w-14 rounded-lg border border-slate-200 bg-white px-2 text-center text-sm font-semibold text-slate-800 outline-none transition focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100"
         />
     );
 }

@@ -32,7 +32,7 @@ class TransactionHistoryController extends Controller
                 ->where('user_id', $request->user()->id)
                 ->where('created_at', '>=', now()->startOfDay())
                 ->where('created_at', '<', now()->addDay()->startOfDay()))
-            ->with(['user:id,name', 'shift.user:id,name', 'items'])
+            ->with(['user:id,name', 'shift.user:id,name', 'items', 'creditSale.customer:id,name'])
             ->when($search, function ($query, $search) {
                 $query->where(function ($query) use ($search) {
                     $query->where('invoice_number', 'like', "%{$search}%")

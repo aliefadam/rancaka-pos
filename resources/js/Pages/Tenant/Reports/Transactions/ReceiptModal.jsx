@@ -17,6 +17,7 @@ function formatDateTime(value) {
 const paymentLabels = {
     cash: 'Tunai',
     qris: 'QRIS',
+    credit: 'Hutang',
 };
 
 export default function ReceiptModal({ show, onClose, transaction, tenant }) {
@@ -190,6 +191,41 @@ export default function ReceiptModal({ show, onClose, transaction, tenant }) {
                                         <span>
                                             {formatRupiah(
                                                 transaction.change_amount,
+                                            )}
+                                        </span>
+                                    </div>
+                                </>
+                            )}
+                        {transaction.payment_method === 'credit' &&
+                            transaction.credit_sale && (
+                                <>
+                                    <div className="flex items-center justify-between text-slate-500">
+                                        <span>Pelanggan</span>
+                                        <span>
+                                            {transaction.credit_sale.customer
+                                                ?.name || '-'}
+                                        </span>
+                                    </div>
+                                    <div className="flex items-center justify-between text-slate-500">
+                                        <span>Sudah Dibayar</span>
+                                        <span>
+                                            {formatRupiah(
+                                                transaction.credit_sale
+                                                    .paid_amount,
+                                            )}
+                                        </span>
+                                    </div>
+                                    <div className="flex items-center justify-between border-t border-dashed border-slate-300 pt-1 font-bold text-slate-900">
+                                        <span>Sisa Hutang</span>
+                                        <span>
+                                            {formatRupiah(
+                                                Math.max(
+                                                    transaction.credit_sale
+                                                        .total_amount -
+                                                        transaction.credit_sale
+                                                            .paid_amount,
+                                                    0,
+                                                ),
                                             )}
                                         </span>
                                     </div>

@@ -1,13 +1,24 @@
 import Breadcrumb from '@/Components/Breadcrumb';
+import Modal from '@/Components/Modal';
 import AdminLayout from '@/Layouts/AdminLayout';
-import { Head, useForm } from '@inertiajs/react';
+import { Head, useForm, usePage } from '@inertiajs/react';
+import { useEffect, useState } from 'react';
 
 const rupiah = (value) => `Rp ${Number(value || 0).toLocaleString('id-ID')}`;
 const datetime = (value) => new Date(value).toLocaleString('id-ID', { dateStyle: 'medium', timeStyle: 'short' });
 
 export default function Show({ creditSale }) {
+    const { flash } = usePage().props;
     const remaining = creditSale.total_amount - creditSale.paid_amount;
     const form = useForm({ amount: remaining, note: '' });
+    const [showPaymentSuccess, setShowPaymentSuccess] = useState(
+        Boolean(flash?.receipt_url),
+    );
+
+    useEffect(() => {
+        if (flash?.receipt_url) setShowPaymentSuccess(true);
+    }, [flash?.receipt_url]);
+
     const submit = (event) => {
         event.preventDefault();
         form.post(route('tenant.credit-sales.pay', creditSale.id), {
@@ -66,6 +77,65 @@ export default function Show({ creditSale }) {
                     <aside>{creditSale.status !== 'paid' ? <form onSubmit={submit} className="sticky top-24 rounded-2xl border border-amber-200 bg-amber-50/70 p-5 shadow-sm shadow-amber-100/50"><div className="flex items-center gap-2"><span className="flex h-9 w-9 items-center justify-center rounded-lg bg-amber-100 text-amber-700"><i className="fi fi-rr-hand-holding-usd" /></span><div><h3 className="font-bold text-amber-950">Bayar hutang</h3><p className="text-xs text-amber-700">Catat cicilan atau pelunasan.</p></div></div><label className="mt-5 block text-xs font-bold text-amber-900">Nominal pembayaran</label><div className="relative mt-1.5"><span className="absolute inset-y-0 left-0 flex items-center pl-3 text-sm font-semibold text-slate-500">Rp</span><input type="number" min="1" max={remaining} value={form.data.amount} onChange={(event) => form.setData('amount', event.target.value)} className="w-full rounded-xl border border-amber-200 bg-white py-2.5 pl-10 pr-3 text-sm focus:border-amber-400 focus:outline-none focus:ring-2 focus:ring-amber-100" /></div><button type="button" onClick={() => form.setData('amount', remaining)} className="mt-2 text-xs font-semibold text-amber-700 hover:text-amber-900">Isi pelunasan penuh</button>{form.errors.amount && <p className="mt-1 text-xs text-red-600">{form.errors.amount}</p>}<label className="mt-4 block text-xs font-bold text-amber-900">Catatan</label><textarea rows="3" value={form.data.note} onChange={(event) => form.setData('note', event.target.value)} placeholder="Opsional" className="mt-1.5 w-full resize-none rounded-xl border border-amber-200 bg-white px-3 py-2.5 text-sm focus:border-amber-400 focus:outline-none focus:ring-2 focus:ring-amber-100" /><button disabled={form.processing} className="mt-4 flex w-full items-center justify-center gap-2 rounded-xl bg-amber-600 py-2.5 text-sm font-bold text-white transition hover:bg-amber-700 disabled:opacity-60"><i className="fi fi-rr-check" />Catat Pembayaran</button></form> : <div className="rounded-2xl border border-emerald-200 bg-emerald-50 p-5 text-center text-emerald-800"><span className="mx-auto flex h-10 w-10 items-center justify-center rounded-full bg-emerald-100"><i className="fi fi-rr-check" /></span><p className="mt-3 font-bold">Hutang sudah lunas</p></div>}</aside>
                 </div>
             </div>
+
+            <Modal
+                show={showPaymentSuccess}
+                onClose={() => setShowPaymentSuccess(false)}
+                maxWidth="sm"
+            >
+                <Modal.Body>
+                    <div className="py-3 text-center">
+                        <span className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-emerald-50 text-2xl text-emerald-600 ring-8 ring-emerald-50/60">
+                            <i className="fi fi-rr-check" />
+                        </span>
+                        <h2 className="mt-6 text-xl font-bold text-slate-900">
+                            Pembayaran Berhasil
+                        </h2>
+                        <p className="mt-1.5 text-sm leading-relaxed text-slate-500">
+                            Pembayaran hutang telah dicatat dan nota bukti
+                            pembayaran sudah tersedia.
+                        </p>
+
+                        <div className="mt-5 overflow-hidden rounded-xl border border-slate-200 bg-slate-50/70 text-left">
+                            <div className="flex items-center justify-between gap-4 px-4 py-3 text-sm">
+                                <span className="text-slate-500">
+                                    Pembayaran
+                                </span>
+                                <span className="font-bold text-emerald-600">
+                                    {rupiah(flash?.credit_payment_amount)}
+                                </span>
+                            </div>
+                            <div className="flex items-center justify-between gap-4 border-t border-slate-200 px-4 py-3 text-sm">
+                                <span className="text-slate-500">
+                                    Sisa hutang
+                                </span>
+                                <span className="font-bold text-slate-900">
+                                    {rupiah(flash?.credit_payment_remaining)}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </Modal.Body>
+                <Modal.Footer>
+                    <button
+                        type="button"
+                        onClick={() => setShowPaymentSuccess(false)}
+                        className="rounded-xl border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-600 transition hover:bg-slate-50"
+                    >
+                        Tutup
+                    </button>
+                    <a
+                        href={flash?.receipt_url || '#'}
+                        target="_blank"
+                        rel="noreferrer"
+                        onClick={() => setShowPaymentSuccess(false)}
+                        className="inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-4 py-2 text-sm font-bold text-white shadow-sm shadow-emerald-200 transition hover:bg-emerald-700"
+                    >
+                        <i className="fi fi-rr-receipt" />
+                        Buka Nota
+                    </a>
+                </Modal.Footer>
+            </Modal>
         </AdminLayout>
     );
 }

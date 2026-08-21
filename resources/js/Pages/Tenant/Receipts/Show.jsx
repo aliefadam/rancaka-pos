@@ -7,6 +7,7 @@ export default function Show({
     store,
     sale,
     bridge_receipt_url: bridgeReceiptUrl,
+    back_url: backUrl,
 }) {
     const is80mm = store.receipt_size === '80mm';
     const widthClass = is80mm ? 'max-w-[320px]' : 'max-w-[230px]';
@@ -127,11 +128,16 @@ export default function Show({
             <div className="receipt-page min-h-screen bg-white px-4 py-6 text-black">
                 <div className="mx-auto mb-5 flex max-w-lg flex-wrap items-center justify-between gap-3 print:hidden">
                     <Link
-                        href={route('tenant.reports.transactions.index')}
+                        href={
+                            backUrl ||
+                            route('tenant.reports.transactions.index')
+                        }
                         className="inline-flex min-h-10 items-center gap-2 rounded-xl border border-slate-300 px-3 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
                     >
                         <i className="fi fi-rr-arrow-left" />
-                        Riwayat
+                        {sale.receipt_type === 'credit_payment'
+                            ? 'Detail Hutang'
+                            : 'Riwayat'}
                     </Link>
 
                     <div className="grid w-full grid-cols-2 gap-2 sm:flex sm:w-auto sm:flex-wrap sm:justify-end">
@@ -205,6 +211,59 @@ export default function Show({
                         <div>Kasir: {sale.cashier || '-'}</div>
                     </div>
 
+                    {sale.receipt_type === 'credit_payment' ? (
+                        <>
+                            <div className="border-b border-dashed border-black py-3 text-center">
+                                <div className="text-sm font-bold uppercase">
+                                    Bukti Pembayaran Hutang
+                                </div>
+                                <div>{sale.payment_number}</div>
+                            </div>
+
+                            <div className="space-y-1 border-b border-dashed border-black py-3">
+                                <div className="flex justify-between gap-2">
+                                    <span>No. Transaksi</span>
+                                    <span className="text-right">
+                                        {sale.invoice_number}
+                                    </span>
+                                </div>
+                                <div className="flex justify-between gap-2">
+                                    <span>Pelanggan</span>
+                                    <span className="text-right">
+                                        {sale.customer || '-'}
+                                    </span>
+                                </div>
+                                <div className="flex justify-between gap-2">
+                                    <span>Total Hutang</span>
+                                    <span>{money(sale.total_credit)}</span>
+                                </div>
+                                <div className="flex justify-between gap-2">
+                                    <span>Sisa Sebelumnya</span>
+                                    <span>{money(sale.remaining_before)}</span>
+                                </div>
+                                <div className="flex justify-between gap-2 font-bold">
+                                    <span>Pembayaran</span>
+                                    <span>-{money(sale.payment_amount)}</span>
+                                </div>
+                                <div className="flex justify-between gap-2 border-t border-dashed border-black pt-1 font-bold">
+                                    <span>Sisa Hutang</span>
+                                    <span>{money(sale.remaining_after)}</span>
+                                </div>
+                                <div className="flex justify-between gap-2 uppercase">
+                                    <span>Status</span>
+                                    <span>
+                                        {sale.is_paid ? 'Lunas' : 'Belum Lunas'}
+                                    </span>
+                                </div>
+                                {sale.note && (
+                                    <div className="pt-1 text-[11px]">
+                                        Catatan: {sale.note}
+                                    </div>
+                                )}
+                            </div>
+                        </>
+                    ) : (
+                        <>
                     {sale.is_void && (
                         <div className="border-b border-dashed border-black py-3 text-center">
                             <div className="text-sm font-bold uppercase">
@@ -274,18 +333,45 @@ export default function Show({
                             <span>{money(sale.grand_total)}</span>
                         </div>
                         <div className="flex justify-between">
-                            <span>Bayar</span>
+                            <span>
+                                {sale.payment?.method === 'credit'
+                                    ? 'Sudah dibayar'
+                                    : 'Bayar'}
+                            </span>
                             <span>{money(sale.payment?.paid_amount)}</span>
                         </div>
-                        <div className="flex justify-between">
-                            <span>Kembalian</span>
-                            <span>{money(sale.payment?.change_amount)}</span>
-                        </div>
+                        {sale.payment?.method === 'credit' ? (
+                            <>
+                                {sale.payment?.credit_customer && (
+                                    <div className="flex justify-between gap-2">
+                                        <span>Pelanggan</span>
+                                        <span className="text-right">
+                                            {sale.payment.credit_customer}
+                                        </span>
+                                    </div>
+                                )}
+                                <div className="flex justify-between border-t border-dashed border-black pt-1 font-bold">
+                                    <span>Sisa hutang</span>
+                                    <span>
+                                        {money(
+                                            sale.payment?.remaining_amount,
+                                        )}
+                                    </span>
+                                </div>
+                            </>
+                        ) : (
+                            <div className="flex justify-between">
+                                <span>Kembalian</span>
+                                <span>{money(sale.payment?.change_amount)}</span>
+                            </div>
+                        )}
                         <div className="flex justify-between uppercase">
                             <span>Metode</span>
                             <span>{sale.payment?.method || '-'}</span>
                         </div>
                     </div>
+                        </>
+                    )}
 
                     <div className="pt-3 text-center">
                         <div>{store.receipt_footer || 'Terima kasih'}</div>

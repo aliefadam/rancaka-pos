@@ -26,8 +26,9 @@ class ReceiptController extends Controller
             );
         }
 
-        $transaction->load(['items', 'user:id,name']);
+        $transaction->load(['items', 'user:id,name', 'creditSale.customer:id,name']);
         $tenant = $request->user()->tenant;
+        $creditSale = $transaction->creditSale;
 
         return Inertia::render('Tenant/Receipts/Show', [
             'bridge_receipt_url' => URL::temporarySignedRoute(
@@ -60,8 +61,12 @@ class ReceiptController extends Controller
                 'cashier' => $transaction->user?->name,
                 'payment' => [
                     'method' => $transaction->payment_method->value,
-                    'paid_amount' => (float) ($transaction->amount_received ?? $transaction->total),
+                    'paid_amount' => (float) ($creditSale?->paid_amount ?? $transaction->amount_received ?? $transaction->total),
                     'change_amount' => (float) ($transaction->change_amount ?? 0),
+                    'credit_customer' => $creditSale?->customer?->name,
+                    'remaining_amount' => $creditSale
+                        ? max((float) $creditSale->total_amount - (float) $creditSale->paid_amount, 0)
+                        : 0,
                 ],
                 'items' => $transaction->items->map(fn ($item) => [
                     'product_name' => $item->product_name,
