@@ -3,9 +3,6 @@ import BrandLogo from '@/Components/BrandLogo';
 import GoogleAuthButton from '@/Components/GoogleAuthButton';
 import { useState } from 'react';
 
-const DEMO_USERNAME = 'owner.josjis';
-const DEMO_PASSWORD = '123123';
-
 export default function Login({ status, googleAuthEnabled }) {
     const [showPassword, setShowPassword] = useState(false);
 
@@ -19,14 +16,6 @@ export default function Login({ status, googleAuthEnabled }) {
         e.preventDefault();
         post(route('login'), {
             onFinish: () => reset('password'),
-        });
-    };
-
-    const fillDemoAccount = () => {
-        setData({
-            ...data,
-            username: DEMO_USERNAME,
-            password: DEMO_PASSWORD,
         });
     };
 
@@ -93,15 +82,6 @@ export default function Login({ status, googleAuthEnabled }) {
                                 <div className="my-5 flex items-center gap-3 text-xs uppercase tracking-wider text-slate-400"><span className="h-px flex-1 bg-slate-200" /><span>atau username</span><span className="h-px flex-1 bg-slate-200" /></div>
                             </>
                         )}
-
-                        <button
-                            type="button"
-                            onClick={fillDemoAccount}
-                            className={`${googleAuthEnabled ? '' : 'mt-6'} flex w-full items-center justify-center gap-2 rounded-lg border border-dashed border-indigo-300 bg-indigo-50 px-4 py-2.5 text-sm font-semibold text-indigo-700 transition hover:bg-indigo-100`}
-                        >
-                            <i className="fi fi-rr-user-add" />
-                            Isi Akun Demo
-                        </button>
 
                         <form onSubmit={submit} className="mt-6 space-y-5">
                             <div>
