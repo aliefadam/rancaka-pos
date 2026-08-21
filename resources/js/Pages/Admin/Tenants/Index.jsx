@@ -51,6 +51,8 @@ export default function Index({ tenants, filters }) {
     const [deleting, setDeleting] = useState(false);
     const [impersonateTarget, setImpersonateTarget] = useState(null);
     const [impersonating, setImpersonating] = useState(false);
+    const [resetPasswordTarget, setResetPasswordTarget] = useState(null);
+    const [resettingPassword, setResettingPassword] = useState(false);
     const isFirstRun = useRef(true);
 
     useEffect(() => {
@@ -134,6 +136,23 @@ export default function Index({ tenants, filters }) {
                             'Gagal masuk ke tenant. Silakan coba lagi.',
                     ),
                 onFinish: () => setImpersonating(false),
+            },
+        );
+    };
+
+    const confirmResetPassword = () => {
+        if (!resetPasswordTarget) return;
+
+        setResettingPassword(true);
+        router.patch(
+            route('admin.tenants.reset-password', resetPasswordTarget.id),
+            {},
+            {
+                preserveScroll: true,
+                onFinish: () => {
+                    setResettingPassword(false);
+                    setResetPasswordTarget(null);
+                },
             },
         );
     };
@@ -289,6 +308,22 @@ export default function Index({ tenants, filters }) {
                                             </button>
                                             <button
                                                 type="button"
+                                                disabled={!tenant.can_reset_password}
+                                                onClick={() =>
+                                                    setResetPasswordTarget(tenant)
+                                                }
+                                                className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 transition hover:bg-sky-50 hover:text-sky-600 disabled:cursor-not-allowed disabled:opacity-30"
+                                                title={
+                                                    tenant.can_reset_password
+                                                        ? `Reset password owner ${tenant.name}`
+                                                        : 'Tenant belum memiliki owner'
+                                                }
+                                                aria-label={`Reset password owner ${tenant.name}`}
+                                            >
+                                                <i className="fi fi-rr-key" />
+                                            </button>
+                                            <button
+                                                type="button"
                                                 onClick={() =>
                                                     openEditModal(tenant)
                                                 }
@@ -400,6 +435,15 @@ export default function Index({ tenants, filters }) {
                                 </button>
                                 <button
                                     type="button"
+                                    disabled={!tenant.can_reset_password}
+                                    onClick={() => setResetPasswordTarget(tenant)}
+                                    className="flex h-8 items-center gap-2 rounded-lg bg-sky-50 px-3 text-xs font-semibold text-sky-700 transition hover:bg-sky-100 disabled:cursor-not-allowed disabled:opacity-40"
+                                >
+                                    <i className="fi fi-rr-key" />
+                                    Reset password
+                                </button>
+                                <button
+                                    type="button"
                                     onClick={() => openEditModal(tenant)}
                                     className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 transition hover:bg-slate-100 hover:text-indigo-600"
                                 >
@@ -461,6 +505,23 @@ export default function Index({ tenants, filters }) {
                     `Anda akan masuk sebagai owner tenant “${impersonateTarget.name}”. Semua aktivitas berikutnya menggunakan akses tenant sampai mode impersonate dihentikan.`
                 }
                 confirmText="Ya, Masuk"
+            />
+
+            <ConfirmDialog
+                show={Boolean(resetPasswordTarget)}
+                onClose={() => {
+                    if (!resettingPassword) setResetPasswordTarget(null);
+                }}
+                onConfirm={confirmResetPassword}
+                processing={resettingPassword}
+                title="Reset Password Owner"
+                message={
+                    resetPasswordTarget &&
+                    `Password owner tenant "${resetPasswordTarget.name}" akan diubah menjadi 123123123.`
+                }
+                confirmText="Ya, Reset"
+                variant="primary"
+                icon="fi-rr-key"
             />
 
             <ConfirmDialog

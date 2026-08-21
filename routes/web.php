@@ -76,6 +76,8 @@ Route::middleware(['auth', 'role:superadmin'])->prefix('admin')->name('admin.')-
         ->names('tenants');
     Route::post('/tenants/{tenant}/impersonate', [ImpersonationController::class, 'start'])
         ->name('tenants.impersonate');
+    Route::patch('/tenants/{tenant}/reset-password', [TenantController::class, 'resetPassword'])
+        ->name('tenants.reset-password');
 
     Route::get('/billing', [AdminBillingController::class, 'index'])->name('billing.index');
     Route::post('/billing/settings', [AdminBillingController::class, 'updateSettings'])->name('billing.settings.update');

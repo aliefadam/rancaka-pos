@@ -44,6 +44,7 @@ class TenantController extends Controller
                 return [
                     ...$tenant->makeHidden('owner')->toArray(),
                     'can_impersonate' => $canImpersonate,
+                    'can_reset_password' => $canImpersonate,
                 ];
             });
 
@@ -180,6 +181,21 @@ class TenantController extends Controller
         $tenant->update($validated);
 
         return redirect()->route('admin.tenants.index')->with('success', 'Tenant berhasil diperbarui.');
+    }
+
+    public function resetPassword(Tenant $tenant): RedirectResponse
+    {
+        $owner = $tenant->owner()->first();
+
+        if (! $owner) {
+            return back()->with('error', 'Password tidak dapat direset karena tenant belum memiliki akun owner.');
+        }
+
+        $owner->update([
+            'password' => Hash::make('123123123'),
+        ]);
+
+        return back()->with('success', "Password owner tenant {$tenant->name} berhasil direset menjadi 123123123.");
     }
 
     public function destroy(Tenant $tenant): RedirectResponse
