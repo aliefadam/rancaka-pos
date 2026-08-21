@@ -383,10 +383,7 @@ export default function AdminLayout({ header, children }) {
     const [darkMode, setDarkMode] = useState(() => {
         if (typeof window === "undefined") return false;
 
-        const savedTheme = window.localStorage.getItem("rancaka-theme");
-        if (savedTheme) return savedTheme === "dark";
-
-        return window.matchMedia("(prefers-color-scheme: dark)").matches;
+        return window.localStorage.getItem("rancaka-theme") === "dark";
     });
     const toast = useToast();
 
@@ -397,6 +394,11 @@ export default function AdminLayout({ header, children }) {
             darkMode ? "dark" : "light",
         );
     }, [darkMode]);
+
+    useEffect(
+        () => () => document.documentElement.classList.remove("dark"),
+        [],
+    );
 
     const searchableItems = useMemo(
         () =>

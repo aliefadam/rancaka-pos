@@ -10,11 +10,12 @@
 
         <script>
             (() => {
+                const isAuthenticated = @js((bool) data_get($page, 'props.auth.user'));
                 const savedTheme = localStorage.getItem('rancaka-theme');
-                const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+
                 document.documentElement.classList.toggle(
                     'dark',
-                    savedTheme ? savedTheme === 'dark' : prefersDark,
+                    isAuthenticated && savedTheme === 'dark',
                 );
             })();
         </script>

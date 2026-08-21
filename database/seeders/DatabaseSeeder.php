@@ -25,12 +25,7 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        User::factory()->create([
-            'name' => 'Administrator',
-            'username' => 'admin',
-            'password' => Hash::make('admin123'),
-            'role' => UserRole::Superadmin,
-        ]);
+        $this->call(SuperadminSeeder::class);
 
         $demoTenant = Tenant::factory()->create([
             'name' => 'Kedai Josjis',
@@ -100,7 +95,7 @@ class DatabaseSeeder extends Seeder
             'tenant_id' => $demoTenant->id,
             'shift_id' => $demoShift->id,
             'user_id' => $owner->id,
-            'invoice_number' => 'TRX' . now()->subDay()->format('Ymd') . '-0001',
+            'invoice_number' => 'TRX'.now()->subDay()->format('Ymd').'-0001',
             'status' => TransactionStatus::Completed,
             'payment_method' => PaymentMethod::Cash,
             'subtotal' => 30000,
@@ -121,7 +116,7 @@ class DatabaseSeeder extends Seeder
             'tenant_id' => $demoTenant->id,
             'shift_id' => $demoShift->id,
             'user_id' => $owner->id,
-            'invoice_number' => 'TRX' . now()->subDay()->format('Ymd') . '-0002',
+            'invoice_number' => 'TRX'.now()->subDay()->format('Ymd').'-0002',
             'status' => TransactionStatus::Completed,
             'payment_method' => PaymentMethod::Qris,
             'subtotal' => 21000,
