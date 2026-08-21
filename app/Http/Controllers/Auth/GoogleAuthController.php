@@ -89,11 +89,15 @@ class GoogleAuthController extends Controller
         Auth::login($user, true);
         request()->session()->regenerate();
 
-        if (! $user->tenant_id) {
-            return redirect()->route('onboarding.store.create');
-        }
+        $route = match (true) {
+            $user->isSuperadmin() => 'admin.dashboard',
+            $user->isDeveloper() => 'admin.development-tickets.index',
+            $user->isSales() => 'sales.dashboard',
+            ! $user->tenant_id => 'onboarding.store.create',
+            default => 'tenant.dashboard',
+        };
 
-        return redirect()->intended(route($user->isSuperadmin() ? 'admin.dashboard' : 'tenant.dashboard'));
+        return redirect()->intended(route($route));
     }
 
     private function uniqueUsername(?string $email, ?string $name): string

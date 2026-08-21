@@ -4,6 +4,8 @@ use App\Enums\UserRole;
 use App\Http\Controllers\AccountController;
 use App\Http\Controllers\Admin\BillingController as AdminBillingController;
 use App\Http\Controllers\Admin\CommissionPayoutController;
+use App\Http\Controllers\Admin\DeveloperController;
+use App\Http\Controllers\Admin\DevelopmentTicketController;
 use App\Http\Controllers\Admin\SalesController;
 use App\Http\Controllers\Admin\TenantController;
 use App\Http\Controllers\Auth\StoreOnboardingController;
@@ -42,6 +44,7 @@ Route::get('/', function () {
     }
     $route = match (true) {
         $user->role === UserRole::Superadmin => 'admin.dashboard',
+        $user->role === UserRole::Developer => 'admin.development-tickets.index',
         $user->role === UserRole::Sales => 'sales.dashboard',
         $user->hasPermission('dashboard.view') => 'tenant.dashboard',
         default => 'tenant.pos.index',
@@ -90,6 +93,18 @@ Route::middleware(['auth', 'role:superadmin'])->prefix('admin')->name('admin.')-
     Route::patch('/sales/tenant/{tenant}/referral', [SalesController::class, 'updateTenantReferral'])->name('sales.tenant-referral.update');
     Route::post('/commission-payouts', [CommissionPayoutController::class, 'store'])->name('commission-payouts.store');
     Route::get('/commission-payouts/{payout}/proof', [CommissionPayoutController::class, 'proof'])->name('commission-payouts.proof');
+
+    Route::resource('developers', DeveloperController::class)
+        ->only(['index', 'store', 'update', 'destroy']);
+});
+
+Route::middleware(['auth', 'role:superadmin,developer'])->prefix('admin')->name('admin.')->group(function () {
+    Route::post('/development-tickets/images', [DevelopmentTicketController::class, 'uploadImage'])
+        ->name('development-tickets.images.store');
+    Route::post('/development-tickets/{developmentTicket}/updates', [DevelopmentTicketController::class, 'addUpdate'])
+        ->name('development-tickets.updates.store');
+    Route::resource('development-tickets', DevelopmentTicketController::class)
+        ->parameters(['development-tickets' => 'developmentTicket']);
 });
 
 Route::middleware(['auth', 'role:owner,employee', 'tenant.onboarded'])->prefix('tenant')->name('tenant.')->group(function () {

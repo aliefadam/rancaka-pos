@@ -36,6 +36,7 @@ class AuthenticatedSessionController extends Controller
         $user = $request->user();
         $defaultRoute = match (true) {
             $user->role === UserRole::Superadmin => 'admin.dashboard',
+            $user->role === UserRole::Developer => 'admin.development-tickets.index',
             $user->role === UserRole::Sales => 'sales.dashboard',
             $user->hasPermission('dashboard.view') => 'tenant.dashboard',
             default => 'tenant.pos.index',

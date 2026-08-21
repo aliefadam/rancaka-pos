@@ -38,6 +38,35 @@ const navigationByRole = {
                 },
             ],
         },
+        {
+            group: "Development",
+            items: [
+                {
+                    name: "Development Tickets",
+                    href: "admin.development-tickets.index",
+                    activePattern: "admin.development-tickets.*",
+                    icon: "fi-rr-ticket",
+                },
+                {
+                    name: "Tim Developer",
+                    href: "admin.developers.index",
+                    icon: "fi-rr-users-alt",
+                },
+            ],
+        },
+    ],
+    developer: [
+        {
+            group: "Development",
+            items: [
+                {
+                    name: "Development Tickets",
+                    href: "admin.development-tickets.index",
+                    activePattern: "admin.development-tickets.*",
+                    icon: "fi-rr-ticket",
+                },
+            ],
+        },
     ],
     sales: [
         {

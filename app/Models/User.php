@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
@@ -54,6 +55,11 @@ class User extends Authenticatable
         return $this->role === UserRole::Owner;
     }
 
+    public function isDeveloper(): bool
+    {
+        return $this->role === UserRole::Developer;
+    }
+
     public function isSales(): bool
     {
         return $this->role === UserRole::Sales;
@@ -67,6 +73,11 @@ class User extends Authenticatable
     public function salesProfile(): HasOne
     {
         return $this->hasOne(SalesProfile::class);
+    }
+
+    public function assignedDevelopmentTickets(): HasMany
+    {
+        return $this->hasMany(DevelopmentTicket::class, 'assigned_to');
     }
 
     public function hasRestrictedCashierAccess(): bool

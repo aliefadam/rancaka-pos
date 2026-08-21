@@ -2,13 +2,13 @@
 
 ## Tujuan
 
-Tenant dapat mendaftar mandiri, mencoba aplikasi selama 14 hari, membayar paket bulanan dengan unggah bukti, dan mendapat perpanjangan akses setelah diverifikasi superadmin.
+Tenant dapat mendaftar mandiri, mencoba aplikasi selama 7 hari, membayar paket bulanan dengan unggah bukti, dan mendapat perpanjangan akses setelah diverifikasi superadmin.
 
 ## Alur utama
 
 1. Pengunjung mendaftar sebagai tenant dan owner melalui formulir atau Google.
 2. Pengguna Google baru mendapatkan username unik otomatis dan wajib menyelesaikan onboarding toko.
-3. Sistem memberi trial 14 hari dan membuat invoice bulan pertama.
+3. Sistem memberi trial 7 hari dan membuat invoice bulan pertama.
 4. Owner membayar melalui transfer bank atau QRIS statis, lalu mengunggah bukti pembayaran.
 5. Superadmin menyetujui atau menolak pembayaran.
 6. Persetujuan mengaktifkan langganan satu bulan setelah trial/periode aktif terakhir.
@@ -73,7 +73,7 @@ Client Secret tidak boleh disimpan di Git, dokumentasi publik, atau dikirim ke f
 ```env
 BILLING_PLAN_NAME="Rancaka POS Bulanan"
 BILLING_MONTHLY_PRICE=149000
-BILLING_TRIAL_DAYS=14
+BILLING_TRIAL_DAYS=7
 BILLING_BANK_NAME="Nama Bank"
 BILLING_BANK_ACCOUNT="Nomor Rekening"
 BILLING_BANK_HOLDER="Nama Pemilik Rekening"
