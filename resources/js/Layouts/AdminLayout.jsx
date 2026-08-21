@@ -354,12 +354,18 @@ export default function AdminLayout({ header, children }) {
     const impersonation = auth.impersonation;
     const navigation = useMemo(() => {
         const sections = navigationByRole[user.role] ?? [];
+        const availableSections = sections
+            .map((section) => ({
+                ...section,
+                items: section.items.filter((item) => route().has(item.href)),
+            }))
+            .filter((section) => section.items.length > 0);
 
-        if (user.role !== "employee") return sections;
+        if (user.role !== "employee") return availableSections;
 
         const permissions = auth.permissions ?? [];
 
-        return sections
+        return availableSections
             .map((section) => ({
                 ...section,
                 items: section.items.filter(
