@@ -1,6 +1,7 @@
 import Breadcrumb from '@/Components/Breadcrumb';
-import ConfirmDialog from '@/Components/ConfirmDialog';
+import BulkSelectionBar from '@/Components/BulkSelectionBar';
 import Pagination from '@/Components/Pagination';
+import PasswordConfirmDialog from '@/Components/PasswordConfirmDialog';
 import { useToast } from '@/Contexts/ToastContext';
 import AdminLayout from '@/Layouts/AdminLayout';
 import usePermission from '@/Hooks/usePermission';
@@ -38,9 +39,16 @@ export default function Index({
     const [refreshing, setRefreshing] = useState(false);
     const [modalOpen, setModalOpen] = useState(false);
     const [editingExpense, setEditingExpense] = useState(null);
+    const [selected, setSelected] = useState([]);
     const [deleteTarget, setDeleteTarget] = useState(null);
     const [deleting, setDeleting] = useState(false);
+    const [deleteErrors, setDeleteErrors] = useState({});
     const isFirstRun = useRef(true);
+    const selectedExpenses = expenses.data.filter((expense) => selected.includes(expense.id));
+    const selectedTotal = selectedExpenses.reduce((sum, expense) => sum + Number(expense.amount), 0);
+    const pageSelectionKey = expenses.data.map((expense) => expense.id).join(',');
+
+    useEffect(() => setSelected([]), [pageSelectionKey]);
 
     useEffect(() => {
         if (isFirstRun.current) {
@@ -83,18 +91,41 @@ export default function Index({
         });
     };
 
-    const confirmDelete = () => {
+    const toggleSelected = (id) => setSelected((current) => current.includes(id) ? current.filter((item) => item !== id) : [...current, id]);
+    const togglePage = () => {
+        const pageIds = expenses.data.map((expense) => expense.id);
+        const allSelected = pageIds.length > 0 && pageIds.every((id) => selected.includes(id));
+        setSelected(allSelected ? selected.filter((id) => !pageIds.includes(id)) : [...new Set([...selected, ...pageIds])]);
+    };
+    const requestDelete = (expensesToDelete) => {
+        const items = Array.isArray(expensesToDelete) ? expensesToDelete : [expensesToDelete];
+        setDeleteErrors({});
+        setDeleteTarget({
+            ids: items.map((expense) => expense.id),
+            count: items.length,
+            total: items.reduce((sum, expense) => sum + Number(expense.amount), 0),
+            description: items.length === 1 ? items[0].description : null,
+        });
+    };
+
+    const confirmDelete = (credentials) => {
         if (!deleteTarget) return;
 
         setDeleting(true);
-        router.delete(route('tenant.expenses.destroy', deleteTarget.id), {
+        setDeleteErrors({});
+        const bulk = deleteTarget.ids.length > 1;
+        router.delete(bulk ? route('tenant.expenses.bulk-destroy') : route('tenant.expenses.destroy', deleteTarget.ids[0]), {
+            data: { ...credentials, ...(bulk ? { ids: deleteTarget.ids } : {}) },
             preserveScroll: true,
-            onError: () =>
-                toast.error('Gagal menghapus pengeluaran. Silakan coba lagi.'),
-            onFinish: () => {
-                setDeleting(false);
-                setDeleteTarget(null);
+            onError: (errors) => {
+                setDeleteErrors(errors);
+                if (!errors.password && !errors.reason && !errors.expenses) toast.error('Gagal menghapus pengeluaran. Silakan coba lagi.');
             },
+            onSuccess: () => {
+                setDeleteTarget(null);
+                setSelected([]);
+            },
+            onFinish: () => setDeleting(false),
         });
     };
 
@@ -159,10 +190,19 @@ export default function Index({
                     </div>
                 </div>
 
+                <BulkSelectionBar
+                    count={selected.length}
+                    totalLabel={`Rp ${selectedTotal.toLocaleString('id-ID')}`}
+                    actionLabel="Hapus pengeluaran"
+                    onClear={() => setSelected([])}
+                    onAction={() => requestDelete(selectedExpenses)}
+                />
+
                 <div className="scrollbar-thin hidden overflow-x-auto md:block">
                     <table className="w-full min-w-[760px] text-left text-sm">
                         <thead>
                             <tr className="border-b border-slate-100 text-xs font-semibold uppercase tracking-wider text-slate-400">
+                                {can('expenses.delete') && <th className="w-12 px-4 py-3.5"><input type="checkbox" checked={expenses.data.length > 0 && expenses.data.every((expense) => selected.includes(expense.id))} onChange={togglePage} aria-label="Pilih semua pengeluaran di halaman ini" className="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500" /></th>}
                                 <th className="px-6 py-3.5">Tanggal</th>
                                 <th className="px-6 py-3.5">Kategori</th>
                                 <th className="px-6 py-3.5">Nominal</th>
@@ -174,8 +214,9 @@ export default function Index({
                             {expenses.data.map((expense) => (
                                 <tr
                                     key={expense.id}
-                                    className="transition hover:bg-slate-50/60"
+                                    className={`transition hover:bg-slate-50/60 ${selected.includes(expense.id) ? 'bg-indigo-50/40' : ''}`}
                                 >
+                                    {can('expenses.delete') && <td className="px-4 py-4"><input type="checkbox" checked={selected.includes(expense.id)} onChange={() => toggleSelected(expense.id)} aria-label={`Pilih pengeluaran ${expense.description}`} className="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500" /></td>}
                                     <td className="whitespace-nowrap px-6 py-4 text-slate-500">
                                         {expense.formatted_date}
                                     </td>
@@ -196,7 +237,7 @@ export default function Index({
                                         <ExpenseActions
                                             expense={expense}
                                             onEdit={openEditModal}
-                                            onDelete={setDeleteTarget}
+                                            onDelete={requestDelete}
                                             can={can}
                                         />
                                     </td>
@@ -209,20 +250,23 @@ export default function Index({
 
                 <div className="divide-y divide-slate-100 md:hidden">
                     {expenses.data.map((expense) => (
-                        <article key={expense.id} className="p-4">
+                        <article key={expense.id} className={`p-4 ${selected.includes(expense.id) ? 'bg-indigo-50/40' : ''}`}>
                             <div className="flex items-start justify-between gap-3">
-                                <div>
+                                <div className="flex items-start gap-3">
+                                    {can('expenses.delete') && <input type="checkbox" checked={selected.includes(expense.id)} onChange={() => toggleSelected(expense.id)} aria-label={`Pilih pengeluaran ${expense.description}`} className="mt-1 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500" />}
+                                    <div>
                                     <CategoryBadge
                                         category={expense.category}
                                     />
                                     <p className="mt-2 text-lg font-bold text-slate-900">
                                         {expense.formatted_amount}
                                     </p>
+                                    </div>
                                 </div>
                                 <ExpenseActions
                                     expense={expense}
                                     onEdit={openEditModal}
-                                    onDelete={setDeleteTarget}
+                                    onDelete={requestDelete}
                                     can={can}
                                 />
                             </div>
@@ -252,17 +296,19 @@ export default function Index({
                 categories={categories}
             />
 
-            <ConfirmDialog
+            <PasswordConfirmDialog
                 show={Boolean(deleteTarget)}
                 onClose={() => !deleting && setDeleteTarget(null)}
                 onConfirm={confirmDelete}
                 processing={deleting}
-                title="Hapus Pengeluaran"
-                message={
-                    deleteTarget &&
-                    `Yakin ingin menghapus pengeluaran ${deleteTarget.formatted_amount} untuk "${deleteTarget.description}"? Bukti yang tersimpan juga akan dihapus.`
-                }
-                confirmText="Ya, Hapus"
+                errors={deleteErrors}
+                title={deleteTarget?.count > 1 ? 'Hapus pengeluaran terpilih' : 'Hapus pengeluaran'}
+                message={deleteTarget?.description ? `Pengeluaran “${deleteTarget.description}” akan dihapus dari laporan. Bukti tetap disimpan untuk audit.` : 'Seluruh pengeluaran terpilih akan dihapus dari laporan. Bukti tetap disimpan untuk audit.'}
+                count={deleteTarget?.count ?? 1}
+                totalLabel={`Rp ${Number(deleteTarget?.total ?? 0).toLocaleString('id-ID')}`}
+                actionLabel="Konfirmasi penghapusan"
+                reasonLabel="Alasan penghapusan"
+                reasonPlaceholder="Contoh: data duplikat atau salah input nominal…"
             />
         </AdminLayout>
     );

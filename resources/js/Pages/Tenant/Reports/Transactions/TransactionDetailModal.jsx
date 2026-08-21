@@ -169,6 +169,17 @@ export default function TransactionDetailModal({
                     </div>
                 </div>
 
+                {transaction.status === 'voided' && (
+                    <div className="mt-5 rounded-xl border border-rose-100 bg-rose-50 p-4">
+                        <p className="text-xs font-bold uppercase tracking-wider text-rose-700">Audit pembatalan</p>
+                        <dl className="mt-2 space-y-1.5 text-xs text-rose-700">
+                            <div className="flex justify-between gap-4"><dt className="opacity-70">Dibatalkan oleh</dt><dd className="text-right font-semibold">{transaction.voider?.name ?? 'Akun terhapus'}</dd></div>
+                            <div className="flex justify-between gap-4"><dt className="opacity-70">Waktu</dt><dd className="text-right font-semibold">{transaction.voided_at ? formatDateTime(transaction.voided_at) : '-'}</dd></div>
+                            <div className="border-t border-rose-200/70 pt-2"><dt className="opacity-70">Alasan</dt><dd className="mt-1 font-semibold leading-5">{transaction.void_reason ?? '-'}</dd></div>
+                        </dl>
+                    </div>
+                )}
+
                 <button
                     type="button"
                     onClick={() => onPrint(transaction)}

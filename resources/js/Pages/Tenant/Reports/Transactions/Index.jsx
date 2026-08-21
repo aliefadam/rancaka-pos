@@ -1,6 +1,7 @@
 import Breadcrumb from '@/Components/Breadcrumb';
-import ConfirmDialog from '@/Components/ConfirmDialog';
+import BulkSelectionBar from '@/Components/BulkSelectionBar';
 import Pagination from '@/Components/Pagination';
+import PasswordConfirmDialog from '@/Components/PasswordConfirmDialog';
 import Select from '@/Components/Select';
 import { useToast } from '@/Contexts/ToastContext';
 import usePermission from '@/Hooks/usePermission';
@@ -62,9 +63,19 @@ export default function Index({ transactions, filters, limitedToOwnToday = false
     const [status, setStatus] = useState(filters.status ?? '');
     const [refreshing, setRefreshing] = useState(false);
     const [detailTransaction, setDetailTransaction] = useState(null);
+    const [selected, setSelected] = useState([]);
     const [voidTarget, setVoidTarget] = useState(null);
     const [voiding, setVoiding] = useState(false);
+    const [voidErrors, setVoidErrors] = useState({});
     const isFirstRun = useRef(true);
+    const selectableTransactions = transactions.data.filter(
+        (transaction) => transaction.status === 'completed' && transaction.can_be_voided && can('transactions.delete'),
+    );
+    const selectedTransactions = transactions.data.filter((transaction) => selected.includes(transaction.id));
+    const selectedTotal = selectedTransactions.reduce((sum, transaction) => sum + Number(transaction.total), 0);
+    const pageSelectionKey = transactions.data.map((transaction) => transaction.id).join(',');
+
+    useEffect(() => setSelected([]), [pageSelectionKey]);
 
     useEffect(() => {
         if (isFirstRun.current) {
@@ -101,30 +112,49 @@ export default function Index({ transactions, filters, limitedToOwnToday = false
         });
     };
 
-    const requestVoid = (transaction) => setVoidTarget(transaction);
+    const toggleSelected = (id) => setSelected((current) => current.includes(id) ? current.filter((item) => item !== id) : [...current, id]);
+    const togglePage = () => {
+        const pageIds = selectableTransactions.map((transaction) => transaction.id);
+        const allSelected = pageIds.length > 0 && pageIds.every((id) => selected.includes(id));
+        setSelected(allSelected ? selected.filter((id) => !pageIds.includes(id)) : [...new Set([...selected, ...pageIds])]);
+    };
+    const requestVoid = (transactionsToVoid) => {
+        const items = Array.isArray(transactionsToVoid) ? transactionsToVoid : [transactionsToVoid];
+        setVoidErrors({});
+        setVoidTarget({
+            ids: items.map((transaction) => transaction.id),
+            count: items.length,
+            total: items.reduce((sum, transaction) => sum + Number(transaction.total), 0),
+            invoice: items.length === 1 ? items[0].invoice_number : null,
+        });
+    };
     const cancelVoid = () => {
         if (voiding) return;
         setVoidTarget(null);
     };
 
-    const confirmVoid = () => {
+    const confirmVoid = (credentials) => {
         if (!voidTarget) return;
 
         setVoiding(true);
+        setVoidErrors({});
+        const bulk = voidTarget.ids.length > 1;
         router.patch(
-            route('tenant.reports.transactions.void', voidTarget.id),
-            {},
+            bulk
+                ? route('tenant.reports.transactions.bulk-void')
+                : route('tenant.reports.transactions.void', voidTarget.ids[0]),
+            { ...credentials, ...(bulk ? { ids: voidTarget.ids } : {}) },
             {
                 preserveScroll: true,
-                onError: (errors) =>
-                    toast.error(
-                        errors.transaction ??
-                            'Gagal membatalkan transaksi. Silakan coba lagi.',
-                    ),
-                onFinish: () => {
-                    setVoiding(false);
-                    setVoidTarget(null);
+                onError: (errors) => {
+                    setVoidErrors(errors);
+                    if (!errors.password && !errors.reason && !errors.transactions) toast.error('Gagal membatalkan transaksi. Silakan coba lagi.');
                 },
+                onSuccess: () => {
+                    setVoidTarget(null);
+                    setSelected([]);
+                },
+                onFinish: () => setVoiding(false),
             },
         );
     };
@@ -213,10 +243,20 @@ export default function Index({ transactions, filters, limitedToOwnToday = false
                     />
                 </div>
 
+                <BulkSelectionBar
+                    count={selected.length}
+                    totalLabel={formatRupiah(selectedTotal)}
+                    actionLabel="Batalkan transaksi"
+                    icon="fi-rr-cross-circle"
+                    onClear={() => setSelected([])}
+                    onAction={() => requestVoid(selectedTransactions)}
+                />
+
                 <div className="scrollbar-thin hidden overflow-x-auto md:block">
                     <table className="w-full min-w-[900px] text-left text-sm">
                         <thead>
                             <tr className="border-b border-slate-100 text-xs font-semibold uppercase tracking-wider text-slate-400">
+                                {can('transactions.delete') && <th className="w-12 px-4 py-3.5"><input type="checkbox" checked={selectableTransactions.length > 0 && selectableTransactions.every((transaction) => selected.includes(transaction.id))} onChange={togglePage} disabled={selectableTransactions.length === 0} aria-label="Pilih semua transaksi yang dapat dibatalkan di halaman ini" className="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 disabled:opacity-30" /></th>}
                                 <th className="px-6 py-3.5 font-semibold">
                                     No. Transaksi
                                 </th>
@@ -244,8 +284,9 @@ export default function Index({ transactions, filters, limitedToOwnToday = false
                             {transactions.data.map((transaction) => (
                                 <tr
                                     key={transaction.id}
-                                    className="transition hover:bg-slate-50/60"
+                                    className={`transition hover:bg-slate-50/60 ${selected.includes(transaction.id) ? 'bg-indigo-50/40' : ''}`}
                                 >
+                                    {can('transactions.delete') && <td className="px-4 py-4"><input type="checkbox" checked={selected.includes(transaction.id)} onChange={() => toggleSelected(transaction.id)} disabled={!transaction.can_be_voided || transaction.status !== 'completed'} aria-label={`Pilih transaksi ${transaction.invoice_number}`} className="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 disabled:opacity-25" /></td>}
                                     <td className="px-6 py-4 font-medium text-slate-800">
                                         {transaction.invoice_number}
                                     </td>
@@ -314,7 +355,7 @@ export default function Index({ transactions, filters, limitedToOwnToday = false
                             {transactions.data.length === 0 && (
                                 <tr>
                                     <td
-                                        colSpan={7}
+                                        colSpan={can('transactions.delete') ? 8 : 7}
                                         className="px-6 py-20 text-center"
                                     >
                                         <span className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-slate-50 text-slate-400">
@@ -332,9 +373,11 @@ export default function Index({ transactions, filters, limitedToOwnToday = false
 
                 <div className="divide-y divide-slate-100 md:hidden">
                     {transactions.data.map((transaction) => (
-                        <div key={transaction.id} className="p-4">
+                        <div key={transaction.id} className={`p-4 ${selected.includes(transaction.id) ? 'bg-indigo-50/40' : ''}`}>
                             <div className="flex items-start justify-between gap-3">
-                                <div>
+                                <div className="flex items-start gap-3">
+                                    {can('transactions.delete') && <input type="checkbox" checked={selected.includes(transaction.id)} onChange={() => toggleSelected(transaction.id)} disabled={!transaction.can_be_voided || transaction.status !== 'completed'} aria-label={`Pilih transaksi ${transaction.invoice_number}`} className="mt-1 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 disabled:opacity-25" />}
+                                    <div>
                                     <p className="font-medium text-slate-800">
                                         {transaction.invoice_number}
                                     </p>
@@ -343,6 +386,7 @@ export default function Index({ transactions, filters, limitedToOwnToday = false
                                             transaction.created_at,
                                         )}
                                     </p>
+                                    </div>
                                 </div>
                                 <StatusBadge status={transaction.status} />
                             </div>
@@ -439,17 +483,19 @@ export default function Index({ transactions, filters, limitedToOwnToday = false
                 onPrint={openReceiptFrom}
             />
 
-            <ConfirmDialog
+            <PasswordConfirmDialog
                 show={Boolean(voidTarget)}
                 onClose={cancelVoid}
                 onConfirm={confirmVoid}
                 processing={voiding}
-                title="Batalkan Transaksi"
-                message={
-                    voidTarget &&
-                    `Yakin ingin membatalkan transaksi "${voidTarget.invoice_number}" milik kasir ${voidTarget.user?.name ?? '-'}? Stok akan dikembalikan.`
-                }
-                confirmText="Ya, Batalkan"
+                errors={voidErrors}
+                title={voidTarget?.count > 1 ? 'Batalkan transaksi terpilih' : 'Batalkan transaksi'}
+                message={voidTarget?.invoice ? `Transaksi ${voidTarget.invoice} akan dibatalkan dan stoknya dikembalikan.` : 'Seluruh transaksi terpilih akan dibatalkan dan stoknya dikembalikan secara bersamaan.'}
+                count={voidTarget?.count ?? 1}
+                totalLabel={formatRupiah(voidTarget?.total)}
+                actionLabel="Konfirmasi pembatalan"
+                reasonLabel="Alasan pembatalan"
+                reasonPlaceholder="Contoh: salah input kasir atau pesanan dibatalkan…"
                 icon="fi-rr-cross-circle"
             />
         </AdminLayout>

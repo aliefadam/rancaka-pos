@@ -7,8 +7,10 @@ use App\Models\Expense;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -108,12 +110,19 @@ class ExpenseController extends Controller
     public function destroy(Request $request, Expense $expense): RedirectResponse
     {
         $this->authorizeTenant($request, $expense);
+        $data = $this->validatedDeletion($request);
+        $this->deleteMany($request, [$expense->id], $data['reason']);
 
-        Storage::disk('public')->delete($expense->receipt_path);
-        $expense->delete();
-
-        return redirect()->route('tenant.expenses.index')
+        return back()
             ->with('success', 'Pengeluaran berhasil dihapus.');
+    }
+
+    public function bulkDestroy(Request $request): RedirectResponse
+    {
+        $data = $this->validatedDeletion($request, true);
+        $count = $this->deleteMany($request, $data['ids'], $data['reason']);
+
+        return back()->with('success', "{$count} pengeluaran berhasil dihapus.");
     }
 
     /**
@@ -136,6 +145,50 @@ class ExpenseController extends Controller
     private function authorizeTenant(Request $request, Expense $expense): void
     {
         abort_unless($expense->tenant_id === $request->user()->tenant_id, 403);
+    }
+
+    private function validatedDeletion(Request $request, bool $bulk = false): array
+    {
+        return $request->validate([
+            'password' => ['required', 'current_password'],
+            'reason' => ['required', 'string', 'max:500'],
+            'ids' => [$bulk ? 'required' : 'nullable', 'array', 'min:1', 'max:100'],
+            'ids.*' => ['integer', 'distinct'],
+        ], [
+            'password.current_password' => 'Password yang Anda masukkan tidak sesuai.',
+            'reason.required' => 'Alasan penghapusan wajib diisi.',
+        ]);
+    }
+
+    /**
+     * @param  array<int, int>  $ids
+     */
+    private function deleteMany(Request $request, array $ids, string $reason): int
+    {
+        return DB::transaction(function () use ($request, $ids, $reason) {
+            $uniqueIds = collect($ids)->map(fn ($id) => (int) $id)->unique()->values();
+            $expenses = Expense::query()
+                ->where('tenant_id', $request->user()->tenant_id)
+                ->whereIn('id', $uniqueIds)
+                ->lockForUpdate()
+                ->get();
+
+            if ($expenses->count() !== $uniqueIds->count()) {
+                throw ValidationException::withMessages([
+                    'expenses' => 'Sebagian pengeluaran tidak ditemukan atau bukan milik toko ini.',
+                ]);
+            }
+
+            foreach ($expenses as $expense) {
+                $expense->update([
+                    'deleted_by' => $request->user()->id,
+                    'delete_reason' => $reason,
+                ]);
+                $expense->delete();
+            }
+
+            return $expenses->count();
+        });
     }
 
     private function formatRupiah(int $value): string

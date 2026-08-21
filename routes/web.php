@@ -150,6 +150,9 @@ Route::middleware(['auth', 'role:owner,employee', 'tenant.onboarded', 'subscript
         ->middlewareFor('update', 'permission:products.edit')
         ->middlewareFor('destroy', 'permission:products.delete');
 
+    Route::delete('/expenses/bulk', [TenantExpenseController::class, 'bulkDestroy'])
+        ->name('expenses.bulk-destroy')
+        ->middleware('permission:expenses.delete');
     Route::resource('expenses', TenantExpenseController::class)
         ->only(['index', 'store', 'update', 'destroy'])
         ->names('expenses')
@@ -212,6 +215,9 @@ Route::middleware(['auth', 'role:owner,employee', 'tenant.onboarded', 'subscript
         Route::get('/transactions', [TenantTransactionHistoryController::class, 'index'])
             ->name('transactions.index')
             ->middleware('permission:transactions.view');
+        Route::patch('/transactions/bulk-void', [TenantTransactionHistoryController::class, 'bulkVoid'])
+            ->name('transactions.bulk-void')
+            ->middleware('permission:transactions.delete');
         Route::patch('/transactions/{transaction}/void', [TenantTransactionHistoryController::class, 'void'])
             ->name('transactions.void')
             ->middleware('permission:transactions.delete');

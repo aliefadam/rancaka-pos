@@ -28,10 +28,13 @@ class TransactionVoidTest extends TestCase
         $voider = $this->employeeWithVoidPermission($transaction->tenant);
 
         $this->actingAs($voider)
-            ->patch(route('tenant.reports.transactions.void', $transaction))
+            ->patch(route('tenant.reports.transactions.void', $transaction), $this->voidPayload())
             ->assertRedirect(route('tenant.reports.transactions.index'));
 
         $this->assertSame(TransactionStatus::Voided, $transaction->fresh()->status);
+        $this->assertSame($voider->id, $transaction->fresh()->voided_by);
+        $this->assertSame('Salah input kasir', $transaction->fresh()->void_reason);
+        $this->assertNotNull($transaction->fresh()->voided_at);
         $this->assertSame(7, $product->fresh()->stock);
         $this->assertSame('13.00', $rawMaterial->fresh()->stock);
 
@@ -49,8 +52,8 @@ class TransactionVoidTest extends TestCase
         $employee = $this->employeeWithVoidPermission($transaction->tenant);
 
         $this->actingAs($employee)
-            ->patch(route('tenant.reports.transactions.void', $transaction))
-            ->assertSessionHasErrors('transaction');
+            ->patch(route('tenant.reports.transactions.void', $transaction), $this->voidPayload())
+            ->assertSessionHasErrors('transactions');
 
         $this->assertSame(TransactionStatus::Completed, $transaction->fresh()->status);
         $this->assertSame(5, $product->fresh()->stock);
@@ -67,7 +70,7 @@ class TransactionVoidTest extends TestCase
         ]);
 
         $this->actingAs($owner)
-            ->patch(route('tenant.reports.transactions.void', $transaction))
+            ->patch(route('tenant.reports.transactions.void', $transaction), $this->voidPayload())
             ->assertRedirect(route('tenant.reports.transactions.index'));
 
         $this->assertSame(TransactionStatus::Voided, $transaction->fresh()->status);
@@ -91,6 +94,58 @@ class TransactionVoidTest extends TestCase
             ->get(route('tenant.reports.transactions.index'))
             ->assertInertia(fn (Assert $page) => $page
                 ->where('transactions.data.0.can_be_voided', true));
+    }
+
+    public function test_bulk_void_is_atomic_and_requires_the_current_password(): void
+    {
+        [$first, $firstProduct] = $this->sale(now()->subHours(2));
+        [$second, $secondProduct] = $this->sale(now()->subHours(3));
+        $owner = User::factory()->create([
+            'tenant_id' => $first->tenant_id,
+            'role' => UserRole::Owner,
+        ]);
+        $second->update(['tenant_id' => $first->tenant_id]);
+
+        $this->actingAs($owner)->patch(route('tenant.reports.transactions.bulk-void'), [
+            'ids' => [$first->id, $second->id],
+            'password' => 'password-salah',
+            'reason' => 'Data latihan',
+        ])->assertSessionHasErrors('password');
+
+        $this->assertSame(TransactionStatus::Completed, $first->fresh()->status);
+        $this->assertSame(TransactionStatus::Completed, $second->fresh()->status);
+
+        $this->actingAs($owner)->patch(route('tenant.reports.transactions.bulk-void'), [
+            'ids' => [$first->id, $second->id],
+            'password' => 'password',
+            'reason' => 'Data latihan',
+        ])->assertRedirect();
+
+        $this->assertSame(TransactionStatus::Voided, $first->fresh()->status);
+        $this->assertSame(TransactionStatus::Voided, $second->fresh()->status);
+        $this->assertSame(7, $firstProduct->fresh()->stock);
+        $this->assertSame(7, $secondProduct->fresh()->stock);
+    }
+
+    public function test_bulk_void_rejects_cross_tenant_selection_without_partial_changes(): void
+    {
+        [$ownTransaction, $ownProduct] = $this->sale(now()->subHour());
+        [$otherTransaction, $otherProduct] = $this->sale(now()->subHour());
+        $owner = User::factory()->create([
+            'tenant_id' => $ownTransaction->tenant_id,
+            'role' => UserRole::Owner,
+        ]);
+
+        $this->actingAs($owner)->patch(route('tenant.reports.transactions.bulk-void'), [
+            'ids' => [$ownTransaction->id, $otherTransaction->id],
+            'password' => 'password',
+            'reason' => 'Data latihan',
+        ])->assertSessionHasErrors('transactions');
+
+        $this->assertSame(TransactionStatus::Completed, $ownTransaction->fresh()->status);
+        $this->assertSame(TransactionStatus::Completed, $otherTransaction->fresh()->status);
+        $this->assertSame(5, $ownProduct->fresh()->stock);
+        $this->assertSame(5, $otherProduct->fresh()->stock);
     }
 
     /**
@@ -174,5 +229,13 @@ class TransactionVoidTest extends TestCase
             'role' => UserRole::Employee,
             'employee_role_id' => $role->id,
         ]);
+    }
+
+    private function voidPayload(): array
+    {
+        return [
+            'password' => 'password',
+            'reason' => 'Salah input kasir',
+        ];
     }
 }

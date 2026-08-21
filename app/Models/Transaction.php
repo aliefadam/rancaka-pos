@@ -10,9 +10,11 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 #[Fillable([
     'tenant_id', 'shift_id', 'user_id', 'invoice_number', 'status', 'payment_method',
+    'voided_by', 'voided_at', 'void_reason',
     'subtotal', 'discount_type', 'discount_value', 'discount_amount', 'tax_amount',
     'service_charge_amount', 'additional_fee', 'total',
     'amount_received', 'change_amount',
@@ -27,6 +29,7 @@ class Transaction extends Model
         return [
             'status' => TransactionStatus::class,
             'payment_method' => PaymentMethod::class,
+            'voided_at' => 'datetime',
         ];
     }
 
@@ -45,12 +48,17 @@ class Transaction extends Model
         return $this->belongsTo(User::class);
     }
 
+    public function voider(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'voided_by');
+    }
+
     public function items(): HasMany
     {
         return $this->hasMany(TransactionItem::class);
     }
 
-    public function creditSale(): \Illuminate\Database\Eloquent\Relations\HasOne
+    public function creditSale(): HasOne
     {
         return $this->hasOne(CreditSale::class);
     }
