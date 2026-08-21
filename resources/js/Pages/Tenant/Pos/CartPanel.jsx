@@ -1,5 +1,5 @@
 import Select from '@/Components/Select';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 function initials(name) {
     return name
@@ -21,10 +21,56 @@ const paymentMethods = [
     { value: 'credit', label: 'Hutang', icon: 'fi-rr-hand-holding-usd' },
 ];
 
+function QuantityInput({ item, onQuantityChange }) {
+    const [draft, setDraft] = useState(String(item.quantity));
+
+    useEffect(() => {
+        setDraft(String(item.quantity));
+    }, [item.quantity]);
+
+    const commit = () => {
+        const quantity = Number.parseInt(draft, 10);
+
+        if (!Number.isFinite(quantity) || quantity < 1) {
+            setDraft(String(item.quantity));
+            return;
+        }
+
+        onQuantityChange(item.product_id, quantity);
+    };
+
+    return (
+        <input
+            type="text"
+            inputMode="numeric"
+            pattern="[0-9]*"
+            aria-label={`Jumlah ${item.name}`}
+            value={draft}
+            onChange={(event) => {
+                const value = event.target.value.replace(/\D/g, '');
+                setDraft(value);
+
+                if (value !== '') {
+                    onQuantityChange(
+                        item.product_id,
+                        Number.parseInt(value, 10),
+                    );
+                }
+            }}
+            onBlur={commit}
+            onKeyDown={(event) => {
+                if (event.key === 'Enter') event.currentTarget.blur();
+            }}
+            className="h-7 w-11 rounded-lg border border-slate-200 bg-white px-1 text-center text-sm font-semibold text-slate-800 outline-none transition focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100"
+        />
+    );
+}
+
 export default function CartPanel({
     items,
     onIncrement,
     onDecrement,
+    onQuantityChange,
     onRemove,
     onNoteChange,
     paymentMethod,
@@ -164,9 +210,12 @@ export default function CartPanel({
                                                 >
                                                     <i className="fi fi-rr-minus text-[10px]" />
                                                 </button>
-                                                <span className="w-5 text-center text-sm font-semibold text-slate-800">
-                                                    {item.quantity}
-                                                </span>
+                                                <QuantityInput
+                                                    item={item}
+                                                    onQuantityChange={
+                                                        onQuantityChange
+                                                    }
+                                                />
                                                 <button
                                                     type="button"
                                                     onClick={() =>

@@ -437,6 +437,22 @@ export default function Index({
         );
     };
 
+    const updateQuantity = (productId, quantity) => {
+        setCart((current) =>
+            current.map((item) => {
+                if (item.product_id !== productId) return item;
+
+                const maxQty = item.available_quantity ?? Infinity;
+                const nextQuantity = Math.min(
+                    Math.max(Number.parseInt(quantity, 10) || 1, 1),
+                    maxQty,
+                );
+
+                return { ...item, quantity: nextQuantity };
+            }),
+        );
+    };
+
     const removeItem = (productId) => {
         setCart((current) => current.filter((i) => i.product_id !== productId));
     };
@@ -645,6 +661,7 @@ export default function Index({
         items: cart,
         onIncrement: incrementQty,
         onDecrement: decrementQty,
+        onQuantityChange: updateQuantity,
         onRemove: removeItem,
         onNoteChange: updateNote,
         paymentMethod,
