@@ -62,6 +62,8 @@ Route::post('/impersonation/stop', [ImpersonationController::class, 'stop'])
 Route::middleware(['auth', 'tenant.onboarded', 'subscription.active'])->group(function () {
     Route::get('/account', [AccountController::class, 'edit'])->name('account.edit');
     Route::put('/account', [AccountController::class, 'update'])->name('account.update');
+    Route::post('/account/avatar', [AccountController::class, 'updateAvatar'])->name('account.avatar.update');
+    Route::put('/account/password', [AccountController::class, 'updatePassword'])->name('account.password.update');
 });
 
 Route::middleware(['auth', 'role:superadmin'])->prefix('admin')->name('admin.')->group(function () {
