@@ -108,6 +108,11 @@ export default function TransactionDetailModal({
                                     {item.quantity} x{' '}
                                     {formatRupiah(item.unit_price)}
                                 </p>
+                                {item.discount_amount > 0 && (
+                                    <p className="text-xs font-medium text-emerald-600">
+                                        Diskon {item.discount_type === 'percentage' ? `${item.discount_value}%` : formatRupiah(item.discount_amount)}
+                                    </p>
+                                )}
                             </div>
                             <span className="shrink-0 text-sm font-semibold text-slate-900">
                                 {formatRupiah(item.subtotal)}

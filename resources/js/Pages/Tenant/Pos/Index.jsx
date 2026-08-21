@@ -42,6 +42,9 @@ function restoreCartDraft(activeShift, products) {
                     price: product.price,
                     quantity,
                     note: typeof item.note === 'string' ? item.note : '',
+                    discount_type:
+                        item.discount_type === 'percentage' ? 'percentage' : 'fixed',
+                    discount_value: String(item.discount_value ?? ''),
                     track_stock: product.track_stock,
                     stock: product.stock,
                     available_quantity: product.available_quantity,
@@ -85,6 +88,18 @@ function formatDateTime(value) {
         hour: '2-digit',
         minute: '2-digit',
     });
+}
+
+function itemDiscountAmount(item) {
+    const gross = item.price * item.quantity;
+    const value = Math.max(Math.trunc(Number(item.discount_value) || 0), 0);
+
+    return Math.min(
+        item.discount_type === 'percentage'
+            ? Math.round(gross * (Math.min(value, 100) / 100))
+            : value,
+        gross,
+    );
 }
 
 function ProductCard({ product, quantityInCart, onAdd }) {
@@ -293,10 +308,8 @@ export default function Index({
         });
     }, [products, search, selectedCategory]);
 
-    const subtotal = cart.reduce(
-        (sum, item) => sum + item.price * item.quantity,
-        0,
-    );
+    const subtotal = cart.reduce((sum, item) =>
+        sum + item.price * item.quantity - itemDiscountAmount(item), 0);
     const numericDiscountValue = Math.max(
         Math.trunc(Number(discountValue) || 0),
         0,
@@ -406,6 +419,8 @@ export default function Index({
                     price: product.price,
                     quantity: 1,
                     note: '',
+                    discount_type: 'fixed',
+                    discount_value: '',
                     track_stock: product.track_stock,
                     stock: product.stock,
                     available_quantity: product.available_quantity,
@@ -430,7 +445,14 @@ export default function Index({
             current
                 .map((i) =>
                     i.product_id === productId
-                        ? { ...i, quantity: i.quantity - 1 }
+                        ? {
+                              ...i,
+                              quantity: i.quantity - 1,
+                              discount_value:
+                                  i.discount_type === 'fixed' && i.discount_value !== ''
+                                      ? String(Math.min(Number(i.discount_value), i.price * (i.quantity - 1)))
+                                      : i.discount_value,
+                          }
                         : i,
                 )
                 .filter((i) => i.quantity > 0),
@@ -448,7 +470,14 @@ export default function Index({
                     maxQty,
                 );
 
-                return { ...item, quantity: nextQuantity };
+                return {
+                    ...item,
+                    quantity: nextQuantity,
+                    discount_value:
+                        item.discount_type === 'fixed' && item.discount_value !== ''
+                            ? String(Math.min(Number(item.discount_value), item.price * nextQuantity))
+                            : item.discount_value,
+                };
             }),
         );
     };
@@ -465,11 +494,27 @@ export default function Index({
         );
     };
 
+    const updateItemDiscount = (productId, type, value) => {
+        setCart((current) => current.map((item) => {
+            if (item.product_id !== productId) return item;
+
+            const gross = item.price * item.quantity;
+            const maximum = type === 'percentage' ? 100 : gross;
+            const normalized = value === ''
+                ? ''
+                : String(Math.min(Math.max(Math.trunc(Number(value) || 0), 0), maximum));
+
+            return { ...item, discount_type: type, discount_value: normalized };
+        }));
+    };
+
     const buildPayload = () => ({
         items: cart.map((i) => ({
             product_id: i.product_id,
             quantity: i.quantity,
             note: i.note || null,
+            discount_type: i.discount_value === '' ? null : i.discount_type,
+            discount_value: Number(i.discount_value || 0),
         })),
         payment_method: paymentMethod,
         discount_type: discountValue === '' ? null : discountType,
@@ -537,6 +582,10 @@ export default function Index({
                 price: product ? product.price : item.unit_price,
                 quantity: item.quantity,
                 note: item.note || '',
+                discount_type: item.discount_type ?? 'fixed',
+                discount_value: Number(item.discount_value || 0) > 0
+                    ? String(item.discount_value)
+                    : '',
                 track_stock: product ? product.track_stock : false,
                 stock: product ? product.stock : 0,
                 available_quantity: product?.available_quantity ?? null,
@@ -664,6 +713,7 @@ export default function Index({
         onQuantityChange: updateQuantity,
         onRemove: removeItem,
         onNoteChange: updateNote,
+        onItemDiscountChange: updateItemDiscount,
         paymentMethod,
         onPaymentMethodChange: setPaymentMethod,
         discountType,
