@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 #[Fillable(['name', 'category_id', 'price', 'cost', 'margin_percentage', 'track_stock', 'stock', 'is_active', 'tenant_id'])]
 class Product extends Model
@@ -42,5 +43,12 @@ class Product extends Model
         return $this->belongsToMany(RawMaterial::class, 'product_ingredients')
             ->withPivot('quantity')
             ->withTimestamps();
+    }
+
+    public function priceOptions(): HasMany
+    {
+        return $this->hasMany(ProductPriceOption::class)
+            ->orderBy('sort_order')
+            ->orderBy('id');
     }
 }

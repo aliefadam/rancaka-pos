@@ -8,6 +8,7 @@ use App\Enums\TransactionStatus;
 use App\Http\Controllers\Controller;
 use App\Models\CreditCustomer;
 use App\Models\Product;
+use App\Models\ProductPriceOption;
 use App\Models\RawMaterial;
 use App\Models\Shift;
 use App\Models\Transaction;
@@ -80,11 +81,27 @@ class PosController extends Controller
 
         $products = Product::where('tenant_id', $tenantId)
             ->where('is_active', true)
-            ->with(['category:id,name', 'rawMaterials:id,name,stock'])
+            ->with([
+                'category:id,name',
+                'rawMaterials:id,name,stock',
+                'priceOptions' => fn ($query) => $query->where('is_active', true),
+            ])
             ->orderBy('name')
             ->get();
 
         $products->each(function (Product $product) {
+            if ($product->priceOptions->isEmpty()) {
+                $product->setRelation('priceOptions', collect([
+                    new ProductPriceOption([
+                        'name' => 'Harga utama',
+                        'price' => $product->price,
+                        'is_default' => true,
+                        'is_active' => true,
+                        'sort_order' => 0,
+                    ]),
+                ]));
+            }
+
             $limits = collect();
 
             if ($product->track_stock) {
@@ -173,9 +190,9 @@ class PosController extends Controller
             'items' => ['required', 'array', 'min:1'],
             'items.*.product_id' => [
                 'required',
-                'distinct',
                 Rule::exists('products', 'id')->where('tenant_id', $tenantId),
             ],
+            'items.*.price_option_id' => ['nullable', 'integer', Rule::exists('product_price_options', 'id')],
             'items.*.quantity' => ['required', 'integer', 'min:1'],
             'items.*.note' => ['nullable', 'string', 'max:255'],
             'items.*.discount_type' => ['nullable', Rule::in(['fixed', 'percentage'])],
@@ -211,9 +228,31 @@ class PosController extends Controller
                 ->whereIn('id', $productIds)
                 ->orderBy('id')
                 ->when($status === TransactionStatus::Completed, fn ($query) => $query->lockForUpdate())
-                ->with('rawMaterials')
+                ->with(['rawMaterials', 'priceOptions'])
                 ->get()
                 ->keyBy('id');
+
+            $itemPairs = collect($data['items'])->map(fn ($item) => ($item['product_id'] ?? '').':'.($item['price_option_id'] ?? 'default'));
+            if ($itemPairs->unique()->count() !== $itemPairs->count()) {
+                throw ValidationException::withMessages([
+                    'items' => 'Produk dengan pilihan harga yang sama tidak boleh dikirim lebih dari sekali.',
+                ]);
+            }
+
+            $productQuantities = collect($data['items'])
+                ->groupBy('product_id')
+                ->map(fn ($items) => $items->sum(fn ($item) => (int) $item['quantity']));
+
+            if ($status === TransactionStatus::Completed) {
+                foreach ($productQuantities as $productId => $quantity) {
+                    $product = $products->get($productId);
+                    if ($product?->track_stock && $product->stock < $quantity) {
+                        throw ValidationException::withMessages([
+                            'items' => "Stok {$product->name} tidak cukup (butuh {$quantity}, tersisa {$product->stock}).",
+                        ]);
+                    }
+                }
+            }
 
             $rawMaterialRequirements = collect();
 
@@ -243,13 +282,24 @@ class PosController extends Controller
                 $product = $products->get($item['product_id']);
                 $quantity = (int) $item['quantity'];
 
-                if ($status === TransactionStatus::Completed && $product->track_stock && $product->stock < $quantity) {
+                if (! $product || ! $product->is_active) {
                     throw ValidationException::withMessages([
-                        'items' => "Stok {$product->name} tidak cukup (tersisa {$product->stock}).",
+                        'items' => 'Salah satu produk sudah tidak aktif atau tidak tersedia.',
                     ]);
                 }
 
-                $lineGross = $product->price * $quantity;
+                $priceOption = ! empty($item['price_option_id'])
+                    ? $product->priceOptions->firstWhere('id', (int) $item['price_option_id'])
+                    : ($product->priceOptions->firstWhere('is_default', true) ?? $product->priceOptions->first());
+
+                if ($product->priceOptions->isNotEmpty() && (! $priceOption || ! $priceOption->is_active)) {
+                    throw ValidationException::withMessages([
+                        'items' => "Pilihan harga untuk {$product->name} sudah tidak aktif atau tidak valid.",
+                    ]);
+                }
+
+                $unitPrice = $priceOption?->price ?? $product->price;
+                $lineGross = $unitPrice * $quantity;
                 $itemDiscountType = $item['discount_type'] ?? null;
                 $itemDiscountValue = (int) ($item['discount_value'] ?? 0);
 
@@ -282,6 +332,8 @@ class PosController extends Controller
 
                 $itemsToInsert[] = [
                     'product' => $product,
+                    'price_option' => $priceOption,
+                    'unit_price' => $unitPrice,
                     'quantity' => $quantity,
                     'note' => $item['note'] ?? null,
                     'discount_type' => $itemDiscountAmount > 0 ? $itemDiscountType : null,
@@ -412,11 +464,14 @@ class PosController extends Controller
 
             foreach ($itemsToInsert as $entry) {
                 $product = $entry['product'];
+                $priceOption = $entry['price_option'];
 
                 $transaction->items()->create([
                     'product_id' => $product->id,
+                    'product_price_option_id' => $priceOption?->id,
                     'product_name' => $product->name,
-                    'unit_price' => $product->price,
+                    'price_option_name' => $priceOption?->name,
+                    'unit_price' => $entry['unit_price'],
                     'quantity' => $entry['quantity'],
                     'note' => $entry['note'],
                     'discount_type' => $entry['discount_type'],
@@ -431,7 +486,7 @@ class PosController extends Controller
                             $product,
                             StockMovementType::Sale,
                             -$entry['quantity'],
-                            "Terjual di transaksi {$invoiceNumber}",
+                            'Terjual'.($priceOption ? " ({$priceOption->name})" : '')." di transaksi {$invoiceNumber}",
                             $request->user()->id,
                         );
                     }

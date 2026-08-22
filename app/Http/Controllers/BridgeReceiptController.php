@@ -3,8 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Enums\TransactionStatus;
-use App\Models\Transaction;
 use App\Models\CreditPayment;
+use App\Models\Transaction;
 use Illuminate\Http\JsonResponse;
 
 class BridgeReceiptController extends Controller
@@ -88,6 +88,7 @@ class BridgeReceiptController extends Controller
             'cashier' => $transaction->user?->name,
             'items' => $transaction->items->map(fn ($item) => [
                 'name' => $item->product_name,
+                'price_option_name' => $item->price_option_name,
                 'code' => null,
                 'quantity' => (int) $item->quantity,
                 'unit_price' => (float) $item->unit_price,

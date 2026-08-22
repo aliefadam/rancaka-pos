@@ -70,6 +70,7 @@ class ReceiptController extends Controller
                 ],
                 'items' => $transaction->items->map(fn ($item) => [
                     'product_name' => $item->product_name,
+                    'price_option_name' => $item->price_option_name,
                     'quantity' => (int) $item->quantity,
                     'unit_price' => (float) $item->unit_price,
                     'discount_type' => $item->discount_type,

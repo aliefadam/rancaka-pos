@@ -289,6 +289,9 @@ export default function Show({
                                 <div className="font-semibold">
                                     {item.product_name}
                                 </div>
+                                {item.price_option_name && (
+                                    <div className="text-[11px]">{item.price_option_name}</div>
+                                )}
                                 <div className="flex justify-between gap-2">
                                     <span>
                                         {item.quantity} x{' '}

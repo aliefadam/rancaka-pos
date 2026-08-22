@@ -277,7 +277,10 @@ export default function Index({ products, categories, rawMaterials, filters }) {
                                         {product.category?.name ?? '-'}
                                     </td>
                                     <td className="px-6 py-4 text-slate-700">
-                                        {formatRupiah(product.price)}
+                                        <p className="font-semibold">{formatRupiah(product.price)}</p>
+                                        <p className="mt-0.5 text-xs text-slate-400">
+                                            {product.price_options?.filter((option) => option.is_active).length ?? 1} pilihan aktif
+                                        </p>
                                     </td>
                                     <td className="px-6 py-4">
                                         <StockBadge
@@ -364,7 +367,10 @@ export default function Index({ products, categories, rawMaterials, filters }) {
                                 <div className="flex items-center justify-between gap-3">
                                     <dt className="text-slate-400">Harga</dt>
                                     <dd className="text-right text-slate-600">
-                                        {formatRupiah(product.price)}
+                                        <span className="block">{formatRupiah(product.price)}</span>
+                                        <span className="text-xs text-slate-400">
+                                            {product.price_options?.filter((option) => option.is_active).length ?? 1} pilihan aktif
+                                        </span>
                                     </dd>
                                 </div>
                                 <div className="flex items-center justify-between gap-3">

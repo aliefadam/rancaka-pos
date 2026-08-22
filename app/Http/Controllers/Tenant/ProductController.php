@@ -28,7 +28,7 @@ class ProductController extends Controller
 
         $products = Product::query()
             ->where('tenant_id', $tenantId)
-            ->with(['category:id,name', 'rawMaterials'])
+            ->with(['category:id,name', 'rawMaterials', 'priceOptions'])
             ->when($search, fn ($query, $search) => $query->where('name', 'like', "%{$search}%"))
             ->when($categoryId, fn ($query, $categoryId) => $query->where('category_id', $categoryId))
             ->orderBy('name')
@@ -44,12 +44,18 @@ class ProductController extends Controller
 
     public function store(Request $request): RedirectResponse
     {
-        $validated = $this->validated($request);
+        ['product' => $validated, 'price_options' => $priceOptions] = $this->validated($request);
         $ingredients = $this->ingredientsMap($request);
 
-        DB::transaction(function () use ($request, $validated, $ingredients) {
+        DB::transaction(function () use ($request, $validated, $ingredients, $priceOptions) {
             $product = $request->user()->tenant->products()->create($validated);
             $product->rawMaterials()->sync($ingredients);
+            $this->syncPriceOptions($product, $priceOptions ?? [[
+                'name' => 'Harga utama',
+                'price' => $product->price,
+                'is_default' => true,
+                'is_active' => true,
+            ]]);
         });
 
         return redirect()->route('tenant.products.index')->with('success', 'Produk berhasil ditambahkan.');
@@ -226,7 +232,19 @@ class ProductController extends Controller
             return back()->with('import_errors', $errors);
         }
 
-        DB::transaction(fn () => Product::query()->insert($validRows));
+        DB::transaction(function () use ($validRows) {
+            foreach ($validRows as $row) {
+                $timestamps = ['created_at' => $row['created_at'], 'updated_at' => $row['updated_at']];
+                $product = Product::query()->create(array_diff_key($row, $timestamps));
+                $product->priceOptions()->create([
+                    'name' => 'Harga utama',
+                    'price' => $product->price,
+                    'is_default' => true,
+                    'is_active' => true,
+                    'sort_order' => 0,
+                ]);
+            }
+        });
 
         return redirect()->route('tenant.products.index')->with('success', count($validRows).' produk berhasil diimport.');
     }
@@ -235,12 +253,22 @@ class ProductController extends Controller
     {
         $this->authorizeTenant($request, $product);
 
-        $validated = $this->validated($request, $product);
+        ['product' => $validated, 'price_options' => $priceOptions] = $this->validated($request, $product);
         $ingredients = $this->ingredientsMap($request);
 
-        DB::transaction(function () use ($product, $validated, $ingredients) {
+        DB::transaction(function () use ($product, $validated, $ingredients, $priceOptions) {
             $product->update($validated);
             $product->rawMaterials()->sync($ingredients);
+            if ($priceOptions !== null) {
+                $this->syncPriceOptions($product, $priceOptions);
+            } elseif (! $product->priceOptions()->exists()) {
+                $this->syncPriceOptions($product, [[
+                    'name' => 'Harga utama',
+                    'price' => $product->price,
+                    'is_default' => true,
+                    'is_active' => true,
+                ]]);
+            }
         });
 
         return redirect()->route('tenant.products.index')->with('success', 'Produk berhasil diperbarui.');
@@ -261,11 +289,20 @@ class ProductController extends Controller
     }
 
     /**
-     * @return array<string, mixed>
+     * @return array{product: array<string, mixed>, price_options: array<int, array<string, mixed>>|null}
      */
     private function validated(Request $request, ?Product $product = null): array
     {
         $tenantId = $request->user()->tenant_id;
+
+        $submittedOptions = $request->input('price_options');
+        if (is_array($submittedOptions) && $submittedOptions !== []) {
+            $defaultOptions = collect($submittedOptions)->filter(fn ($option) => filter_var($option['is_default'] ?? false, FILTER_VALIDATE_BOOL));
+            if ($defaultOptions->count() === 1) {
+                $defaultPrice = $defaultOptions->first()['price'] ?? null;
+                $request->merge(['price' => $defaultPrice]);
+            }
+        }
 
         $validated = $request->validate([
             'name' => [
@@ -290,13 +327,99 @@ class ProductController extends Controller
                 Rule::exists('raw_materials', 'id')->where('tenant_id', $tenantId),
             ],
             'ingredients.*.quantity' => ['required_with:ingredients', 'numeric', 'min:0.01'],
+            'price_options' => ['nullable', 'array', 'min:1'],
+            'price_options.*.id' => ['nullable', 'integer'],
+            'price_options.*.name' => ['required_with:price_options', 'string', 'max:100'],
+            'price_options.*.price' => ['required_with:price_options', 'integer', 'min:0', 'max:999999999999'],
+            'price_options.*.is_default' => ['required_with:price_options', 'boolean'],
+            'price_options.*.is_active' => ['required_with:price_options', 'boolean'],
         ]);
+
+        $priceOptions = $validated['price_options'] ?? null;
+        unset($validated['price_options']);
+
+        if ($priceOptions !== null) {
+            $defaultOptions = collect($priceOptions)->where('is_default', true);
+            if ($defaultOptions->count() !== 1 || ! $defaultOptions->first()['is_active']) {
+                throw ValidationException::withMessages([
+                    'price_options' => 'Pilih tepat satu harga default yang aktif.',
+                ]);
+            }
+
+            $normalizedNames = collect($priceOptions)->map(fn ($option) => mb_strtolower(trim($option['name'])));
+            if ($normalizedNames->unique()->count() !== $normalizedNames->count()) {
+                throw ValidationException::withMessages([
+                    'price_options' => 'Nama pilihan harga dalam satu produk tidak boleh sama.',
+                ]);
+            }
+
+            if (! collect($priceOptions)->contains(fn ($option) => $option['is_active'])) {
+                throw ValidationException::withMessages([
+                    'price_options' => 'Produk harus mempunyai minimal satu pilihan harga aktif.',
+                ]);
+            }
+
+            if ($product) {
+                $validIds = $product->priceOptions()->pluck('id')->all();
+                $submittedIds = collect($priceOptions)->pluck('id')->filter()->map(fn ($id) => (int) $id);
+                if ($submittedIds->unique()->count() !== $submittedIds->count()
+                    || $submittedIds->contains(fn ($id) => ! in_array($id, $validIds, true))) {
+                    throw ValidationException::withMessages([
+                        'price_options' => 'Pilihan harga tidak valid untuk produk ini.',
+                    ]);
+                }
+            } elseif (collect($priceOptions)->pluck('id')->filter()->isNotEmpty()) {
+                throw ValidationException::withMessages([
+                    'price_options' => 'Pilihan harga baru tidak boleh memiliki ID.',
+                ]);
+            }
+        }
 
         $validated['margin_percentage'] = (int) $validated['cost'] > 0
             ? round((((int) $validated['price'] - (int) $validated['cost']) / (int) $validated['cost']) * 100, 2)
             : 0;
 
-        return $validated;
+        return ['product' => $validated, 'price_options' => $priceOptions];
+    }
+
+    /**
+     * @param  array<int, array<string, mixed>>  $options
+     */
+    private function syncPriceOptions(Product $product, array $options): void
+    {
+        $keptIds = [];
+
+        foreach (array_values($options) as $index => $option) {
+            $values = [
+                'name' => trim($option['name']),
+                'price' => (int) $option['price'],
+                'is_default' => (bool) $option['is_default'],
+                'is_active' => (bool) $option['is_active'],
+                'sort_order' => $index,
+            ];
+
+            if (! empty($option['id'])) {
+                $priceOption = $product->priceOptions()->whereKey($option['id'])->firstOrFail();
+                $priceOption->update($values);
+            } else {
+                $priceOption = $product->priceOptions()->create($values);
+            }
+
+            $keptIds[] = $priceOption->id;
+        }
+
+        $product->priceOptions()->whereNotIn('id', $keptIds)->update([
+            'is_active' => false,
+            'is_default' => false,
+        ]);
+
+        $default = $product->priceOptions()->where('is_default', true)->firstOrFail();
+        $product->update([
+            'price' => $default->price,
+            'margin_percentage' => $product->cost > 0
+                ? round((($default->price - $product->cost) / $product->cost) * 100, 2)
+                : 0,
+        ]);
     }
 
     /**

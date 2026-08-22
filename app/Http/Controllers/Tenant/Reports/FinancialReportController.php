@@ -73,6 +73,24 @@ class FinancialReportController extends Controller
                 ];
             });
 
+        $priceOptionSales = TransactionItem::query()
+            ->selectRaw('transaction_items.product_name, transaction_items.price_option_name, transaction_items.unit_price, SUM(transaction_items.quantity) as sold, SUM(transaction_items.subtotal) as revenue')
+            ->join('transactions', 'transactions.id', '=', 'transaction_items.transaction_id')
+            ->where('transactions.tenant_id', $tenantId)
+            ->where('transactions.status', TransactionStatus::Completed->value)
+            ->where('transactions.created_at', '>=', $periodStart)
+            ->where('transactions.created_at', '<', $periodEnd)
+            ->groupBy('transaction_items.product_name', 'transaction_items.price_option_name', 'transaction_items.unit_price')
+            ->orderByDesc('sold')
+            ->get()
+            ->map(fn (TransactionItem $item) => [
+                'product_name' => $item->product_name,
+                'price_option_name' => $item->price_option_name ?: 'Harga utama',
+                'unit_price' => (int) $item->unit_price,
+                'sold' => (int) $item->sold,
+                'revenue' => (int) $item->revenue,
+            ]);
+
         return Inertia::render('Tenant/Reports/Financial/Index', [
             'filters' => $filters,
             'periodLabel' => $periodLabel,
@@ -102,6 +120,7 @@ class FinancialReportController extends Controller
                 ->sortBy(fn (array $product) => [$product['sold'], $product['revenue']])
                 ->take(5)
                 ->values(),
+            'priceOptionSales' => $priceOptionSales,
         ]);
     }
 

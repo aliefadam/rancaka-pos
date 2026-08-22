@@ -27,6 +27,12 @@ function restoreCartDraft(activeShift, products) {
 
             if (!product) return [];
 
+            const priceOption = product.price_options?.find(
+                (option) => option.id === item.price_option_id,
+            ) ?? product.price_options?.find((option) => option.is_default);
+
+            if (!priceOption) return [];
+
             const maxQty = product.available_quantity ?? Infinity;
             const quantity = Math.min(
                 Math.max(Number(item.quantity) || 1, 1),
@@ -38,8 +44,11 @@ function restoreCartDraft(activeShift, products) {
             return [
                 {
                     product_id: product.id,
+                    price_option_id: priceOption.id,
+                    cart_key: `${product.id}:${priceOption.id}`,
                     name: product.name,
-                    price: product.price,
+                    price_option_name: priceOption.name,
+                    price: priceOption.price,
                     quantity,
                     note: typeof item.note === 'string' ? item.note : '',
                     discount_type:
@@ -151,9 +160,16 @@ function ProductCard({ product, quantityInCart, onAdd }) {
                 {product.name}
             </p>
             <div className="mt-1 flex items-center justify-between">
-                <span className="text-sm font-bold text-indigo-700">
-                    {formatRupiah(product.price)}
-                </span>
+                <div className="min-w-0">
+                    <span className="block truncate text-sm font-bold text-indigo-700">
+                        {formatRupiah(product.price)}
+                    </span>
+                    {product.price_options.length > 1 && (
+                        <span className="text-[10px] font-semibold text-indigo-500">
+                            {product.price_options.length} pilihan harga
+                        </span>
+                    )}
+                </div>
                 {outOfStock ? (
                     <span className="text-[10px] font-bold uppercase text-slate-400">
                         Habis
@@ -211,6 +227,7 @@ export default function Index({
     const [mobileCartOpen, setMobileCartOpen] = useState(false);
     const [clearCartConfirmOpen, setClearCartConfirmOpen] = useState(false);
     const [showSuccessModal, setShowSuccessModal] = useState(false);
+    const [pricePickerProduct, setPricePickerProduct] = useState(null);
     const [autoPrintMessage, setAutoPrintMessage] = useState('');
     const lastAutoPrintUrl = useRef('');
 
@@ -397,17 +414,20 @@ export default function Index({
         toast.success('Keranjang berhasil dikosongkan.');
     };
 
-    const addToCart = (product) => {
+    const addSelectedPriceToCart = (product, priceOption) => {
         setCart((current) => {
-            const existing = current.find((i) => i.product_id === product.id);
+            const cartKey = `${product.id}:${priceOption.id}`;
+            const existing = current.find((i) => i.cart_key === cartKey);
             const maxQty = product.available_quantity ?? Infinity;
+            const productQuantity = current
+                .filter((item) => item.product_id === product.id)
+                .reduce((sum, item) => sum + item.quantity, 0);
 
-            if (maxQty <= 0) return current;
+            if (maxQty <= 0 || productQuantity >= maxQty) return current;
 
             if (existing) {
-                if (existing.quantity >= maxQty) return current;
                 return current.map((i) =>
-                    i.product_id === product.id
+                    i.cart_key === cartKey
                         ? { ...i, quantity: i.quantity + 1 }
                         : i,
                 );
@@ -417,8 +437,11 @@ export default function Index({
                 ...current,
                 {
                     product_id: product.id,
+                    price_option_id: priceOption.id,
+                    cart_key: cartKey,
                     name: product.name,
-                    price: product.price,
+                    price_option_name: priceOption.name,
+                    price: priceOption.price,
                     quantity: 1,
                     note: '',
                     discount_type: 'fixed',
@@ -429,24 +452,37 @@ export default function Index({
                 },
             ];
         });
+        setPricePickerProduct(null);
     };
 
-    const incrementQty = (productId) => {
+    const addToCart = (product) => {
+        if (product.price_options.length === 1) {
+            addSelectedPriceToCart(product, product.price_options[0]);
+            return;
+        }
+
+        setPricePickerProduct(product);
+    };
+
+    const incrementQty = (cartKey) => {
         setCart((current) =>
             current.map((i) => {
-                if (i.product_id !== productId) return i;
+                if (i.cart_key !== cartKey) return i;
                 const maxQty = i.available_quantity ?? Infinity;
-                if (i.quantity >= maxQty) return i;
+                const productQuantity = current
+                    .filter((item) => item.product_id === i.product_id)
+                    .reduce((sum, item) => sum + item.quantity, 0);
+                if (productQuantity >= maxQty) return i;
                 return { ...i, quantity: i.quantity + 1 };
             }),
         );
     };
 
-    const decrementQty = (productId) => {
+    const decrementQty = (cartKey) => {
         setCart((current) =>
             current
                 .map((i) =>
-                    i.product_id === productId
+                    i.cart_key === cartKey
                         ? {
                               ...i,
                               quantity: i.quantity - 1,
@@ -461,15 +497,18 @@ export default function Index({
         );
     };
 
-    const updateQuantity = (productId, quantity) => {
+    const updateQuantity = (cartKey, quantity) => {
         setCart((current) =>
             current.map((item) => {
-                if (item.product_id !== productId) return item;
+                if (item.cart_key !== cartKey) return item;
 
                 const maxQty = item.available_quantity ?? Infinity;
+                const otherQuantity = current
+                    .filter((candidate) => candidate.product_id === item.product_id && candidate.cart_key !== cartKey)
+                    .reduce((sum, candidate) => sum + candidate.quantity, 0);
                 const nextQuantity = Math.min(
                     Math.max(Number.parseInt(quantity, 10) || 1, 1),
-                    maxQty,
+                    Math.max(maxQty - otherQuantity, 1),
                 );
 
                 return {
@@ -484,21 +523,21 @@ export default function Index({
         );
     };
 
-    const removeItem = (productId) => {
-        setCart((current) => current.filter((i) => i.product_id !== productId));
+    const removeItem = (cartKey) => {
+        setCart((current) => current.filter((i) => i.cart_key !== cartKey));
     };
 
-    const updateNote = (productId, note) => {
+    const updateNote = (cartKey, note) => {
         setCart((current) =>
             current.map((i) =>
-                i.product_id === productId ? { ...i, note } : i,
+                i.cart_key === cartKey ? { ...i, note } : i,
             ),
         );
     };
 
-    const updateItemDiscount = (productId, type, value) => {
+    const updateItemDiscount = (cartKey, type, value) => {
         setCart((current) => current.map((item) => {
-            if (item.product_id !== productId) return item;
+            if (item.cart_key !== cartKey) return item;
 
             const gross = item.price * item.quantity;
             const maximum = type === 'percentage' ? 100 : gross;
@@ -513,6 +552,7 @@ export default function Index({
     const buildPayload = () => ({
         items: cart.map((i) => ({
             product_id: i.product_id,
+            price_option_id: i.price_option_id,
             quantity: i.quantity,
             note: i.note || null,
             discount_type: i.discount_value === '' ? null : i.discount_type,
@@ -578,10 +618,16 @@ export default function Index({
     const resumeHeld = (held) => {
         const items = held.items.map((item) => {
             const product = products.find((p) => p.id === item.product_id);
+            const priceOption = product?.price_options.find(
+                (option) => option.id === item.product_price_option_id,
+            ) ?? product?.price_options.find((option) => option.is_default);
             return {
                 product_id: item.product_id,
+                price_option_id: priceOption?.id ?? item.product_price_option_id,
+                cart_key: `${item.product_id}:${priceOption?.id ?? item.product_price_option_id ?? 'default'}`,
                 name: item.product_name,
-                price: product ? product.price : item.unit_price,
+                price_option_name: priceOption?.name ?? item.price_option_name,
+                price: priceOption?.price ?? item.unit_price,
                 quantity: item.quantity,
                 note: item.note || '',
                 discount_type: item.discount_type ?? 'fixed',
@@ -979,6 +1025,93 @@ export default function Index({
                     </button>
                 </div>
             )}
+
+            <Transition show={Boolean(pricePickerProduct)} as={Fragment}>
+                <Dialog
+                    as="div"
+                    className="relative z-50"
+                    onClose={() => setPricePickerProduct(null)}
+                >
+                    <Transition.Child
+                        as={Fragment}
+                        enter="ease-out duration-200"
+                        enterFrom="opacity-0"
+                        enterTo="opacity-100"
+                        leave="ease-in duration-150"
+                        leaveFrom="opacity-100"
+                        leaveTo="opacity-0"
+                    >
+                        <div className="fixed inset-0 bg-slate-950/45 backdrop-blur-[2px]" />
+                    </Transition.Child>
+
+                    <div className="fixed inset-0 flex items-center justify-center p-4">
+                        <Transition.Child
+                            as={Fragment}
+                            enter="ease-out duration-200"
+                            enterFrom="translate-y-3 scale-95 opacity-0"
+                            enterTo="translate-y-0 scale-100 opacity-100"
+                            leave="ease-in duration-150"
+                            leaveFrom="translate-y-0 scale-100 opacity-100"
+                            leaveTo="translate-y-3 scale-95 opacity-0"
+                        >
+                            <Dialog.Panel className="w-full max-w-md overflow-hidden rounded-3xl border border-white/70 bg-white shadow-2xl shadow-slate-950/20">
+                                {pricePickerProduct && (
+                                    <>
+                                        <div className="relative overflow-hidden bg-gradient-to-br from-indigo-600 to-blue-700 px-6 pb-6 pt-5 text-white">
+                                            <div className="absolute -right-10 -top-10 h-36 w-36 rounded-full border-[20px] border-white/10" />
+                                            <button
+                                                type="button"
+                                                onClick={() => setPricePickerProduct(null)}
+                                                className="absolute right-4 top-4 flex h-8 w-8 items-center justify-center rounded-full bg-white/10 text-white transition hover:bg-white/20"
+                                            >
+                                                <i className="fi fi-rr-cross-small" />
+                                            </button>
+                                            <p className="text-xs font-bold uppercase tracking-[0.18em] text-indigo-100">
+                                                Pilih cara penjualan
+                                            </p>
+                                            <Dialog.Title className="mt-2 pr-10 text-2xl font-bold">
+                                                {pricePickerProduct.name}
+                                            </Dialog.Title>
+                                            <p className="mt-1 text-sm text-indigo-100">
+                                                Stok tetap berasal dari produk yang sama.
+                                            </p>
+                                        </div>
+
+                                        <div className="space-y-2 p-4">
+                                            {pricePickerProduct.price_options.map((option, index) => (
+                                                <button
+                                                    key={option.id}
+                                                    type="button"
+                                                    autoFocus={index === 0}
+                                                    onClick={() => addSelectedPriceToCart(pricePickerProduct, option)}
+                                                    className="group flex w-full items-center gap-3 rounded-2xl border border-slate-200 bg-white p-4 text-left transition hover:-translate-y-0.5 hover:border-indigo-300 hover:bg-indigo-50/60 hover:shadow-md hover:shadow-indigo-100"
+                                                >
+                                                    <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-indigo-50 text-indigo-600 transition group-hover:bg-indigo-600 group-hover:text-white">
+                                                        <i className={option.is_default ? 'fi fi-rr-star' : 'fi fi-rr-tag'} />
+                                                    </span>
+                                                    <span className="min-w-0 flex-1">
+                                                        <span className="block truncate text-sm font-semibold text-slate-800">
+                                                            {option.name}
+                                                        </span>
+                                                        {option.is_default && (
+                                                            <span className="text-[10px] font-bold uppercase tracking-wide text-indigo-500">
+                                                                Harga default
+                                                            </span>
+                                                        )}
+                                                    </span>
+                                                    <span className="text-base font-extrabold text-indigo-700">
+                                                        {formatRupiah(option.price)}
+                                                    </span>
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </>
+                                )}
+                            </Dialog.Panel>
+                        </Transition.Child>
+                    </div>
+                </Dialog>
+            </Transition>
 
             <Transition show={mobileCartOpen} as={Fragment}>
                 <Dialog

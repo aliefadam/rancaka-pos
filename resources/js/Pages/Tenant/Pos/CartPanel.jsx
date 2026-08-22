@@ -37,7 +37,7 @@ function QuantityInput({ item, onQuantityChange }) {
             return;
         }
 
-        onQuantityChange(item.product_id, quantity);
+        onQuantityChange(item.cart_key, quantity);
     };
 
     return (
@@ -53,7 +53,7 @@ function QuantityInput({ item, onQuantityChange }) {
 
                 if (value !== '') {
                     onQuantityChange(
-                        item.product_id,
+                        item.cart_key,
                         Number.parseInt(value, 10),
                     );
                 }
@@ -172,7 +172,7 @@ export default function CartPanel({
 
                             return (
                             <div
-                                key={item.product_id}
+                                key={item.cart_key}
                                 className="rounded-xl border border-slate-100 p-3 transition"
                             >
                                 <div className="flex items-start gap-3">
@@ -187,23 +187,26 @@ export default function CartPanel({
                                             <button
                                                 type="button"
                                                 onClick={() =>
-                                                    onRemove(item.product_id)
+                                                    onRemove(item.cart_key)
                                                 }
                                                 className="shrink-0 text-slate-300 transition hover:text-rose-500"
                                             >
                                                 <i className="fi fi-rr-trash text-xs" />
                                             </button>
                                         </div>
-                                        <p className="text-xs text-slate-400">
-                                            {formatRupiah(item.price)}
-                                        </p>
+                                        <div className="mt-0.5 flex flex-wrap items-center gap-1.5 text-xs">
+                                            <span className="rounded-full bg-indigo-50 px-2 py-0.5 font-semibold text-indigo-600">
+                                                {item.price_option_name}
+                                            </span>
+                                            <span className="text-slate-400">{formatRupiah(item.price)}</span>
+                                        </div>
 
                                         <input
                                             type="text"
                                             value={item.note}
                                             onChange={(e) =>
                                                 onNoteChange(
-                                                    item.product_id,
+                                                    item.cart_key,
                                                     e.target.value,
                                                 )
                                             }
@@ -218,7 +221,7 @@ export default function CartPanel({
                                                     <button
                                                         key={type}
                                                         type="button"
-                                                        onClick={() => onItemDiscountChange(item.product_id, type, '')}
+                                                        onClick={() => onItemDiscountChange(item.cart_key, type, '')}
                                                         className={`h-7 px-2 text-[11px] font-bold transition ${item.discount_type === type ? 'bg-emerald-600 text-white' : 'text-emerald-700 hover:bg-emerald-50'}`}
                                                     >
                                                         {type === 'fixed' ? 'Rp' : '%'}
@@ -230,7 +233,7 @@ export default function CartPanel({
                                                 min="0"
                                                 max={item.discount_type === 'percentage' ? 100 : lineGross}
                                                 value={item.discount_value}
-                                                onChange={(event) => onItemDiscountChange(item.product_id, item.discount_type, event.target.value)}
+                                                onChange={(event) => onItemDiscountChange(item.cart_key, item.discount_type, event.target.value)}
                                                 placeholder="0"
                                                 aria-label={`Diskon ${item.name}`}
                                                 className="h-7 w-20 rounded-md border border-emerald-200 bg-white px-2 text-right text-xs font-semibold text-slate-700 outline-none focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100"
@@ -243,7 +246,7 @@ export default function CartPanel({
                                                     type="button"
                                                     onClick={() =>
                                                         onDecrement(
-                                                            item.product_id,
+                                                            item.cart_key,
                                                         )
                                                     }
                                                     className="flex h-7 w-7 items-center justify-center rounded-lg border border-slate-200 text-slate-500 transition hover:bg-slate-50 active:scale-95"
@@ -260,7 +263,7 @@ export default function CartPanel({
                                                     type="button"
                                                     onClick={() =>
                                                         onIncrement(
-                                                            item.product_id,
+                                                            item.cart_key,
                                                         )
                                                     }
                                                     className="flex h-7 w-7 items-center justify-center rounded-lg border border-slate-200 text-slate-500 transition hover:bg-slate-50 active:scale-95"

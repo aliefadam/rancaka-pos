@@ -107,6 +107,11 @@ export default function ReceiptModal({ show, onClose, transaction, tenant }) {
                                     <p className="font-medium text-slate-800">
                                         {item.product_name}
                                     </p>
+                                    {item.price_option_name && (
+                                        <p className="text-[11px] font-medium text-indigo-600">
+                                            {item.price_option_name}
+                                        </p>
+                                    )}
                                     <p className="text-xs text-slate-400">
                                         {item.quantity} x{' '}
                                         {formatRupiah(item.unit_price)}

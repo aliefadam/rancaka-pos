@@ -10,6 +10,21 @@ use Illuminate\Database\Eloquent\Factories\Factory;
  */
 class ProductFactory extends Factory
 {
+    public function configure(): static
+    {
+        return $this->afterCreating(function (Product $product) {
+            if (! $product->priceOptions()->exists()) {
+                $product->priceOptions()->create([
+                    'name' => 'Harga utama',
+                    'price' => $product->price,
+                    'is_default' => true,
+                    'is_active' => true,
+                    'sort_order' => 0,
+                ]);
+            }
+        });
+    }
+
     /**
      * Define the model's default state.
      *

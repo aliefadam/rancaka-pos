@@ -55,6 +55,7 @@ export default function Index({
     chartMeta,
     topProducts,
     lowProducts,
+    priceOptionSales,
 }) {
     const [customStart, setCustomStart] = useState(filters.start_date);
     const [customEnd, setCustomEnd] = useState(filters.end_date);
@@ -310,6 +311,48 @@ export default function Index({
                     emptyMessage="Belum ada produk aktif untuk dianalisis."
                 />
             </div>
+
+            <section className="mt-6 overflow-hidden rounded-2xl border border-slate-200/70 bg-white shadow-sm shadow-slate-200/40">
+                <div className="flex items-center gap-3 border-b border-slate-100 px-5 py-4 sm:px-6">
+                    <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-indigo-50 text-indigo-600">
+                        <i className="fi fi-rr-tags" />
+                    </span>
+                    <div>
+                        <h3 className="text-sm font-bold text-slate-900">Penjualan per Pilihan Harga</h3>
+                        <p className="mt-0.5 text-xs text-slate-500">Rincian jumlah dan omzet berdasarkan harga yang dipilih kasir.</p>
+                    </div>
+                </div>
+                {priceOptionSales.length > 0 ? (
+                    <div className="overflow-x-auto">
+                        <table className="w-full min-w-[620px] text-left text-sm">
+                            <thead className="bg-slate-50 text-xs font-bold uppercase tracking-wide text-slate-400">
+                                <tr>
+                                    <th className="px-6 py-3">Produk</th>
+                                    <th className="px-6 py-3">Pilihan harga</th>
+                                    <th className="px-6 py-3 text-right">Harga satuan</th>
+                                    <th className="px-6 py-3 text-right">Terjual</th>
+                                    <th className="px-6 py-3 text-right">Omzet</th>
+                                </tr>
+                            </thead>
+                            <tbody className="divide-y divide-slate-100">
+                                {priceOptionSales.map((item, index) => (
+                                    <tr key={`${item.product_name}-${item.price_option_name}-${item.unit_price}-${index}`} className="hover:bg-slate-50/70">
+                                        <td className="px-6 py-3.5 font-semibold text-slate-800">{item.product_name}</td>
+                                        <td className="px-6 py-3.5">
+                                            <span className="rounded-full bg-indigo-50 px-2.5 py-1 text-xs font-semibold text-indigo-600">{item.price_option_name}</span>
+                                        </td>
+                                        <td className="px-6 py-3.5 text-right text-slate-600">Rp {Number(item.unit_price).toLocaleString('id-ID')}</td>
+                                        <td className="px-6 py-3.5 text-right font-semibold text-slate-700">{item.sold}</td>
+                                        <td className="px-6 py-3.5 text-right font-bold text-emerald-600">Rp {Number(item.revenue).toLocaleString('id-ID')}</td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                ) : (
+                    <p className="px-6 py-10 text-center text-sm text-slate-400">Belum ada pilihan harga yang terjual pada periode ini.</p>
+                )}
+            </section>
         </AdminLayout>
     );
 }
