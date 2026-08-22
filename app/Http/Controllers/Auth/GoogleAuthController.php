@@ -7,6 +7,7 @@ use App\Http\Controllers\Controller;
 use App\Models\SalesProfile;
 use App\Models\Tenant;
 use App\Models\User;
+use App\Services\BranchNetworkService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -22,6 +23,8 @@ class GoogleAuthController extends Controller
         abort_unless(config('services.google.client_id') && config('services.google.client_secret'), 503, 'Login Google belum dikonfigurasi.');
 
         $code = SalesProfile::normalizeReferralCode($request->query('referral_code'));
+        $accountType = config('billing.branch_network_enabled') && $request->query('account_type') === 'branch' ? 'branch' : 'standalone';
+        $networkCode = BranchNetworkService::normalizeCode($request->query('network_code'));
         if ($code && ! SalesProfile::query()->where('referral_code', $code)->where('status', 'active')->exists()) {
             return redirect()->route('register')->withErrors([
                 'referral_code' => 'Kode referral tidak ditemukan atau sudah tidak aktif.',
@@ -32,6 +35,18 @@ class GoogleAuthController extends Controller
             $request->session()->put('registration_referral_code', $code);
         } else {
             $request->session()->forget('registration_referral_code');
+        }
+
+        if ($accountType === 'branch') {
+            if ($code) {
+                return redirect()->route('register')->withErrors(['referral_code' => 'Pendaftaran cabang tidak dapat menggunakan referral sales.']);
+            }
+            if (! $networkCode || ! Tenant::query()->where('branch_network_code', $networkCode)->where('tenant_type', 'central')->where('status', 'active')->exists()) {
+                return redirect()->route('register')->withErrors(['network_code' => 'Kode jaringan tidak ditemukan atau tenant pusat tidak aktif.']);
+            }
+            $request->session()->put(['registration_account_type' => 'branch', 'registration_network_code' => $networkCode]);
+        } else {
+            $request->session()->forget(['registration_account_type', 'registration_network_code']);
         }
 
         return Socialite::driver('google')->redirect();

@@ -32,6 +32,13 @@ const navigationByRole = {
                     icon: "fi-rr-credit-card",
                 },
                 {
+                    name: "Jaringan Cabang",
+                    href: "admin.networks.index",
+                    activePattern: "admin.networks.*",
+                    icon: "fi-rr-chart-network",
+                    networkOnly: true,
+                },
+                {
                     name: "Sales & Komisi",
                     href: "admin.sales.index",
                     icon: "fi-rr-handshake",
@@ -195,6 +202,13 @@ const navigationByRole = {
         {
             group: "Pengaturan",
             items: [
+                {
+                    name: "Jaringan Cabang",
+                    href: "tenant.network.index",
+                    activePattern: "tenant.network.*",
+                    icon: "fi-rr-chart-network",
+                    networkOnly: true,
+                },
                 {
                     name: "Pengaturan Toko",
                     href: "tenant.settings.edit",
@@ -386,7 +400,7 @@ export default function AdminLayout({ header, children }) {
         const availableSections = sections
             .map((section) => ({
                 ...section,
-                items: section.items.filter((item) => route().has(item.href)),
+                items: section.items.filter((item) => route().has(item.href) && (!item.networkOnly || page.props.features?.branch_network)),
             }))
             .filter((section) => section.items.length > 0);
 
@@ -403,7 +417,7 @@ export default function AdminLayout({ header, children }) {
                 ),
             }))
             .filter((section) => section.items.length > 0);
-    }, [auth.permissions, user.role]);
+    }, [auth.permissions, page.props.features?.branch_network, user.role]);
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const [desktopSidebarOpen, setDesktopSidebarOpen] = useState(true);
     const [searchQuery, setSearchQuery] = useState("");

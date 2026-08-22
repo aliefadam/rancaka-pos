@@ -138,6 +138,7 @@ export default function Index({ payments, settings }) {
                                 {payment.invoice.number} ·{' '}
                                 {payment.tenant.email}
                             </p>
+                            {payment.invoice.items?.length > 0 && <p className="mt-1 text-xs text-slate-400">{payment.invoice.items.map((item) => item.description).join(' · ')}</p>}
                         </div>
                         <p className="font-bold text-slate-900">
                             {money(payment.amount)}

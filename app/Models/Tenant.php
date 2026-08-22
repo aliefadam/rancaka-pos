@@ -18,6 +18,7 @@ use Illuminate\Support\Facades\Storage;
     'logo_path', 'receipt_footer', 'receipt_size', 'auto_print_receipt',
     'tax_percentage', 'service_charge_percentage',
     'referred_by_sales_id', 'referral_code_used', 'referred_at',
+    'tenant_type', 'branch_network_code',
 ])]
 class Tenant extends Model
 {
@@ -114,6 +115,33 @@ class Tenant extends Model
     public function billingInvoices(): HasMany
     {
         return $this->hasMany(BillingInvoice::class);
+    }
+
+    public function branchRelationships(): HasMany
+    {
+        return $this->hasMany(TenantBranchRelationship::class, 'parent_tenant_id');
+    }
+
+    public function parentRelationships(): HasMany
+    {
+        return $this->hasMany(TenantBranchRelationship::class, 'branch_tenant_id');
+    }
+
+    public function currentBranchRelationship(): HasOne
+    {
+        return $this->hasOne(TenantBranchRelationship::class, 'branch_tenant_id')
+            ->whereIn('status', TenantBranchRelationship::OPEN_STATUSES)
+            ->latestOfMany();
+    }
+
+    public function isCentral(): bool
+    {
+        return $this->tenant_type === 'central';
+    }
+
+    public function isBranch(): bool
+    {
+        return $this->tenant_type === 'branch';
     }
 
     public function referringSales(): BelongsTo

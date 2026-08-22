@@ -29,4 +29,9 @@ class BillingInvoice extends Model
     {
         return $this->hasMany(SubscriptionPayment::class);
     }
+
+    public function items(): HasMany
+    {
+        return $this->hasMany(BillingInvoiceItem::class);
+    }
 }

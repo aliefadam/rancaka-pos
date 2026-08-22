@@ -11,7 +11,7 @@ const date = (value) =>
           })
         : '-';
 
-export default function Index({ subscription, billing, paymentSettings }) {
+export default function Index({ subscription, billing, paymentSettings, networkRelationship, paymentCentralized = false }) {
     const isOwner = usePage().props.auth.user.role === 'owner';
     const qrisAvailable = Boolean(
         paymentSettings?.qris_enabled && paymentSettings?.qris_image_url,
@@ -66,7 +66,12 @@ export default function Index({ subscription, billing, paymentSettings }) {
                         </span>
                     </div>
                 </div>
-                {invoice && (
+                {paymentCentralized && networkRelationship && (
+                    <section className="mt-6 rounded-2xl border border-indigo-200 bg-indigo-50 p-6">
+                        <div className="flex items-start gap-4"><span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-indigo-600 text-white"><i className="fi fi-rr-chart-network" /></span><div><p className="text-xs font-bold uppercase tracking-wide text-indigo-500">Billing terpusat</p><h3 className="mt-1 text-lg font-extrabold text-indigo-950">Dibayar oleh {networkRelationship.parent_tenant.name}</h3><p className="mt-2 text-sm leading-6 text-indigo-700">Cabang tidak perlu mengirim pembayaran terpisah. Akses mengikuti subscription jaringan dan invoice gabungan tenant pusat.</p></div></div>
+                    </section>
+                )}
+                {invoice && !paymentCentralized && (
                     <div className="mt-6 grid gap-6 lg:grid-cols-2">
                         <section className="rounded-2xl border border-slate-200 bg-white p-6">
                             <h3 className="font-bold text-slate-900">
@@ -78,6 +83,7 @@ export default function Index({ subscription, billing, paymentSettings }) {
                             <p className="mt-2 text-sm text-slate-500">
                                 Jatuh tempo {date(invoice.due_at)}
                             </p>
+                            {invoice.items?.length > 0 && <div className="mt-5 divide-y divide-slate-100 rounded-xl border border-slate-200 bg-white px-4">{invoice.items.map((item) => <div key={item.id} className="flex items-center justify-between gap-4 py-3 text-sm"><div><p className="font-semibold text-slate-700">{item.description}</p><p className="text-xs text-slate-400">{item.quantity} × {money(item.unit_amount)}</p></div><p className="font-bold text-slate-900">{money(item.total_amount)}</p></div>)}</div>}
                             {form.data.payment_method === 'qris' &&
                             qrisAvailable ? (
                                 <div className="mt-5 text-center">
@@ -223,6 +229,7 @@ export default function Index({ subscription, billing, paymentSettings }) {
                             </span>
                         </div>
                     ))}
+                    {subscription.invoices.length === 0 && <p className="px-5 py-10 text-center text-sm text-slate-400">Belum ada invoice untuk tenant ini.</p>}
                 </section>
             </div>
         </AdminLayout>

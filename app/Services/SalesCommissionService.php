@@ -28,7 +28,7 @@ class SalesCommissionService
 
         $rate = (string) $tenant->referringSales->commission_rate;
         $basisPoints = (int) round(((float) $rate) * 100);
-        $baseAmount = (int) $payment->amount;
+        $baseAmount = (int) ($payment->invoice?->items()->where('type', 'central_plan')->sum('total_amount') ?: $payment->amount);
         $commissionAmount = intdiv(($baseAmount * $basisPoints) + 5000, 10000);
 
         return SalesCommission::create([

@@ -3,9 +3,11 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Models\BillingInvoice;
 use App\Models\BillingSetting;
 use App\Models\SubscriptionPayment;
+use App\Models\Tenant;
+use App\Services\BranchNetworkService;
+use App\Services\ConsolidatedBillingService;
 use App\Services\OptimizedUploadService;
 use App\Services\SalesCommissionService;
 use App\Support\UploadRules;
@@ -13,7 +15,6 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Str;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -22,7 +23,7 @@ class BillingController extends Controller
     public function index(): Response
     {
         return Inertia::render('Admin/Billing/Index', [
-            'payments' => SubscriptionPayment::with(['tenant:id,name,email', 'invoice'])->latest()->paginate(15),
+            'payments' => SubscriptionPayment::with(['tenant:id,name,email,tenant_type', 'invoice.items.branchTenant:id,name'])->latest()->paginate(15),
             'settings' => BillingSetting::query()->first(),
         ]);
     }
@@ -62,12 +63,13 @@ class BillingController extends Controller
         return back()->with('success', 'Pengaturan QRIS diperbarui.');
     }
 
-    public function approve(Request $request, SubscriptionPayment $payment, SalesCommissionService $commissionService): RedirectResponse
+    public function approve(Request $request, SubscriptionPayment $payment, SalesCommissionService $commissionService, ConsolidatedBillingService $billing, BranchNetworkService $network): RedirectResponse
     {
-        DB::transaction(function () use ($request, $payment, $commissionService) {
+        DB::transaction(function () use ($request, $payment, $commissionService, $billing, $network) {
             $payment = SubscriptionPayment::lockForUpdate()->findOrFail($payment->id);
             abort_unless($payment->status === 'pending', 422);
             $invoice = $payment->invoice()->lockForUpdate()->firstOrFail();
+            $billing->ensureItems($invoice);
             $subscription = $invoice->subscription()->lockForUpdate()->firstOrFail();
             $start = now();
             foreach ([$subscription->trial_ends_at, $subscription->current_period_end] as $candidate) {
@@ -80,7 +82,12 @@ class BillingController extends Controller
             $commissionService->recordForFirstApprovedPayment($payment->fresh());
             $invoice->update(['status' => 'paid', 'paid_at' => now(), 'period_start' => $start, 'period_end' => $end]);
             $subscription->update(['status' => 'active', 'is_grandfathered' => false, 'current_period_start' => $start, 'current_period_end' => $end]);
-            BillingInvoice::create(['tenant_id' => $invoice->tenant_id, 'subscription_id' => $subscription->id, 'number' => 'INV-'.now()->format('YmdHis').'-'.$invoice->tenant_id.'-'.Str::upper(Str::random(4)), 'status' => 'open', 'amount' => $subscription->price, 'due_at' => $end, 'period_start' => $end, 'period_end' => $end->copy()->addMonth()]);
+            $invoice->items()->where('type', 'branch_addon')->pluck('branch_tenant_id')->each(function ($branchId) use ($start, $end) {
+                $branch = Tenant::query()->lockForUpdate()->find($branchId);
+                $branch?->subscription?->update(['status' => 'active', 'is_grandfathered' => false, 'current_period_start' => $start, 'current_period_end' => $end]);
+            });
+            $network->syncDueTransitions($invoice->tenant);
+            $billing->createNextInvoice($subscription, $end, $end->copy()->addMonth());
         });
 
         return back()->with('success', 'Pembayaran disetujui dan masa aktif diperpanjang.');

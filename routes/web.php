@@ -3,6 +3,7 @@
 use App\Enums\UserRole;
 use App\Http\Controllers\AccountController;
 use App\Http\Controllers\Admin\BillingController as AdminBillingController;
+use App\Http\Controllers\Admin\BranchNetworkController as AdminBranchNetworkController;
 use App\Http\Controllers\Admin\CommissionPayoutController;
 use App\Http\Controllers\Admin\DeveloperController;
 use App\Http\Controllers\Admin\DevelopmentTicketController;
@@ -13,6 +14,7 @@ use App\Http\Controllers\BridgeReceiptController;
 use App\Http\Controllers\ImpersonationController;
 use App\Http\Controllers\Sales\DashboardController as SalesDashboardController;
 use App\Http\Controllers\Tenant\BillingController as TenantBillingController;
+use App\Http\Controllers\Tenant\BranchNetworkController as TenantBranchNetworkController;
 use App\Http\Controllers\Tenant\CategoryController as TenantCategoryController;
 use App\Http\Controllers\Tenant\CreditSaleController as TenantCreditSaleController;
 use App\Http\Controllers\Tenant\DashboardController as TenantDashboardController;
@@ -62,6 +64,9 @@ Route::post('/impersonation/stop', [ImpersonationController::class, 'stop'])
     ->middleware('auth')
     ->name('impersonation.stop');
 
+Route::get('/network-code/validate', [TenantBranchNetworkController::class, 'validateCode'])
+    ->middleware('throttle:20,1')->name('network-code.validate');
+
 Route::middleware(['auth', 'tenant.onboarded', 'subscription.active'])->group(function () {
     Route::get('/account', [AccountController::class, 'edit'])->name('account.edit');
     Route::put('/account', [AccountController::class, 'update'])->name('account.update');
@@ -83,6 +88,10 @@ Route::middleware(['auth', 'role:superadmin'])->prefix('admin')->name('admin.')-
         ->name('tenants.reset-password');
 
     Route::get('/billing', [AdminBillingController::class, 'index'])->name('billing.index');
+    Route::get('/networks', [AdminBranchNetworkController::class, 'index'])->name('networks.index');
+    Route::patch('/networks/{relationship}/decision', [AdminBranchNetworkController::class, 'decision'])->name('networks.decision');
+    Route::patch('/networks/{relationship}/exit', [AdminBranchNetworkController::class, 'decideExit'])->name('networks.exit');
+    Route::patch('/networks/central/{tenant}/code', [AdminBranchNetworkController::class, 'updateCode'])->name('networks.code.update');
     Route::post('/billing/settings', [AdminBillingController::class, 'updateSettings'])->name('billing.settings.update');
     Route::patch('/billing/{payment}/approve', [AdminBillingController::class, 'approve'])->name('billing.approve');
     Route::patch('/billing/{payment}/reject', [AdminBillingController::class, 'reject'])->name('billing.reject');
@@ -111,6 +120,18 @@ Route::middleware(['auth', 'role:owner,employee', 'tenant.onboarded'])->prefix('
     Route::get('/billing', [TenantBillingController::class, 'index'])->name('billing.index');
     Route::post('/billing/{invoice}/payment', [TenantBillingController::class, 'submit'])
         ->name('billing.submit')->middleware('role:owner');
+});
+
+Route::middleware(['auth', 'role:owner', 'tenant.onboarded'])->prefix('tenant/network')->name('tenant.network.')->group(function () {
+    Route::get('/', [TenantBranchNetworkController::class, 'index'])->name('index');
+    Route::post('/enable', [TenantBranchNetworkController::class, 'enable'])->name('enable');
+    Route::patch('/code', [TenantBranchNetworkController::class, 'updateCode'])->name('code.update');
+    Route::post('/join', [TenantBranchNetworkController::class, 'join'])->name('join');
+    Route::patch('/{relationship}/decision', [TenantBranchNetworkController::class, 'parentDecision'])->name('decision');
+    Route::post('/{relationship}/exit-request', [TenantBranchNetworkController::class, 'requestExit'])->name('exit.request');
+    Route::patch('/{relationship}/exit-decision', [TenantBranchNetworkController::class, 'decideExit'])->name('exit.decision');
+    Route::post('/{relationship}/detach', [TenantBranchNetworkController::class, 'detach'])->name('detach');
+    Route::post('/{tenant}/impersonate', [ImpersonationController::class, 'start'])->name('impersonate');
 });
 
 Route::middleware(['auth', 'role:owner,employee', 'tenant.onboarded', 'subscription.active'])->prefix('tenant')->name('tenant.')->group(function () {

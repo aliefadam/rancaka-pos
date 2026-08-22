@@ -43,12 +43,21 @@ class HandleInertiaRequests extends Middleware
                 'permissions' => $user?->isEmployee()
                     ? $user->effectivePermissions()
                     : null,
-                'impersonation' => $originalUser?->isSuperadmin() && $user?->tenant
+                'impersonation' => ($originalUser?->isSuperadmin() || $originalUser?->isOwner()) && $user?->tenant
                     ? [
                         'admin_name' => $originalUser->name,
+                        'actor_role' => $originalUser->role->value,
                         'tenant_name' => $user->tenant->name,
                     ]
                     : null,
+                'network' => $user?->tenant ? [
+                    'enabled' => (bool) config('billing.branch_network_enabled'),
+                    'tenant_type' => $user->tenant->tenant_type,
+                    'unread_notifications' => $user->unreadNotifications()->count(),
+                ] : null,
+            ],
+            'features' => [
+                'branch_network' => (bool) config('billing.branch_network_enabled'),
             ],
             'flash' => [
                 'success' => fn () => $request->session()->get('success'),

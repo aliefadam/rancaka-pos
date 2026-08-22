@@ -2,7 +2,8 @@
 
 ## Status Dokumen
 
-- Status: Keputusan bisnis lengkap, siap diturunkan menjadi rencana implementasi
+- Status: MVP end-to-end telah diimplementasikan
+- Verifikasi: 29 test fokus lulus (251 assertions) dan production frontend build lulus pada 22 Agustus 2026
 - Tanggal: 21 Agustus 2026
 - Cakupan: relasi tenant pusat–cabang, kode jaringan, persetujuan cabang, trial 7 hari, invoice gabungan, dashboard cabang, impersonation, pelepasan cabang, dan migrasi tenant mandiri menjadi cabang
 

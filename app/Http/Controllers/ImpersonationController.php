@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\Tenant;
+use App\Models\TenantBranchRelationship;
+use App\Models\TenantImpersonationLog;
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -13,9 +15,20 @@ class ImpersonationController extends Controller
 {
     private const SESSION_KEY = 'impersonation.original_user_id';
 
+    private const LOG_KEY = 'impersonation.log_id';
+
     public function start(Request $request, Tenant $tenant): RedirectResponse
     {
-        abort_unless($request->user()?->isSuperadmin(), 403);
+        $actor = $request->user();
+        $relationship = TenantBranchRelationship::query()
+            ->where('branch_tenant_id', $tenant->id)
+            ->whereIn('status', ['approved_pending_billing', 'active', 'exit_requested', 'detached_pending'])
+            ->latest()->first();
+        $isRelatedOwner = $actor?->isOwner() && $relationship?->parent_tenant_id === $actor->tenant_id;
+        abort_unless($actor?->isSuperadmin() || $isRelatedOwner, 403);
+        if ($isRelatedOwner) {
+            abort_unless($tenant->status === 'active' && $relationship->status !== 'detached', 403);
+        }
 
         if ($request->session()->has(self::SESSION_KEY)) {
             throw ValidationException::withMessages([
@@ -30,7 +43,16 @@ class ImpersonationController extends Controller
             ]);
         }
 
-        $request->session()->put(self::SESSION_KEY, $request->user()->id);
+        $log = TenantImpersonationLog::create([
+            'actor_user_id' => $actor->id,
+            'parent_tenant_id' => $relationship?->parent_tenant_id,
+            'branch_tenant_id' => $tenant->id,
+            'impersonated_user_id' => $owner->id,
+            'started_at' => now(),
+            'ip_address' => $request->ip(),
+            'user_agent' => $request->userAgent(),
+        ]);
+        $request->session()->put([self::SESSION_KEY => $actor->id, self::LOG_KEY => $log->id]);
         Auth::login($owner);
         $request->session()->regenerate();
 
@@ -44,13 +66,14 @@ class ImpersonationController extends Controller
         abort_unless($originalUserId, 403);
 
         $admin = User::query()->find($originalUserId);
-        abort_unless($admin?->isSuperadmin(), 403);
+        abort_unless($admin?->isSuperadmin() || $admin?->isOwner(), 403);
 
-        $request->session()->forget(self::SESSION_KEY);
+        TenantImpersonationLog::query()->whereKey($request->session()->get(self::LOG_KEY))->whereNull('ended_at')->update(['ended_at' => now()]);
+        $request->session()->forget([self::SESSION_KEY, self::LOG_KEY]);
         Auth::login($admin);
         $request->session()->regenerate();
 
-        return redirect()->route('admin.tenants.index')
+        return redirect()->route($admin->isSuperadmin() ? 'admin.tenants.index' : 'tenant.network.index')
             ->with('success', 'Mode impersonate telah dihentikan.');
     }
 }
