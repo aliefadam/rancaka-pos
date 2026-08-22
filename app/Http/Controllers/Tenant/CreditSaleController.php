@@ -3,8 +3,8 @@
 namespace App\Http\Controllers\Tenant;
 
 use App\Http\Controllers\Controller;
-use App\Models\CreditSale;
 use App\Models\CreditPayment;
+use App\Models\CreditSale;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -24,13 +24,24 @@ class CreditSaleController extends Controller
             $query->where(fn ($q) => $q->whereHas('customer', fn ($c) => $c->where('name', 'like', "%{$search}%"))
                 ->orWhereHas('transaction', fn ($t) => $t->where('invoice_number', 'like', "%{$search}%")));
         }
-        if (in_array($request->input('status'), ['outstanding', 'paid'], true)) $query->where('status', $request->input('status'));
+        if (in_array($request->input('status'), ['outstanding', 'paid'], true)) {
+            $query->where('status', $request->input('status'));
+        }
+
+        $filteredOutstanding = (clone $query)->where('status', 'outstanding');
+        $outstandingTotal = (int) (clone $filteredOutstanding)
+            ->selectRaw('COALESCE(SUM(total_amount - paid_amount), 0) AS total')
+            ->value('total');
+        $outstandingCustomers = (clone $filteredOutstanding)
+            ->distinct()
+            ->count('credit_customer_id');
+
         return Inertia::render('Tenant/CreditSales/Index', [
             'creditSales' => $query->latest()->paginate(15)->withQueryString(),
             'filters' => $request->only('search', 'status'),
             'summary' => [
-                'outstanding' => CreditSale::where('tenant_id', $tenantId)->where('status', 'outstanding')->selectRaw('COALESCE(SUM(total_amount - paid_amount), 0) total')->value('total'),
-                'customers' => CreditSale::where('tenant_id', $tenantId)->where('status', 'outstanding')->distinct('credit_customer_id')->count('credit_customer_id'),
+                'outstanding' => $outstandingTotal,
+                'customers' => $outstandingCustomers,
             ],
         ]);
     }
@@ -38,6 +49,7 @@ class CreditSaleController extends Controller
     public function show(Request $request, CreditSale $creditSale): Response
     {
         abort_unless($creditSale->tenant_id === $request->user()->tenant_id, 403);
+
         return Inertia::render('Tenant/CreditSales/Show', ['creditSale' => $creditSale->load([
             'customer:id,name', 'transaction.items', 'transaction.user:id,name', 'payments.user:id,name',
         ])]);
@@ -50,7 +62,9 @@ class CreditSaleController extends Controller
         $payment = DB::transaction(function () use ($creditSale, $data, $request) {
             $sale = CreditSale::lockForUpdate()->findOrFail($creditSale->id);
             $remaining = $sale->total_amount - $sale->paid_amount;
-            if ($sale->status === 'paid' || $data['amount'] > $remaining) throw ValidationException::withMessages(['amount' => 'Nominal melebihi sisa hutang.']);
+            if ($sale->status === 'paid' || $data['amount'] > $remaining) {
+                throw ValidationException::withMessages(['amount' => 'Nominal melebihi sisa hutang.']);
+            }
             $payment = $sale->payments()->create(['tenant_id' => $sale->tenant_id, 'user_id' => $request->user()->id, 'amount' => $data['amount'], 'note' => $data['note'] ?? null]);
             $sale->paid_amount += $data['amount'];
             $sale->status = $sale->paid_amount >= $sale->total_amount ? 'paid' : 'outstanding';
