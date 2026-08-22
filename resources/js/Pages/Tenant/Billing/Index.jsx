@@ -43,7 +43,7 @@ export default function Index({ subscription, billing, paymentSettings, networkR
         <AdminLayout header="Billing">
             <Head title="Billing" />
             <Breadcrumb items={[{ label: 'Pengaturan' }, { label: 'Billing' }]} />
-            <div className="mx-auto max-w-5xl">
+            <div className="max-w-5xl">
                 <div className="rounded-3xl bg-gradient-to-br from-indigo-600 to-violet-700 p-7 text-white shadow-lg">
                     <p className="text-sm font-semibold text-indigo-100">
                         {subscription.plan_name}

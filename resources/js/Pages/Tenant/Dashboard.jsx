@@ -159,7 +159,7 @@ export default function Dashboard({
         <AdminLayout header="Dashboard">
             <Head title="Dashboard" />
 
-            <div className="mx-auto max-w-[1440px]">
+            <div className="max-w-[1440px]">
                 <header className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
                     <div>
                         <p className="text-xs font-bold uppercase tracking-[0.16em] text-indigo-600">Ringkasan toko</p>

@@ -19,7 +19,7 @@ export default function Index({ tenant, relationship, branches = [], summary, ne
 
     return <AdminLayout header="Jaringan Cabang"><Head title="Jaringan Cabang" />
         <Breadcrumb items={[{ label: 'Pengaturan' }, { label: 'Jaringan Cabang' }]} />
-        <div className="mx-auto max-w-7xl space-y-5">
+        <div className="max-w-7xl space-y-5">
         <section className="rounded-2xl border border-slate-200/70 bg-white p-6 shadow-sm shadow-slate-200/40 sm:p-8">
             <div className="flex flex-wrap items-end justify-between gap-6"><div><p className="text-xs font-semibold uppercase tracking-[.2em] text-indigo-600">Network desk</p><h1 className="mt-1 text-2xl font-bold text-slate-900">{tenant.tenant_type === 'central' ? 'Kendali jaringan usaha' : tenant.tenant_type === 'branch' ? 'Status cabang Anda' : 'Tumbuh sebagai jaringan'}</h1><p className="mt-2 max-w-xl text-sm leading-6 text-slate-500">Setiap toko tetap terisolasi. Persetujuan, billing, dan masa aktif terhubung melalui satu jalur yang dapat diaudit.</p></div>{tenant.tenant_type === 'central' && <div className="rounded-xl border border-slate-200/70 bg-slate-50 px-5 py-4"><p className="text-[10px] font-black uppercase tracking-[.16em] text-slate-400">Kode jaringan</p><p className="mt-1 font-mono text-xl font-black tracking-widest text-indigo-600">{tenant.branch_network_code}</p></div>}</div>
         </section>

@@ -49,7 +49,7 @@ export default function Edit({ account }) {
         <AdminLayout header="Akun Saya">
             <Head title="Akun Saya" />
             <Breadcrumb items={[{ label: 'Pengaturan' }, { label: 'Akun Saya' }]} />
-            <div className="mx-auto max-w-3xl space-y-5">
+            <div className="max-w-3xl space-y-5">
                 <section className="overflow-hidden rounded-2xl border border-slate-200/70 bg-white shadow-sm shadow-slate-200/40">
                     <div className="border-b border-slate-100 px-6 py-5">
                         <h2 className="font-bold text-slate-900">Foto profil</h2>

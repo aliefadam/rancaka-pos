@@ -76,7 +76,7 @@ export default function Create({ suppliers, products, rawMaterials }) {
                     { label: "Catat baru" },
                 ]}
             />
-            <form onSubmit={submit} className="mx-auto max-w-6xl space-y-5">
+            <form onSubmit={submit} className="max-w-6xl space-y-5">
                 <div className="flex items-end justify-between">
                     <div>
                         <p className="text-xs font-semibold uppercase tracking-[.2em] text-indigo-600">
