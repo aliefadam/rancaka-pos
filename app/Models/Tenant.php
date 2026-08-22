@@ -117,6 +117,16 @@ class Tenant extends Model
         return $this->hasMany(BillingInvoice::class);
     }
 
+    public function suppliers(): HasMany
+    {
+        return $this->hasMany(Supplier::class);
+    }
+
+    public function purchases(): HasMany
+    {
+        return $this->hasMany(Purchase::class);
+    }
+
     public function branchRelationships(): HasMany
     {
         return $this->hasMany(TenantBranchRelationship::class, 'parent_tenant_id');

@@ -12,7 +12,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
-#[Fillable(['name', 'unit', 'stock', 'is_active', 'tenant_id'])]
+#[Fillable(['name', 'unit', 'stock', 'average_cost', 'opening_cost_confirmed_at', 'opening_cost_confirmed_by', 'is_active', 'tenant_id'])]
 #[Appends(['is_low_stock'])]
 class RawMaterial extends Model
 {
@@ -25,6 +25,8 @@ class RawMaterial extends Model
     {
         return [
             'stock' => 'decimal:2',
+            'average_cost' => 'decimal:4',
+            'opening_cost_confirmed_at' => 'datetime',
             'is_active' => 'boolean',
         ];
     }

@@ -3,6 +3,7 @@
 namespace App\Http\Middleware;
 
 use App\Models\User;
+use App\Notifications\SupplierPayableNotification;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
 
@@ -55,6 +56,9 @@ class HandleInertiaRequests extends Middleware
                     'tenant_type' => $user->tenant->tenant_type,
                     'unread_notifications' => $user->unreadNotifications()->count(),
                 ] : null,
+                'supplier_payable_notifications' => $user?->tenant
+                    ? $user->unreadNotifications()->where('type', SupplierPayableNotification::class)->count()
+                    : 0,
             ],
             'features' => [
                 'branch_network' => (bool) config('billing.branch_network_enabled'),

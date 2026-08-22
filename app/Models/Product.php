@@ -21,7 +21,7 @@ class Product extends Model
     {
         return [
             'price' => 'integer',
-            'cost' => 'integer',
+            'cost' => 'decimal:4',
             'margin_percentage' => 'decimal:2',
             'track_stock' => 'boolean',
             'is_active' => 'boolean',

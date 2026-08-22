@@ -147,6 +147,7 @@ export default function Index({
                     comparison={comparison.expenses}
                     comparisonLabel={comparison.label}
                     inverseComparison
+                    footer={`Operasional ${summary.operatingExpenses} · supplier ${summary.supplierPayments}`}
                 />
                 <SummaryCard
                     label="Laba Bersih"
@@ -155,6 +156,7 @@ export default function Index({
                     tone={summary.netProfitValue < 0 ? 'amber' : 'indigo'}
                     comparison={comparison.netProfit}
                     comparisonLabel={comparison.label}
+                    footer={`HPP ${summary.costOfGoodsSold} · laba kotor ${summary.grossProfit}`}
                 />
                 <SummaryCard
                     label="Transaksi Selesai"

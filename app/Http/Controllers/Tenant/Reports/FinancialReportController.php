@@ -6,6 +6,7 @@ use App\Enums\TransactionStatus;
 use App\Http\Controllers\Controller;
 use App\Models\Expense;
 use App\Models\Product;
+use App\Models\SupplierPayment;
 use App\Models\Transaction;
 use App\Models\TransactionItem;
 use Illuminate\Http\Request;
@@ -39,11 +40,23 @@ class FinancialReportController extends Controller
             ->where('expense_date', '<', $periodEnd->toDateString())
             ->get(['amount', 'expense_date', 'created_at']);
 
+        $supplierPayments = SupplierPayment::query()
+            ->where('tenant_id', $tenantId)->where('status', 'valid')
+            ->where('payment_date', '>=', $periodStart->toDateString())
+            ->where('payment_date', '<', $periodEnd->toDateString())
+            ->get(['amount', 'payment_date', 'created_at']);
+
         $revenue = (int) $transactions->sum('total');
-        $expenseTotal = (int) $expenses->sum('amount');
+        $operatingExpenseTotal = (int) $expenses->sum('amount');
+        $supplierPaymentTotal = (int) $supplierPayments->sum('amount');
+        $expenseTotal = $operatingExpenseTotal + $supplierPaymentTotal;
         $netProfit = $revenue - $expenseTotal;
         $previousSummary = $this->summaryForRange($tenantId, $previousStart, $previousEnd);
-        $breakdown = $this->buildBreakdown($periodStart, $periodEnd, $granularity, $transactions, $expenses);
+        $breakdown = $this->buildBreakdown($periodStart, $periodEnd, $granularity, $transactions, $expenses, $supplierPayments);
+        $costOfGoodsSold = (int) TransactionItem::query()->join('transactions', 'transactions.id', '=', 'transaction_items.transaction_id')
+            ->where('transactions.tenant_id', $tenantId)->where('transactions.status', TransactionStatus::Completed->value)
+            ->where('transactions.created_at', '>=', $periodStart)->where('transactions.created_at', '<', $periodEnd)
+            ->sum('transaction_items.total_cost_snapshot');
 
         $salesByProduct = TransactionItem::query()
             ->selectRaw('transaction_items.product_id, SUM(transaction_items.quantity) as sold, SUM(transaction_items.subtotal) as revenue')
@@ -99,6 +112,13 @@ class FinancialReportController extends Controller
                 'revenueValue' => $revenue,
                 'expenses' => $this->formatRupiah($expenseTotal),
                 'expensesValue' => $expenseTotal,
+                'operatingExpenses' => $this->formatRupiah($operatingExpenseTotal),
+                'operatingExpensesValue' => $operatingExpenseTotal,
+                'supplierPayments' => $this->formatRupiah($supplierPaymentTotal),
+                'supplierPaymentsValue' => $supplierPaymentTotal,
+                'costOfGoodsSold' => $this->formatRupiah($costOfGoodsSold),
+                'costOfGoodsSoldValue' => $costOfGoodsSold,
+                'grossProfit' => $this->formatRupiah($revenue - $costOfGoodsSold),
                 'netProfit' => $this->formatRupiah($netProfit),
                 'netProfitValue' => $netProfit,
                 'transactionCount' => $transactions->count(),
@@ -235,6 +255,8 @@ class FinancialReportController extends Controller
             ->where('expense_date', '>=', $start->toDateString())
             ->where('expense_date', '<', $end->toDateString())
             ->sum('amount');
+        $expenses += (int) SupplierPayment::query()->where('tenant_id', $tenantId)->where('status', 'valid')
+            ->where('payment_date', '>=', $start->toDateString())->where('payment_date', '<', $end->toDateString())->sum('amount');
 
         return ['revenue' => $revenue, 'expenses' => $expenses, 'netProfit' => $revenue - $expenses];
     }
@@ -250,6 +272,7 @@ class FinancialReportController extends Controller
         string $granularity,
         Collection $transactions,
         Collection $expenses,
+        Collection $supplierPayments,
     ): array {
         $buckets = $this->emptyBuckets($start, $end, $granularity);
 
@@ -275,6 +298,15 @@ class FinancialReportController extends Controller
 
             if (isset($buckets[$key])) {
                 $buckets[$key]['expenses'] += (int) $expense->amount;
+            }
+        }
+
+        foreach ($supplierPayments as $payment) {
+            $bucketDate = $granularity === 'hourly' && $payment->created_at?->isSameDay($payment->payment_date)
+                ? $payment->created_at : $payment->payment_date->copy()->startOfDay();
+            $key = $this->bucketKey($bucketDate, $granularity);
+            if (isset($buckets[$key])) {
+                $buckets[$key]['expenses'] += (int) $payment->amount;
             }
         }
 

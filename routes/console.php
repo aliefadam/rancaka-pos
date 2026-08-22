@@ -1,6 +1,7 @@
 <?php
 
 use App\Services\BranchNetworkService;
+use App\Services\SupplierPayableReminderService;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Schedule;
@@ -14,3 +15,6 @@ Schedule::call(fn () => app(BranchNetworkService::class)->syncDueTransitions())
 
 Schedule::call(fn () => app(BranchNetworkService::class)->sendNetworkExpiryNotifications())
     ->dailyAt('08:00')->name('branch-network-expiry-notifications')->withoutOverlapping();
+
+Schedule::call(fn () => app(SupplierPayableReminderService::class)->send())
+    ->dailyAt('08:15')->name('supplier-payable-reminders')->withoutOverlapping();

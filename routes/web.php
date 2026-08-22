@@ -20,8 +20,10 @@ use App\Http\Controllers\Tenant\CreditSaleController as TenantCreditSaleControll
 use App\Http\Controllers\Tenant\DashboardController as TenantDashboardController;
 use App\Http\Controllers\Tenant\EmployeeController as TenantEmployeeController;
 use App\Http\Controllers\Tenant\ExpenseController as TenantExpenseController;
+use App\Http\Controllers\Tenant\OpeningCostController as TenantOpeningCostController;
 use App\Http\Controllers\Tenant\PosController as TenantPosController;
 use App\Http\Controllers\Tenant\ProductController as TenantProductController;
+use App\Http\Controllers\Tenant\PurchaseController as TenantPurchaseController;
 use App\Http\Controllers\Tenant\RawMaterialController as TenantRawMaterialController;
 use App\Http\Controllers\Tenant\ReceiptController as TenantReceiptController;
 use App\Http\Controllers\Tenant\Reports\FinancialReportController as TenantFinancialReportController;
@@ -32,6 +34,9 @@ use App\Http\Controllers\Tenant\SettingsController as TenantSettingsController;
 use App\Http\Controllers\Tenant\ShiftController as TenantShiftController;
 use App\Http\Controllers\Tenant\Stock\ProductStockController as TenantProductStockController;
 use App\Http\Controllers\Tenant\Stock\RawMaterialStockController as TenantRawMaterialStockController;
+use App\Http\Controllers\Tenant\SupplierController as TenantSupplierController;
+use App\Http\Controllers\Tenant\SupplierPayableController as TenantSupplierPayableController;
+use App\Http\Controllers\Tenant\SupplierPaymentController as TenantSupplierPaymentController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
@@ -181,6 +186,23 @@ Route::middleware(['auth', 'role:owner,employee', 'tenant.onboarded', 'subscript
         ->middlewareFor('store', 'permission:expenses.create')
         ->middlewareFor('update', 'permission:expenses.edit')
         ->middlewareFor('destroy', 'permission:expenses.delete');
+
+    Route::resource('suppliers', TenantSupplierController::class)->only(['index', 'store', 'update'])
+        ->middlewareFor('index', 'permission:suppliers.view')
+        ->middlewareFor('store', 'permission:suppliers.create')
+        ->middlewareFor('update', 'permission:suppliers.edit');
+    Route::get('/purchases/opening-costs', [TenantOpeningCostController::class, 'index'])->name('purchases.opening-costs.index')->middleware(['role:owner', 'permission:purchases.create']);
+    Route::put('/purchases/opening-costs/{rawMaterial}', [TenantOpeningCostController::class, 'update'])->name('purchases.opening-costs.update')->middleware(['role:owner', 'permission:purchases.create']);
+    Route::get('/purchases', [TenantPurchaseController::class, 'index'])->name('purchases.index')->middleware('permission:purchases.view');
+    Route::get('/purchases/create', [TenantPurchaseController::class, 'create'])->name('purchases.create')->middleware('permission:purchases.create');
+    Route::post('/purchases', [TenantPurchaseController::class, 'store'])->name('purchases.store')->middleware('permission:purchases.create');
+    Route::get('/purchases/{purchase}', [TenantPurchaseController::class, 'show'])->name('purchases.show')->middleware('permission:purchases.view');
+    Route::get('/purchases/{purchase}/invoice', [TenantPurchaseController::class, 'invoice'])->name('purchases.invoice')->middleware('permission:purchases.view');
+    Route::patch('/purchases/{purchase}/void', [TenantPurchaseController::class, 'void'])->name('purchases.void')->middleware(['role:owner', 'permission:purchases.void']);
+    Route::post('/purchases/{purchase}/payments', [TenantSupplierPaymentController::class, 'store'])->name('purchases.payments.store')->middleware('permission:purchases.pay');
+    Route::patch('/supplier-payments/{payment}/void', [TenantSupplierPaymentController::class, 'void'])->name('supplier-payments.void')->middleware(['role:owner', 'permission:purchases.void']);
+    Route::get('/supplier-payments/{payment}/proof', [TenantSupplierPaymentController::class, 'proof'])->name('supplier-payments.proof')->middleware('permission:purchases.view');
+    Route::get('/supplier-payables', [TenantSupplierPayableController::class, 'index'])->name('supplier-payables.index')->middleware('permission:supplier-payables.view');
 
     Route::middleware('role:owner')->group(function () {
         Route::resource('employees', TenantEmployeeController::class)

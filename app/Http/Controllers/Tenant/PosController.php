@@ -466,12 +466,14 @@ class PosController extends Controller
                 $product = $entry['product'];
                 $priceOption = $entry['price_option'];
 
-                $transaction->items()->create([
+                $transactionItem = $transaction->items()->create([
                     'product_id' => $product->id,
                     'product_price_option_id' => $priceOption?->id,
                     'product_name' => $product->name,
                     'price_option_name' => $priceOption?->name,
                     'unit_price' => $entry['unit_price'],
+                    'cost_snapshot' => $product->cost,
+                    'total_cost_snapshot' => (float) $product->cost * $entry['quantity'],
                     'quantity' => $entry['quantity'],
                     'note' => $entry['note'],
                     'discount_type' => $entry['discount_type'],
@@ -488,6 +490,7 @@ class PosController extends Controller
                             -$entry['quantity'],
                             'Terjual'.($priceOption ? " ({$priceOption->name})" : '')." di transaksi {$invoiceNumber}",
                             $request->user()->id,
+                            ['reference' => $transactionItem],
                         );
                     }
 
@@ -499,6 +502,7 @@ class PosController extends Controller
                             -$consumed,
                             "Terjual di transaksi {$invoiceNumber}",
                             $request->user()->id,
+                            ['reference' => $transactionItem],
                         );
                     }
                 }

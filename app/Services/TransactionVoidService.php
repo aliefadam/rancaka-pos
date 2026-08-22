@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Enums\StockMovementType;
 use App\Enums\TransactionStatus;
+use App\Models\StockMovement;
 use App\Models\Transaction;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
@@ -68,22 +69,26 @@ class TransactionVoidService
             }
 
             if ($item->product->track_stock) {
+                $original = StockMovement::query()->whereMorphedTo('reference', $item)->whereMorphedTo('stockable', $item->product)->where('type', StockMovementType::Sale)->oldest('id')->first();
                 StockMovementService::record(
                     $item->product,
                     StockMovementType::Adjustment,
                     $item->quantity,
                     $note,
                     $actor->id,
+                    ['reference' => $item, 'unit_cost' => $original?->unit_cost_snapshot ?? $item->cost_snapshot],
                 );
             }
 
             foreach ($item->product->rawMaterials as $rawMaterial) {
+                $original = StockMovement::query()->whereMorphedTo('reference', $item)->whereMorphedTo('stockable', $rawMaterial)->where('type', StockMovementType::Sale)->oldest('id')->first();
                 StockMovementService::record(
                     $rawMaterial,
                     StockMovementType::Adjustment,
                     $rawMaterial->pivot->quantity * $item->quantity,
                     $note,
                     $actor->id,
+                    ['reference' => $item, 'unit_cost' => $original?->unit_cost_snapshot ?? $rawMaterial->average_cost],
                 );
             }
         }

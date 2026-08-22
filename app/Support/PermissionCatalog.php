@@ -60,6 +60,32 @@ class PermissionCatalog
                 ],
             ],
             [
+                'key' => 'suppliers',
+                'label' => 'Supplier',
+                'actions' => [
+                    ['key' => 'view', 'label' => 'Lihat'],
+                    ['key' => 'create', 'label' => 'Tambah'],
+                    ['key' => 'edit', 'label' => 'Ubah'],
+                ],
+            ],
+            [
+                'key' => 'purchases',
+                'label' => 'Pembelian',
+                'actions' => [
+                    ['key' => 'view', 'label' => 'Lihat'],
+                    ['key' => 'create', 'label' => 'Buat'],
+                    ['key' => 'pay', 'label' => 'Bayar Hutang'],
+                    ['key' => 'void', 'label' => 'Batalkan'],
+                ],
+            ],
+            [
+                'key' => 'supplier-payables',
+                'label' => 'Hutang Supplier',
+                'actions' => [
+                    ['key' => 'view', 'label' => 'Lihat'],
+                ],
+            ],
+            [
                 'key' => 'stock-products',
                 'label' => 'Stok Produk',
                 'actions' => [
