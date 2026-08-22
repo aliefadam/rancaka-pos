@@ -1,8 +1,9 @@
+import Breadcrumb from '@/Components/Breadcrumb';
 import ConfirmDialog from '@/Components/ConfirmDialog';
 import { useToast } from '@/Contexts/ToastContext';
 import AdminLayout from '@/Layouts/AdminLayout';
 import RoleFormModal from '@/Pages/Tenant/Roles/RoleFormModal';
-import { Head, Link, router } from '@inertiajs/react';
+import { Head, router } from '@inertiajs/react';
 import { useState } from 'react';
 
 export default function Index({ roles, menus }) {
@@ -54,19 +55,10 @@ export default function Index({ roles, menus }) {
     return (
         <AdminLayout header="Role & Hak Akses">
             <Head title="Role & Hak Akses" />
+            <Breadcrumb items={[{ label: 'Tim' }, { label: 'Karyawan', href: route('tenant.employees.index') }, { label: 'Role & Hak Akses' }]} />
 
             <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                 <div>
-                    <div className="flex items-center gap-2 text-sm text-slate-400">
-                        <Link
-                            href={route('tenant.employees.index')}
-                            className="hover:text-indigo-600"
-                        >
-                            Karyawan
-                        </Link>
-                        <i className="fi fi-rr-angle-small-right text-xs" />
-                        <span>Role &amp; Hak Akses</span>
-                    </div>
                     <h2 className="mt-1 text-xl font-bold text-slate-900">
                         Role &amp; Hak Akses
                     </h2>

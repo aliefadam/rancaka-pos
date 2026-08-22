@@ -1,3 +1,4 @@
+import Breadcrumb from '@/Components/Breadcrumb';
 import AdminLayout from '@/Layouts/AdminLayout';
 import { Head, Link, router } from '@inertiajs/react';
 import {
@@ -57,7 +58,7 @@ function Stat({ icon, label, value, note, tone = 'indigo' }) {
         blue: 'bg-blue-50 text-blue-600',
     };
     return (
-        <div className="min-w-0 rounded-2xl border border-slate-200/70 bg-white p-3.5 shadow-sm shadow-slate-200/30 sm:p-4">
+        <div className="min-w-0 rounded-2xl border border-slate-200/70 bg-white p-3.5 shadow-sm shadow-slate-200/40 sm:p-4">
             <div className="flex min-w-0 items-center gap-2.5">
                 <span className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg sm:h-9 sm:w-9 sm:rounded-xl ${tones[tone]}`}>
                     <i className={`fi ${icon}`} />
@@ -80,7 +81,7 @@ function Stat({ icon, label, value, note, tone = 'indigo' }) {
 
 function Section({ title, subtitle, children, className = '' }) {
     return (
-        <section className={`rounded-2xl border border-slate-200/70 bg-white shadow-sm shadow-slate-200/30 ${className}`}>
+        <section className={`rounded-2xl border border-slate-200/70 bg-white shadow-sm shadow-slate-200/40 ${className}`}>
             <div className="border-b border-slate-100 px-5 py-4">
                 <h3 className="text-sm font-semibold text-slate-900">{title}</h3>
                 {subtitle && <p className="mt-0.5 text-xs text-slate-400">{subtitle}</p>}
@@ -108,6 +109,7 @@ export default function Show({
     return (
         <AdminLayout header="Detail Tenant">
             <Head title={`Detail ${tenant.name}`} />
+            <Breadcrumb items={[{ label: 'SaaS' }, { label: 'Tenant', href: route('admin.tenants.index') }, { label: tenant.name }]} homeHref={route('admin.dashboard')} />
 
             <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
                 <div>

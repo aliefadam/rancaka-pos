@@ -98,7 +98,7 @@ export default function Create({ suppliers, products, rawMaterials }) {
                         {Object.values(form.errors)[0]}
                     </div>
                 )}
-                <section className="grid gap-4 rounded-2xl border border-slate-200 bg-white p-5 md:grid-cols-3">
+                <section className="grid gap-4 rounded-2xl border border-slate-200/70 bg-white p-5 shadow-sm shadow-slate-200/40 md:grid-cols-3">
                     <label className="text-sm text-slate-600">
                         Supplier *
                         <select
@@ -142,7 +142,7 @@ export default function Create({ suppliers, products, rawMaterials }) {
                         />
                     </label>
                 </section>
-                <section className="rounded-2xl border border-slate-200 bg-white">
+                <section className="rounded-2xl border border-slate-200/70 bg-white shadow-sm shadow-slate-200/40">
                     <div className="flex items-center justify-between border-b p-5">
                         <div>
                             <h3 className="font-bold text-slate-900">
@@ -255,7 +255,7 @@ export default function Create({ suppliers, products, rawMaterials }) {
                     </div>
                 </section>
                 <div className="grid gap-5 lg:grid-cols-[1fr_380px]">
-                    <section className="space-y-4 rounded-2xl border border-slate-200 bg-white p-5">
+                    <section className="space-y-4 rounded-2xl border border-slate-200/70 bg-white p-5 shadow-sm shadow-slate-200/40">
                         <h3 className="font-bold">Pembayaran</h3>
                         <div className="grid grid-cols-3 gap-2">
                             {[

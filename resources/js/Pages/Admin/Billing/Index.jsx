@@ -1,3 +1,4 @@
+import Breadcrumb from '@/Components/Breadcrumb';
 import AdminLayout from '@/Layouts/AdminLayout';
 import Pagination from '@/Components/Pagination';
 import { Head, router, useForm } from '@inertiajs/react';
@@ -27,9 +28,10 @@ export default function Index({ payments, settings }) {
     return (
         <AdminLayout header="Billing Tenant">
             <Head title="Billing Tenant" />
+            <Breadcrumb items={[{ label: 'SaaS' }, { label: 'Billing Tenant' }]} homeHref={route('admin.dashboard')} />
             <form
                 onSubmit={saveQris}
-                className="mb-6 grid gap-5 rounded-2xl border border-slate-200 bg-white p-5 lg:grid-cols-[1fr_auto]"
+                className="mb-6 grid gap-5 rounded-2xl border border-slate-200/70 bg-white p-5 shadow-sm shadow-slate-200/40 lg:grid-cols-[1fr_auto]"
             >
                 <div>
                     <h2 className="font-bold text-slate-900">
@@ -124,7 +126,7 @@ export default function Index({ payments, settings }) {
                     Periksa bukti transfer sebelum memperpanjang langganan.
                 </p>
             </div>
-            <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white">
+            <div className="overflow-hidden rounded-2xl border border-slate-200/70 bg-white shadow-sm shadow-slate-200/40">
                 {payments.data.map((payment) => (
                     <div
                         key={payment.id}

@@ -1,3 +1,4 @@
+import Breadcrumb from '@/Components/Breadcrumb';
 import AdminLayout from '@/Layouts/AdminLayout';
 import { Head, useForm, usePage } from '@inertiajs/react';
 
@@ -41,6 +42,7 @@ export default function Index({ subscription, billing, paymentSettings, networkR
     return (
         <AdminLayout header="Billing">
             <Head title="Billing" />
+            <Breadcrumb items={[{ label: 'Pengaturan' }, { label: 'Billing' }]} />
             <div className="mx-auto max-w-5xl">
                 <div className="rounded-3xl bg-gradient-to-br from-indigo-600 to-violet-700 p-7 text-white shadow-lg">
                     <p className="text-sm font-semibold text-indigo-100">
@@ -73,7 +75,7 @@ export default function Index({ subscription, billing, paymentSettings, networkR
                 )}
                 {invoice && !paymentCentralized && (
                     <div className="mt-6 grid gap-6 lg:grid-cols-2">
-                        <section className="rounded-2xl border border-slate-200 bg-white p-6">
+                        <section className="rounded-2xl border border-slate-200/70 bg-white p-6 shadow-sm shadow-slate-200/40">
                             <h3 className="font-bold text-slate-900">
                                 Invoice {invoice.number}
                             </h3>
@@ -118,7 +120,7 @@ export default function Index({ subscription, billing, paymentSettings, networkR
                                 </div>
                             )}
                         </section>
-                        <section className="rounded-2xl border border-slate-200 bg-white p-6">
+                        <section className="rounded-2xl border border-slate-200/70 bg-white p-6 shadow-sm shadow-slate-200/40">
                             <h3 className="font-bold text-slate-900">
                                 Konfirmasi pembayaran
                             </h3>
@@ -202,7 +204,7 @@ export default function Index({ subscription, billing, paymentSettings, networkR
                         </section>
                     </div>
                 )}
-                <section className="mt-6 overflow-hidden rounded-2xl border border-slate-200 bg-white">
+                <section className="mt-6 overflow-hidden rounded-2xl border border-slate-200/70 bg-white shadow-sm shadow-slate-200/40">
                     <div className="border-b border-slate-100 p-5">
                         <h3 className="font-bold text-slate-900">
                             Riwayat invoice

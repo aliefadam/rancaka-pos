@@ -1,3 +1,4 @@
+import Breadcrumb from '@/Components/Breadcrumb';
 import Pagination from '@/Components/Pagination';
 import AdminLayout from '@/Layouts/AdminLayout';
 import { Head, Link, router } from '@inertiajs/react';
@@ -6,7 +7,7 @@ import { priorityUi, shortDate, statusUi, typeLabels } from './ticketUi';
 const MetricCard = ({ status, value }) => {
     const ui = statusUi[status];
     return (
-        <article className="group relative overflow-hidden rounded-2xl border border-slate-200/80 bg-white p-4 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md">
+        <article className="group relative overflow-hidden rounded-2xl border border-slate-200/70 bg-white p-4 shadow-sm shadow-slate-200/40 transition hover:-translate-y-0.5 hover:shadow-md">
             <span className={`absolute inset-y-0 left-0 w-1 ${ui.dot}`} />
             <div className="flex items-center justify-between gap-4 pl-1">
                 <div><p className="text-[10px] font-bold uppercase tracking-[0.15em] text-slate-400">{ui.label}</p><p className="mt-1 text-2xl font-black tracking-tight text-slate-900">{value}</p></div>
@@ -22,6 +23,7 @@ export default function Index({ tickets, filters, metrics, developers, options, 
     return (
         <AdminLayout header="Development Tickets">
             <Head title="Development Tickets" />
+            <Breadcrumb items={[{ label: 'Development' }, { label: 'Development Tickets' }]} homeHref={route('admin.dashboard')} />
 
             <section className="relative overflow-hidden rounded-3xl bg-slate-950 px-6 py-7 text-white shadow-xl shadow-slate-300/25 sm:px-8">
                 <div className="absolute -right-16 -top-20 h-56 w-56 rotate-12 rounded-[3rem] border-[28px] border-sky-400/10" />
@@ -40,7 +42,7 @@ export default function Index({ tickets, filters, metrics, developers, options, 
                 {Object.keys(statusUi).map((status) => <MetricCard key={status} status={status} value={metrics[status] ?? 0} />)}
             </section>
 
-            <section className="mt-5 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+            <section className="mt-5 overflow-hidden rounded-2xl border border-slate-200/70 bg-white shadow-sm shadow-slate-200/40">
                 <form onSubmit={(event) => { event.preventDefault(); applyFilters(Object.fromEntries(new FormData(event.currentTarget))); }} className="grid gap-3 border-b border-slate-100 bg-slate-50/60 p-4 lg:grid-cols-[minmax(220px,1fr)_repeat(4,minmax(135px,auto))_auto]">
                     <div className="relative"><i className="fi fi-rr-search absolute left-3 top-1/2 -translate-y-1/2 text-xs text-slate-400" /><input name="search" defaultValue={filters.search} placeholder="Cari nomor atau judul tiket" className="w-full rounded-xl border-slate-200 py-2.5 pl-9 pr-3 text-sm" /></div>
                     <select name="status" defaultValue={filters.status} className="rounded-xl border-slate-200 py-2.5 text-xs"><option value="">Semua status</option>{options.statuses.map((item) => <option key={item.value} value={item.value}>{item.label}</option>)}</select>

@@ -92,7 +92,7 @@ function SummaryCard({ item }) {
     const dark = item.tone === 'ink';
 
     return (
-        <article className={`relative min-w-0 overflow-hidden rounded-[1.35rem] border p-5 shadow-sm sm:p-6 ${tone.card}`}>
+        <article className={`relative min-w-0 overflow-hidden rounded-2xl border p-5 shadow-sm sm:p-6 ${tone.card}`}>
             {dark && (
                 <>
                     <span className="absolute -right-10 -top-14 h-40 w-40 rounded-full border-[24px] border-white/[0.035]" />
@@ -227,7 +227,7 @@ export default function Dashboard({
                 </section>
 
                 <section className="mt-5 grid gap-4 lg:grid-cols-[minmax(0,1.85fr)_minmax(280px,0.8fr)]">
-                    <article className="min-w-0 rounded-[1.35rem] border border-slate-200/80 bg-white p-5 shadow-sm shadow-slate-200/40 sm:p-6">
+                    <article className="min-w-0 rounded-2xl border border-slate-200/70 bg-white p-5 shadow-sm shadow-slate-200/40 sm:p-6">
                         <div className="flex items-start justify-between gap-4">
                             <div>
                                 <p className="text-xs font-bold uppercase tracking-[0.14em] text-slate-400">Tren penjualan</p>
@@ -260,7 +260,7 @@ export default function Dashboard({
                         </div>
                     </article>
 
-                    <aside className="rounded-[1.35rem] border border-slate-200/80 bg-white p-5 shadow-sm shadow-slate-200/40 sm:p-6">
+                    <aside className="rounded-2xl border border-slate-200/70 bg-white p-5 shadow-sm shadow-slate-200/40 sm:p-6">
                         <div className="flex items-center justify-between gap-3">
                             <div>
                                 <p className="text-xs font-bold uppercase tracking-[0.14em] text-amber-600">Perlu perhatian</p>
@@ -283,7 +283,7 @@ export default function Dashboard({
                 </section>
 
                 <section className="mt-5 grid gap-4 lg:grid-cols-2">
-                    <article className="rounded-[1.35rem] border border-slate-200/80 bg-white shadow-sm shadow-slate-200/40">
+                    <article className="rounded-2xl border border-slate-200/70 bg-white shadow-sm shadow-slate-200/40">
                         <div className="border-b border-slate-100 px-5 py-4 sm:px-6">
                             <p className="text-xs font-bold uppercase tracking-[0.14em] text-emerald-600">Produk terlaris</p>
                             <h2 className="mt-1 text-base font-black text-slate-900">Tiga pilihan pelanggan</h2>
@@ -303,7 +303,7 @@ export default function Dashboard({
                         </div>
                     </article>
 
-                    <article className="rounded-[1.35rem] border border-slate-200/80 bg-white p-5 shadow-sm shadow-slate-200/40 sm:p-6">
+                    <article className="rounded-2xl border border-slate-200/70 bg-white p-5 shadow-sm shadow-slate-200/40 sm:p-6">
                         <p className="text-xs font-bold uppercase tracking-[0.14em] text-blue-600">Metode pembayaran</p>
                         <h2 className="mt-1 text-base font-black text-slate-900">Komposisi penerimaan</h2>
                         <div className="mt-5 space-y-4">

@@ -94,7 +94,7 @@ export default function Show({ purchase }) {
             </div>
             <div className="grid gap-5 lg:grid-cols-[1fr_360px]">
                 <main className="space-y-5">
-                    <section className="overflow-hidden rounded-2xl border border-slate-200 bg-white">
+                    <section className="overflow-hidden rounded-2xl border border-slate-200/70 bg-white shadow-sm shadow-slate-200/40">
                         <div className="border-b px-5 py-4 font-bold">
                             Barang diterima
                         </div>
@@ -116,7 +116,7 @@ export default function Show({ purchase }) {
                             </div>
                         ))}
                     </section>
-                    <section className="rounded-2xl border border-slate-200 bg-white p-5">
+                    <section className="rounded-2xl border border-slate-200/70 bg-white p-5 shadow-sm shadow-slate-200/40">
                         <h3 className="font-bold">Jejak pembayaran</h3>
                         <div className="mt-4 space-y-3">
                             {purchase.payments.map((p) => (

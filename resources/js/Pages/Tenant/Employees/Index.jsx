@@ -1,3 +1,4 @@
+import Breadcrumb from '@/Components/Breadcrumb';
 import ConfirmDialog from '@/Components/ConfirmDialog';
 import Pagination from '@/Components/Pagination';
 import { useToast } from '@/Contexts/ToastContext';
@@ -93,6 +94,7 @@ export default function Index({ employees, filters, roles }) {
     return (
         <AdminLayout header="Karyawan">
             <Head title="Karyawan" />
+            <Breadcrumb items={[{ label: 'Tim' }, { label: 'Karyawan' }]} />
 
             <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                 <div>

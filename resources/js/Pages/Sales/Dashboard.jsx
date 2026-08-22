@@ -18,7 +18,7 @@ export default function Dashboard({ sales, downlines, metrics, payouts }) {
         <AdminLayout header="Dashboard Referral">
             <Head title="Dashboard Referral" />
 
-            <section className="relative overflow-hidden rounded-[28px] bg-[#10251f] p-6 text-white shadow-xl shadow-emerald-950/10 sm:p-8">
+            <section className="relative overflow-hidden rounded-3xl bg-[#10251f] p-6 text-white shadow-xl shadow-emerald-950/10 sm:p-8">
                 <div className="absolute -right-20 -top-28 h-72 w-72 rounded-full border-[44px] border-[#c8f169]/10" />
                 <div className="absolute bottom-0 left-1/2 h-px w-72 -translate-x-1/2 bg-gradient-to-r from-transparent via-[#c8f169]/60 to-transparent" />
                 <div className="relative grid gap-8 lg:grid-cols-[1fr_auto] lg:items-end">
@@ -41,7 +41,7 @@ export default function Dashboard({ sales, downlines, metrics, payouts }) {
                 <Metric label="Sudah dibayar" value={money(metrics.paid)} note={`Proyeksi ${money(metrics.projected)}`} icon="fi-rr-check-circle" tone="bg-emerald-50 text-emerald-700" />
             </section>
 
-            <section className="mt-5 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+            <section className="mt-5 overflow-hidden rounded-2xl border border-slate-200/70 bg-white shadow-sm shadow-slate-200/40">
                 <div className="flex flex-col gap-2 border-b border-slate-100 p-5 sm:flex-row sm:items-end sm:justify-between">
                     <div><p className="text-[10px] font-black uppercase tracking-[0.18em] text-emerald-700">Downline</p><h2 className="mt-1 text-lg font-black tracking-tight text-slate-900">Tenant dari referral Anda</h2></div>
                     <p className="max-w-md text-xs leading-5 text-slate-400">Proyeksi belum menjadi saldo payout sampai pembayaran pertama tenant disetujui.</p>
@@ -54,7 +54,7 @@ export default function Dashboard({ sales, downlines, metrics, payouts }) {
                 </div>
             </section>
 
-            <section className="mt-5 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+            <section className="mt-5 rounded-2xl border border-slate-200/70 bg-white p-5 shadow-sm shadow-slate-200/40">
                 <div><p className="text-[10px] font-black uppercase tracking-[0.18em] text-emerald-700">Riwayat payout</p><h2 className="mt-1 text-lg font-black tracking-tight text-slate-900">Komisi yang telah dibayarkan</h2></div>
                 <div className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-3">{payouts.map((item) => <article key={item.id} className="rounded-2xl border border-slate-100 bg-slate-50/60 p-4"><div className="flex items-start justify-between gap-3"><div><p className="font-mono text-[10px] font-bold tracking-wide text-slate-400">{item.number}</p><p className="mt-1 text-sm font-semibold text-slate-700">{date(item.paid_at)}</p></div><p className="font-black text-emerald-700">{money(item.amount)}</p></div>{item.note && <p className="mt-3 text-xs leading-5 text-slate-500">{item.note}</p>}{item.proof_url && <a href={item.proof_url} className="mt-3 inline-flex items-center gap-1.5 text-xs font-bold text-emerald-700"><i className="fi fi-rr-document" /> Lihat bukti</a>}</article>)}{payouts.length === 0 && <p className="col-span-full py-8 text-center text-sm text-slate-400">Belum ada payout.</p>}</div>
             </section>
@@ -63,5 +63,5 @@ export default function Dashboard({ sales, downlines, metrics, payouts }) {
 }
 
 function Metric({ label, value, note, icon, tone }) {
-    return <article className="rounded-2xl border border-slate-200/80 bg-white p-5 shadow-sm"><span className={`flex h-10 w-10 items-center justify-center rounded-xl ${tone}`}><i className={`fi ${icon}`} /></span><p className="mt-4 text-[10px] font-black uppercase tracking-[0.14em] text-slate-400">{label}</p><p className="mt-1 truncate text-xl font-black tracking-tight text-slate-900">{value}</p><p className="mt-1 text-xs text-slate-400">{note}</p></article>;
+    return <article className="rounded-2xl border border-slate-200/70 bg-white p-5 shadow-sm shadow-slate-200/40"><span className={`flex h-10 w-10 items-center justify-center rounded-xl ${tone}`}><i className={`fi ${icon}`} /></span><p className="mt-4 text-[10px] font-black uppercase tracking-[0.14em] text-slate-400">{label}</p><p className="mt-1 truncate text-xl font-black tracking-tight text-slate-900">{value}</p><p className="mt-1 text-xs text-slate-400">{note}</p></article>;
 }

@@ -1,10 +1,10 @@
 import { Link } from '@inertiajs/react';
 
-export default function Breadcrumb({ items = [] }) {
+export default function Breadcrumb({ items = [], homeHref }) {
     return (
         <nav className="mb-4 flex items-center gap-1.5 text-sm text-slate-400">
             <Link
-                href={route('tenant.dashboard')}
+                href={homeHref ?? route('tenant.dashboard')}
                 className="flex items-center transition hover:text-slate-600"
             >
                 <i className="fi fi-rr-home" />

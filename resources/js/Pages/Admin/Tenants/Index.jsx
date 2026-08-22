@@ -1,3 +1,4 @@
+import Breadcrumb from '@/Components/Breadcrumb';
 import ConfirmDialog from '@/Components/ConfirmDialog';
 import Pagination from '@/Components/Pagination';
 import Select from '@/Components/Select';
@@ -160,6 +161,7 @@ export default function Index({ tenants, filters }) {
     return (
         <AdminLayout header="Tenant">
             <Head title="Tenant" />
+            <Breadcrumb items={[{ label: 'SaaS' }, { label: 'Tenant' }]} homeHref={route('admin.dashboard')} />
 
             <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                 <div>

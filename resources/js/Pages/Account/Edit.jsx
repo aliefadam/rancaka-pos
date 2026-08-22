@@ -1,3 +1,4 @@
+import Breadcrumb from '@/Components/Breadcrumb';
 import AdminLayout from '@/Layouts/AdminLayout';
 import { Head, useForm } from '@inertiajs/react';
 import { useEffect, useRef, useState } from 'react';
@@ -47,8 +48,9 @@ export default function Edit({ account }) {
     return (
         <AdminLayout header="Akun Saya">
             <Head title="Akun Saya" />
+            <Breadcrumb items={[{ label: 'Pengaturan' }, { label: 'Akun Saya' }]} />
             <div className="mx-auto max-w-3xl space-y-5">
-                <section className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm shadow-slate-200/40">
+                <section className="overflow-hidden rounded-2xl border border-slate-200/70 bg-white shadow-sm shadow-slate-200/40">
                     <div className="border-b border-slate-100 px-6 py-5">
                         <h2 className="font-bold text-slate-900">Foto profil</h2>
                         <p className="mt-1 text-sm text-slate-500">Gunakan foto yang jelas agar akun mudah dikenali.</p>
@@ -77,7 +79,7 @@ export default function Edit({ account }) {
                     </form>
                 </section>
 
-                <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm shadow-slate-200/40">
+                <section className="rounded-2xl border border-slate-200/70 bg-white p-6 shadow-sm shadow-slate-200/40">
                     <div className="flex items-center gap-4">
                         <span className="flex h-12 w-12 items-center justify-center rounded-xl bg-slate-100 text-slate-500"><i className="fi fi-rr-user text-lg" /></span>
                         <div><h2 className="font-bold text-slate-900">Informasi akun</h2><p className="text-sm text-slate-500">{account.email || 'Akun username dan password'}</p></div>
@@ -88,7 +90,7 @@ export default function Edit({ account }) {
                     </form>
                 </section>
 
-                <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm shadow-slate-200/40">
+                <section className="rounded-2xl border border-slate-200/70 bg-white p-6 shadow-sm shadow-slate-200/40">
                     <div className="flex items-center gap-4">
                         <span className="flex h-12 w-12 items-center justify-center rounded-xl bg-amber-50 text-amber-600"><i className="fi fi-rr-lock text-lg" /></span>
                         <div><h2 className="font-bold text-slate-900">Reset password</h2><p className="text-sm text-slate-500">Buat password baru dengan minimal 8 karakter.</p></div>

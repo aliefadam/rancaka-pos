@@ -1,3 +1,4 @@
+import Breadcrumb from '@/Components/Breadcrumb';
 import Select from '@/Components/Select';
 import AdminLayout from '@/Layouts/AdminLayout';
 import { Head, Link, router } from '@inertiajs/react';
@@ -20,11 +21,13 @@ export default function Index({ creditSales, filters, summary }) {
         return () => clearTimeout(timeout);
     }, [search, status]);
 
-    return <AdminLayout header="Penjualan Kredit"><Head title="Penjualan Kredit" /><div className="mx-auto max-w-7xl space-y-6">
+    return <AdminLayout header="Penjualan Kredit"><Head title="Penjualan Kredit" />
+        <Breadcrumb items={[{ label: 'Transaksi' }, { label: 'Penjualan Kredit' }]} />
+        <div className="mx-auto max-w-7xl space-y-6">
         <div><p className="text-xs font-bold uppercase tracking-[.18em] text-amber-600">Piutang pelanggan</p><h2 className="mt-1 text-2xl font-bold text-slate-900">Penjualan Kredit</h2><p className="mt-1 text-sm text-slate-500">Pantau saldo dan catat cicilan pelanggan.</p></div>
         <div className="grid gap-4 sm:grid-cols-2">
-            <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm shadow-slate-200/40"><p className="text-xs text-slate-500">Total belum tertagih</p><p className="mt-2 text-2xl font-bold text-slate-900">{rupiah(summary.outstanding)}</p></div>
-            <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm shadow-slate-200/40"><p className="text-xs text-slate-500">Pelanggan outstanding</p><p className="mt-2 text-2xl font-bold text-slate-900">{summary.customers} <span className="text-sm font-medium text-slate-400">pelanggan</span></p></div>
+            <div className="rounded-2xl border border-slate-200/70 bg-white p-5 shadow-sm shadow-slate-200/40"><p className="text-xs text-slate-500">Total belum tertagih</p><p className="mt-2 text-2xl font-bold text-slate-900">{rupiah(summary.outstanding)}</p></div>
+            <div className="rounded-2xl border border-slate-200/70 bg-white p-5 shadow-sm shadow-slate-200/40"><p className="text-xs text-slate-500">Pelanggan outstanding</p><p className="mt-2 text-2xl font-bold text-slate-900">{summary.customers} <span className="text-sm font-medium text-slate-400">pelanggan</span></p></div>
         </div>
         <div className="rounded-2xl border border-slate-200/70 bg-white shadow-sm shadow-slate-200/40">
             <div className="flex flex-col gap-3 border-b border-slate-100 p-5 sm:flex-row sm:items-center sm:p-6">

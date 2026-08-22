@@ -1,3 +1,4 @@
+import Breadcrumb from '@/Components/Breadcrumb';
 import RichTextEditor, { EMPTY_DOCUMENT } from '@/Components/RichTextEditor';
 import AdminLayout from '@/Layouts/AdminLayout';
 import { Head, Link, useForm } from '@inertiajs/react';
@@ -23,6 +24,7 @@ export default function Form({ ticket, developers, tenants, options }) {
     return (
         <AdminLayout header={editing ? `Edit ${ticket.number}` : 'Buat Development Ticket'}>
             <Head title={editing ? `Edit ${ticket.number}` : 'Buat Development Ticket'} />
+            <Breadcrumb items={[{ label: 'Development', href: route('admin.development-tickets.index') }, { label: 'Development Tickets', href: route('admin.development-tickets.index') }, { label: editing ? `Edit ${ticket.number}` : 'Tiket baru' }]} homeHref={route('admin.dashboard')} />
             <form onSubmit={submit} className="mx-auto max-w-6xl">
                 <div className="mb-5 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                     <div className="flex items-center gap-3"><Link href={editing ? route('admin.development-tickets.show', ticket.id) : route('admin.development-tickets.index')} className="flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-500 shadow-sm transition hover:text-indigo-600"><i className="fi fi-rr-arrow-small-left" /></Link><div><p className="text-[10px] font-bold uppercase tracking-[0.2em] text-indigo-500">{editing ? ticket.number : 'Tiket baru'}</p><h1 className="text-2xl font-black tracking-tight text-slate-900">{editing ? 'Rapikan kebutuhan tiket' : 'Ubah kebutuhan menjadi pekerjaan jelas'}</h1></div></div>
@@ -30,7 +32,7 @@ export default function Form({ ticket, developers, tenants, options }) {
                 </div>
 
                 <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_310px]">
-                    <section className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm sm:p-7">
+                    <section className="rounded-3xl border border-slate-200/70 bg-white p-5 shadow-sm shadow-slate-200/40 sm:p-7">
                         <label className="text-[10px] font-bold uppercase tracking-[0.16em] text-slate-400">Judul pekerjaan</label>
                         <input autoFocus value={form.data.title} onChange={(event) => form.setData('title', event.target.value)} placeholder="Contoh: Tambahkan laporan laba per produk" className="mt-2 w-full border-0 border-b border-slate-200 px-0 pb-4 text-xl font-black tracking-tight text-slate-900 placeholder:text-slate-300 focus:border-indigo-400 focus:ring-0" />
                         {form.errors.title && <p className="mt-1 text-xs text-rose-600">{form.errors.title}</p>}
@@ -39,7 +41,7 @@ export default function Form({ ticket, developers, tenants, options }) {
                     </section>
 
                     <aside className="space-y-4">
-                        <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm"><div className="flex items-center gap-2"><span className="flex h-8 w-8 items-center justify-center rounded-lg bg-amber-50 text-amber-600"><i className="fi fi-rr-settings-sliders" /></span><h2 className="font-black text-slate-900">Klasifikasi</h2></div><div className="mt-5 space-y-4">
+                        <section className="rounded-2xl border border-slate-200/70 bg-white p-5 shadow-sm shadow-slate-200/40"><div className="flex items-center gap-2"><span className="flex h-8 w-8 items-center justify-center rounded-lg bg-amber-50 text-amber-600"><i className="fi fi-rr-settings-sliders" /></span><h2 className="font-black text-slate-900">Klasifikasi</h2></div><div className="mt-5 space-y-4">
                             <Field label="Tipe" error={form.errors.type}><select value={form.data.type} onChange={(e) => form.setData('type', e.target.value)} className="w-full rounded-xl border-slate-200 text-sm">{options.types.map((item) => <option key={item.value} value={item.value}>{item.label}</option>)}</select></Field>
                             <Field label="Prioritas" error={form.errors.priority}><select value={form.data.priority} onChange={(e) => form.setData('priority', e.target.value)} className="w-full rounded-xl border-slate-200 text-sm">{options.priorities.map((item) => <option key={item.value} value={item.value}>{item.label}</option>)}</select></Field>
                             <Field label="PIC developer" error={form.errors.assigned_to}><select value={form.data.assigned_to} onChange={(e) => form.setData('assigned_to', e.target.value)} className="w-full rounded-xl border-slate-200 text-sm"><option value="">Belum ditentukan</option>{developers.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}</select></Field>

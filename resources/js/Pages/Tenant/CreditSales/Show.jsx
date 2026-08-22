@@ -36,7 +36,7 @@ export default function Show({ creditSale }) {
             ]} />
 
             <div className="space-y-5">
-                <section className="rounded-2xl border border-slate-200 bg-white shadow-sm shadow-slate-200/40">
+                <section className="rounded-2xl border border-slate-200/70 bg-white shadow-sm shadow-slate-200/40">
                     <div className="grid gap-5 p-5 sm:grid-cols-[1fr_auto] sm:items-center sm:p-6">
                         <div className="flex min-w-0 items-center gap-4">
                             <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-amber-50 text-lg text-amber-600"><i className="fi fi-rr-file-invoice-dollar" /></span>
@@ -62,13 +62,13 @@ export default function Show({ creditSale }) {
 
                 <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_360px]">
                     <div className="space-y-5">
-                        <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm shadow-slate-200/30 sm:p-6">
+                        <section className="rounded-2xl border border-slate-200/70 bg-white p-5 shadow-sm shadow-slate-200/40 sm:p-6">
                             <div className="flex items-center gap-2"><span className="flex h-8 w-8 items-center justify-center rounded-lg bg-indigo-50 text-indigo-600"><i className="fi fi-rr-shopping-bag text-sm" /></span><h3 className="font-bold text-slate-900">Barang yang dibeli</h3></div>
                             <div className="mt-4 divide-y divide-slate-100">{creditSale.transaction.items.map((item) => <div key={item.id} className="flex items-start justify-between gap-4 py-3.5"><div><p className="font-medium text-slate-800">{item.product_name}</p><p className="mt-0.5 text-xs text-slate-400">{item.quantity} × {rupiah(item.unit_price)}{item.note ? ` · ${item.note}` : ''}</p></div><p className="shrink-0 font-semibold text-slate-800">{rupiah(item.subtotal)}</p></div>)}</div>
                             <div className="mt-2 flex justify-between border-t border-slate-200 pt-4 font-bold text-slate-900"><span>Total transaksi</span><span>{rupiah(creditSale.total_amount)}</span></div>
                         </section>
 
-                        <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm shadow-slate-200/30 sm:p-6">
+                        <section className="rounded-2xl border border-slate-200/70 bg-white p-5 shadow-sm shadow-slate-200/40 sm:p-6">
                             <div className="flex items-center gap-2"><span className="flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-50 text-emerald-600"><i className="fi fi-rr-time-past text-sm" /></span><h3 className="font-bold text-slate-900">Riwayat pembayaran</h3></div>
                             <div className="mt-4 divide-y divide-slate-100">{creditSale.payments.length ? creditSale.payments.map((payment) => <div key={payment.id} className="flex items-start justify-between gap-4 py-3.5"><div><p className="text-sm font-medium text-slate-800">{datetime(payment.created_at)}</p><p className="mt-0.5 text-xs text-slate-400">{payment.user.name}{payment.note ? ` · ${payment.note}` : ''}</p></div><span className="shrink-0 font-semibold text-emerald-600">+{rupiah(payment.amount)}</span></div>) : <p className="py-6 text-center text-sm text-slate-400">Belum ada pembayaran.</p>}</div>
                         </section>
