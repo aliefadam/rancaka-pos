@@ -8,6 +8,7 @@ use App\Enums\UserRole;
 use App\Models\Category;
 use App\Models\Expense;
 use App\Models\Product;
+use App\Models\Role;
 use App\Models\Shift;
 use App\Models\Tenant;
 use App\Models\Transaction;
@@ -103,15 +104,78 @@ class TenantDashboardTest extends TestCase
 
         $response->assertOk()->assertInertia(fn (Assert $page) => $page
             ->component('Tenant/Dashboard')
-            ->where('overview.0.value', 'Rp 30.000')
-            ->where('overview.1.value', '1')
-            ->where('overview.2.value', '3')
-            ->where('overview.3.value', '1')
-            ->where('overview.4.value', 'Rp 12.000')
-            ->where('weeklySales.6.value', 30000)
+            ->where('filters.period', 'today')
+            ->where('summary.0.key', 'revenue')
+            ->where('summary.0.value', 'Rp 30.000')
+            ->where('summary.1.key', 'profit')
+            ->where('summary.1.value', 'Rp 18.000')
+            ->where('summary.2.value', '1')
+            ->where('trendTotal', 'Rp 30.000')
             ->where('topProducts.0.name', 'Kopi Susu')
             ->where('topProducts.0.sold', 3)
             ->where('topProducts.0.revenue', 'Rp 30.000')
+            ->where('paymentMethods.0.key', 'cash')
+            ->where('paymentMethods.0.value', 'Rp 30.000')
+            ->where('paymentMethods.0.percentage', 100)
+            ->where('attentionItems.0.key', 'stock')
+            ->where('capabilities.can_view_profit', true)
+            ->where('activeShift.cashier', $owner->name)
         );
+    }
+
+    public function test_dashboard_period_filter_applies_to_summary_and_comparison(): void
+    {
+        $tenant = Tenant::factory()->create();
+        $owner = User::factory()->create(['tenant_id' => $tenant->id, 'role' => UserRole::Owner]);
+        $shift = Shift::factory()->create(['tenant_id' => $tenant->id, 'user_id' => $owner->id, 'opened_at' => now()]);
+
+        foreach ([
+            [now(), 10000],
+            [now()->subDays(2), 20000],
+            [now()->subDays(8), 10000],
+        ] as [$createdAt, $total]) {
+            Transaction::factory()->create([
+                'tenant_id' => $tenant->id,
+                'shift_id' => $shift->id,
+                'user_id' => $owner->id,
+                'status' => TransactionStatus::Completed,
+                'payment_method' => PaymentMethod::Cash,
+                'subtotal' => $total,
+                'total' => $total,
+                'created_at' => $createdAt,
+            ]);
+        }
+
+        $this->actingAs($owner)
+            ->get(route('tenant.dashboard', ['period' => '7days']))
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('filters.period', '7days')
+                ->where('summary.0.value', 'Rp 30.000')
+                ->where('summary.0.comparison.percentage', 200)
+                ->where('summary.0.comparison.label', '7 hari sebelumnya')
+                ->has('salesTrend', 7));
+    }
+
+    public function test_employee_without_financial_permission_does_not_receive_profit_summary(): void
+    {
+        $tenant = Tenant::factory()->create();
+        $role = Role::create([
+            'tenant_id' => $tenant->id,
+            'name' => 'Supervisor Kasir',
+            'permissions' => ['dashboard.view'],
+        ]);
+        $employee = User::factory()->create([
+            'tenant_id' => $tenant->id,
+            'role' => UserRole::Employee,
+            'employee_role_id' => $role->id,
+        ]);
+
+        $this->actingAs($employee)
+            ->get(route('tenant.dashboard'))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('summary.1.key', 'products')
+                ->where('capabilities.can_view_profit', false)
+                ->where('capabilities.can_view_financial_report', false));
     }
 }
