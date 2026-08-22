@@ -38,6 +38,16 @@ export default function Show({
     const captureReceipt = async () => {
         const { default: html2canvas } = await import('html2canvas');
 
+        await document.fonts?.ready;
+        await Promise.all(
+            Array.from(receiptRef.current.querySelectorAll('img')).map(
+                (image) =>
+                    image.complete
+                        ? Promise.resolve()
+                        : image.decode?.().catch(() => undefined),
+            ),
+        );
+
         return html2canvas(receiptRef.current, {
             backgroundColor: '#ffffff',
             scale: 2,
@@ -99,8 +109,8 @@ export default function Show({
             });
 
             pdf.addImage(
-                canvas.toDataURL('image/jpeg', 0.98),
-                'JPEG',
+                canvas.toDataURL('image/png'),
+                'PNG',
                 margin,
                 margin,
                 imageWidth,
@@ -191,7 +201,7 @@ export default function Show({
 
                 <div
                     ref={receiptRef}
-                    className={`mx-auto ${widthClass} bg-white px-3 py-4 font-mono text-[12px] leading-5 text-black print:p-0`}
+                    className={`receipt-paper mx-auto ${widthClass} bg-white px-3 py-4 text-black print:p-0`}
                 >
                     <div className="border-b border-dashed border-black pb-3 text-center">
                         {store.logo_url && (

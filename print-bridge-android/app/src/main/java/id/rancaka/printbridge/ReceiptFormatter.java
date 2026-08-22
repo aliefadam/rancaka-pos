@@ -15,6 +15,12 @@ public class ReceiptFormatter {
     public ReceiptFormatter(int width) {
         this.width = width;
         command(0x1B, 0x40);
+        command(0x1B, 0x4D, 0x00);
+        command(0x1D, 0x21, 0x00);
+        command(0x1B, 0x20, 0x00);
+        command(0x1B, 0x32);
+        command(0x1B, 0x61, 0x00);
+        bold(false);
     }
 
     public void text(String value) {

@@ -36,7 +36,7 @@ export default function ReceiptModal({ show, onClose, transaction, tenant }) {
             </Modal.Header>
 
             <Modal.Body>
-                <div className="font-mono text-sm">
+                <div className="receipt-paper">
                     <div className="text-center">
                         {tenant.logo_url && (
                             <img

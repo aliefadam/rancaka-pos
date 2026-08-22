@@ -42,6 +42,22 @@
         font-family: "Courier New", "Lucida Console", monospace;
         font-variant-numeric: tabular-nums;
     }
+
+    .receipt-paper {
+        font-family: "Courier New", "Nimbus Mono PS", "Liberation Mono", monospace;
+        font-size: 11px;
+        font-variant-numeric: tabular-nums lining-nums;
+        font-synthesis: none;
+        font-weight: 400;
+        letter-spacing: 0;
+        line-height: 15px;
+        text-rendering: geometricPrecision;
+        -webkit-font-smoothing: none;
+    }
+
+    .receipt-paper * {
+        font-family: inherit;
+    }
 }
 
 /* Keep the established dashboard palette while translating every existing
@@ -275,6 +291,15 @@
 
     .receipt-page {
         padding: 0 !important;
+    }
+
+    .receipt-paper {
+        font-family: "Courier New", "Nimbus Mono PS", "Liberation Mono", monospace !important;
+        font-size: 11px !important;
+        letter-spacing: 0 !important;
+        line-height: 15px !important;
+        print-color-adjust: exact;
+        -webkit-print-color-adjust: exact;
     }
 }
 
