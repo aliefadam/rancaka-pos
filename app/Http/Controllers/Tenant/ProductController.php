@@ -111,7 +111,7 @@ class ProductController extends Controller
     public function import(Request $request): RedirectResponse
     {
         $request->validate([
-            'file' => ['required', 'file', 'mimes:xlsx,xls,csv', 'max:5120'],
+            'file' => ['required', 'file', 'extensions:xlsx,xls,csv', 'mimes:xlsx,xls,csv', 'max:5120'],
         ], [
             'file.required' => 'Pilih file Excel yang akan diimport.',
             'file.mimes' => 'File harus berformat XLSX, XLS, atau CSV.',

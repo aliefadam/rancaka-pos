@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\Tenant;
 
 use App\Http\Controllers\Controller;
+use App\Services\OptimizedUploadService;
+use App\Support\UploadRules;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -18,7 +20,7 @@ class SettingsController extends Controller
         ]);
     }
 
-    public function update(Request $request): RedirectResponse
+    public function update(Request $request, OptimizedUploadService $uploads): RedirectResponse
     {
         $tenant = $request->user()->tenant;
 
@@ -26,7 +28,7 @@ class SettingsController extends Controller
             'name' => ['required', 'string', 'max:255'],
             'phone' => ['nullable', 'string', 'max:30'],
             'address' => ['nullable', 'string', 'max:500'],
-            'logo' => ['nullable', 'image', 'max:2048'],
+            'logo' => UploadRules::image(false),
             'receipt_footer' => ['nullable', 'string', 'max:255'],
             'receipt_size' => ['required', 'in:58mm,80mm'],
             'auto_print_receipt' => ['nullable', 'boolean'],
@@ -39,7 +41,7 @@ class SettingsController extends Controller
                 Storage::disk('public')->delete($tenant->logo_path);
             }
 
-            $validated['logo_path'] = $request->file('logo')->store('tenant-logos', 'public');
+            $validated['logo_path'] = $uploads->store($request->file('logo'), 'tenant-logos', 'public', 1200, 1200, 82);
         }
 
         unset($validated['logo']);

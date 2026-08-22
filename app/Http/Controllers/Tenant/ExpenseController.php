@@ -4,6 +4,8 @@ namespace App\Http\Controllers\Tenant;
 
 use App\Http\Controllers\Controller;
 use App\Models\Expense;
+use App\Services\OptimizedUploadService;
+use App\Support\UploadRules;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
@@ -69,12 +71,13 @@ class ExpenseController extends Controller
         ]);
     }
 
-    public function store(Request $request): RedirectResponse
+    public function store(Request $request, OptimizedUploadService $uploads): RedirectResponse
     {
         $validated = $this->validated($request);
         $validated['tenant_id'] = $request->user()->tenant_id;
         $validated['user_id'] = $request->user()->id;
-        $validated['receipt_path'] = $request->file('receipt')->store(
+        $validated['receipt_path'] = $uploads->store(
+            $request->file('receipt'),
             "expenses/{$request->user()->tenant_id}",
             'public',
         );
@@ -86,13 +89,14 @@ class ExpenseController extends Controller
             ->with('success', 'Pengeluaran berhasil ditambahkan.');
     }
 
-    public function update(Request $request, Expense $expense): RedirectResponse
+    public function update(Request $request, Expense $expense, OptimizedUploadService $uploads): RedirectResponse
     {
         $this->authorizeTenant($request, $expense);
         $validated = $this->validated($request, true);
 
         if ($request->hasFile('receipt')) {
-            $newReceiptPath = $request->file('receipt')->store(
+            $newReceiptPath = $uploads->store(
+                $request->file('receipt'),
                 "expenses/{$request->user()->tenant_id}",
                 'public',
             );
@@ -135,7 +139,7 @@ class ExpenseController extends Controller
             'category' => ['required', Rule::in(self::CATEGORIES)],
             'amount' => ['required', 'integer', 'min:1', 'max:999999999999'],
             'description' => ['required', 'string', 'max:1000'],
-            'receipt' => [$updating ? 'nullable' : 'required', 'file', 'mimes:jpg,jpeg,png,webp,pdf', 'max:2048'],
+            'receipt' => UploadRules::proof(! $updating),
         ], [
             'expense_date.date_format' => 'Format tanggal pengeluaran tidak valid.',
             'expense_date.before_or_equal' => 'Tanggal pengeluaran tidak boleh melewati hari ini.',

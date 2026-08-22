@@ -2,12 +2,14 @@
 
 namespace App\Http\Controllers;
 
+use App\Services\OptimizedUploadService;
+use App\Support\UploadRules;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Validation\Rules\Password;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\Rules\Password;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -30,15 +32,15 @@ class AccountController extends Controller
         return back()->with('success', 'Akun berhasil diperbarui.');
     }
 
-    public function updateAvatar(Request $request): RedirectResponse
+    public function updateAvatar(Request $request, OptimizedUploadService $uploads): RedirectResponse
     {
         $data = $request->validate([
-            'avatar' => ['required', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
+            'avatar' => UploadRules::image(),
         ]);
 
         $user = $request->user();
         $previousAvatar = $user->avatar_url;
-        $path = $data['avatar']->store('avatars', 'public');
+        $path = $uploads->store($data['avatar'], 'avatars', 'public', 800, 800, 80);
 
         $user->update(['avatar_url' => Storage::disk('public')->url($path)]);
 

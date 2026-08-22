@@ -5,27 +5,28 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\CommissionPayout;
 use App\Models\SalesCommission;
+use App\Services\OptimizedUploadService;
+use App\Support\UploadRules;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
-use Illuminate\Validation\Rules\File;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class CommissionPayoutController extends Controller
 {
-    public function store(Request $request): RedirectResponse
+    public function store(Request $request, OptimizedUploadService $uploads): RedirectResponse
     {
         $data = $request->validate([
             'commission_ids' => ['required', 'array', 'min:1'],
             'commission_ids.*' => ['integer', 'distinct', 'exists:sales_commissions,id'],
-            'proof' => ['nullable', File::types(['jpg', 'jpeg', 'png', 'webp', 'pdf'])->max(2048)],
+            'proof' => UploadRules::proof(false),
             'note' => ['nullable', 'string', 'max:500'],
         ]);
 
         $proofPath = $request->hasFile('proof')
-            ? $request->file('proof')->store('commissions/payouts', 'local')
+            ? $uploads->store($request->file('proof'), 'commissions/payouts', 'local')
             : null;
 
         DB::transaction(function () use ($request, $data, $proofPath) {

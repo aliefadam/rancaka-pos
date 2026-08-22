@@ -2,8 +2,9 @@ import Modal from '@/Components/Modal';
 import LocalizedDateInput from '@/Components/LocalizedDateInput';
 import Select from '@/Components/Select';
 import { useToast } from '@/Contexts/ToastContext';
+import { optimizeImageFile } from '@/utils/optimizeImageFile';
 import { useForm } from '@inertiajs/react';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 
 const today = new Date().toLocaleDateString('en-CA');
 
@@ -23,6 +24,7 @@ export default function ExpenseFormModal({
 }) {
     const isEdit = Boolean(expense);
     const toast = useToast();
+    const [optimizing, setOptimizing] = useState(false);
     const {
         data,
         setData,
@@ -82,6 +84,24 @@ export default function ExpenseFormModal({
         value: category,
         label: category,
     }));
+
+    const chooseReceipt = async (file) => {
+        if (!file) return;
+
+        setOptimizing(true);
+        clearErrors('receipt');
+
+        try {
+            setData('receipt', await optimizeImageFile(file));
+        } catch {
+            setData('receipt', file);
+            toast.error(
+                'Kompresi di perangkat gagal. Foto tetap akan dikompresi saat disimpan.',
+            );
+        } finally {
+            setOptimizing(false);
+        }
+    };
 
     return (
         <Modal show={show} onClose={onClose} maxWidth="lg">
@@ -159,6 +179,23 @@ export default function ExpenseFormModal({
                             required={!isEdit}
                             error={errors.receipt}
                         >
+                            <label className="mb-2 flex cursor-pointer items-center justify-center gap-2 rounded-lg bg-indigo-600 px-3 py-2.5 text-sm font-semibold text-white transition hover:bg-indigo-700">
+                                <i className="fi fi-rr-camera" />
+                                {optimizing
+                                    ? 'Mengompresi foto...'
+                                    : 'Ambil Foto dari Kamera'}
+                                <input
+                                    type="file"
+                                    accept="image/jpeg,image/png,image/webp"
+                                    capture="environment"
+                                    className="sr-only"
+                                    disabled={optimizing}
+                                    onChange={(event) => {
+                                        chooseReceipt(event.target.files[0]);
+                                        event.target.value = '';
+                                    }}
+                                />
+                            </label>
                             <label className="flex cursor-pointer items-center gap-3 rounded-lg border border-dashed border-slate-300 px-3 py-3 transition hover:border-indigo-300 hover:bg-indigo-50/40">
                                 <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-indigo-50 text-indigo-600">
                                     <i className="fi fi-rr-cloud-upload-alt" />
@@ -171,19 +208,21 @@ export default function ExpenseFormModal({
                                                 : 'Pilih file bukti')}
                                     </span>
                                     <span className="mt-0.5 block text-xs text-slate-400">
+                                        Foto otomatis dikompresi; PDF maks. 2 MB
+                                    </span>
+                                    <span className="hidden">
                                         JPG, PNG, WebP, atau PDF · Maks. 2 MB
                                     </span>
                                 </span>
                                 <input
                                     type="file"
-                                    accept=".jpg,.jpeg,.png,.webp,.pdf"
+                                    accept="image/jpeg,image/png,image/webp,application/pdf"
                                     className="sr-only"
-                                    onChange={(event) =>
-                                        setData(
-                                            'receipt',
-                                            event.target.files[0] ?? null,
-                                        )
-                                    }
+                                    disabled={optimizing}
+                                    onChange={(event) => {
+                                        chooseReceipt(event.target.files[0]);
+                                        event.target.value = '';
+                                    }}
                                 />
                             </label>
                         </Field>
@@ -200,7 +239,7 @@ export default function ExpenseFormModal({
                     </button>
                     <button
                         type="submit"
-                        disabled={processing}
+                        disabled={processing || optimizing}
                         className="flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-70"
                     >
                         {processing && (

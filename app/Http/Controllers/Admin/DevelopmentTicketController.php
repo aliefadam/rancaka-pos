@@ -10,6 +10,8 @@ use App\Http\Controllers\Controller;
 use App\Models\DevelopmentTicket;
 use App\Models\Tenant;
 use App\Models\User;
+use App\Services\OptimizedUploadService;
+use App\Support\UploadRules;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -169,12 +171,12 @@ class DevelopmentTicketController extends Controller
             ->with('success', "Tiket {$number} berhasil dihapus.");
     }
 
-    public function uploadImage(Request $request): JsonResponse
+    public function uploadImage(Request $request, OptimizedUploadService $uploads): JsonResponse
     {
         $data = $request->validate([
-            'image' => ['required', 'image', 'mimes:jpeg,jpg,png,webp', 'max:5120'],
+            'image' => UploadRules::image(),
         ]);
-        $path = $data['image']->store('development-tickets/'.now()->format('Y/m'), 'public');
+        $path = $uploads->store($data['image'], 'development-tickets/'.now()->format('Y/m'));
 
         return response()->json(['url' => Storage::disk('public')->url($path)], 201);
     }

@@ -49,6 +49,88 @@ class ExpenseManagementTest extends TestCase
             );
     }
 
+    public function test_large_camera_photo_is_compressed_before_it_is_stored(): void
+    {
+        Storage::fake('public');
+        $tenant = Tenant::factory()->create();
+        $owner = User::factory()->create([
+            'tenant_id' => $tenant->id,
+            'role' => UserRole::Owner,
+        ]);
+        $photo = UploadedFile::fake()->image('camera.jpg', 3000, 2400)->size(6000);
+
+        $this->actingAs($owner)
+            ->post(route('tenant.expenses.store'), [
+                'expense_date' => today()->toDateString(),
+                'category' => 'Operasional',
+                'amount' => 50000,
+                'description' => 'Bukti langsung dari kamera',
+                'receipt' => $photo,
+            ])
+            ->assertRedirect(route('tenant.expenses.index'));
+
+        $path = Expense::query()->sole()->receipt_path;
+        Storage::disk('public')->assertExists($path);
+        $this->assertStringEndsWith('.webp', $path);
+
+        [$width, $height, $type] = getimagesize(Storage::disk('public')->path($path));
+        $this->assertLessThanOrEqual(1920, $width);
+        $this->assertLessThanOrEqual(1920, $height);
+        $this->assertSame(IMAGETYPE_WEBP, $type);
+    }
+
+    public function test_expense_receipt_rejects_disguised_or_unsupported_files(): void
+    {
+        Storage::fake('public');
+        $tenant = Tenant::factory()->create();
+        $owner = User::factory()->create([
+            'tenant_id' => $tenant->id,
+            'role' => UserRole::Owner,
+        ]);
+        $fields = [
+            'expense_date' => today()->toDateString(),
+            'category' => 'Operasional',
+            'amount' => 50000,
+            'description' => 'File tidak valid',
+        ];
+
+        $this->actingAs($owner)
+            ->post(route('tenant.expenses.store'), $fields + [
+                'receipt' => UploadedFile::fake()->createWithContent('malware.jpg', '<?php echo "unsafe";'),
+            ])
+            ->assertSessionHasErrors('receipt');
+
+        $this->actingAs($owner)
+            ->post(route('tenant.expenses.store'), $fields + [
+                'receipt' => UploadedFile::fake()->create('nota.svg', 50, 'image/svg+xml'),
+            ])
+            ->assertSessionHasErrors('receipt');
+
+        $this->assertDatabaseCount('expenses', 0);
+    }
+
+    public function test_expense_pdf_remains_limited_to_two_megabytes(): void
+    {
+        Storage::fake('public');
+        $tenant = Tenant::factory()->create();
+        $owner = User::factory()->create([
+            'tenant_id' => $tenant->id,
+            'role' => UserRole::Owner,
+        ]);
+
+        $this->actingAs($owner)
+            ->post(route('tenant.expenses.store'), [
+                'expense_date' => today()->toDateString(),
+                'category' => 'Operasional',
+                'amount' => 50000,
+                'description' => 'PDF terlalu besar',
+                'receipt' => UploadedFile::fake()->create('nota.pdf', 2100, 'application/pdf'),
+            ])
+            ->assertSessionHasErrors('receipt');
+
+        $this->assertDatabaseCount('expenses', 0);
+    }
+
     public function test_tenant_cannot_change_another_tenants_expense(): void
     {
         $tenant = Tenant::factory()->create();

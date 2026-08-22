@@ -6,13 +6,14 @@ use App\Http\Controllers\Controller;
 use App\Models\BillingInvoice;
 use App\Models\BillingSetting;
 use App\Models\SubscriptionPayment;
+use App\Services\OptimizedUploadService;
 use App\Services\SalesCommissionService;
+use App\Support\UploadRules;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
-use Illuminate\Validation\Rules\File;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -26,13 +27,13 @@ class BillingController extends Controller
         ]);
     }
 
-    public function updateSettings(Request $request): RedirectResponse
+    public function updateSettings(Request $request, OptimizedUploadService $uploads): RedirectResponse
     {
         $settings = BillingSetting::query()->firstOrFail();
         $data = $request->validate([
             'qris_enabled' => ['required', 'boolean'],
             'qris_merchant_name' => ['nullable', 'string', 'max:255'],
-            'qris_image' => ['nullable', File::image()->max(2048)],
+            'qris_image' => UploadRules::image(false),
             'remove_qris' => ['nullable', 'boolean'],
         ]);
 
@@ -42,7 +43,7 @@ class BillingController extends Controller
             }
 
             $data['qris_image_path'] = $request->hasFile('qris_image')
-                ? $request->file('qris_image')->store('billing/qris', 'public')
+                ? $uploads->store($request->file('qris_image'), 'billing/qris', 'public', 1600, 1600, 90)
                 : null;
         }
 

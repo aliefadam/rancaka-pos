@@ -87,7 +87,7 @@ export default function Edit({ tenant }) {
                             <input
                                 ref={fileInputRef}
                                 type="file"
-                                accept="image/*"
+                                accept="image/jpeg,image/png,image/webp"
                                 onChange={handleLogoChange}
                                 className="hidden"
                             />
