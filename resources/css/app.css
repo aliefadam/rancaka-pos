@@ -5,6 +5,14 @@
 @layer base {
     html {
         color-scheme: light;
+        --app-bg: #f8fafc;
+        --app-main: #f8fafc;
+        --app-sidebar: #ffffff;
+        --app-topbar: rgb(255 255 255 / 0.92);
+        --app-surface: #ffffff;
+        --app-elevated: #ffffff;
+        --app-border: #e2e8f0;
+        --app-border-soft: #f1f5f9;
         --chart-grid: #e2e8f0;
         --chart-tick: #94a3b8;
         --chart-tooltip-bg: #ffffff;
@@ -14,10 +22,18 @@
 
     html.dark {
         color-scheme: dark;
-        --chart-grid: #334155;
-        --chart-tick: #94a3b8;
-        --chart-tooltip-bg: #0f172a;
-        --chart-tooltip-border: #475569;
+        --app-bg: #060b14;
+        --app-main: #080e1a;
+        --app-sidebar: #0b1220;
+        --app-topbar: rgb(12 20 34 / 0.9);
+        --app-surface: #111a2a;
+        --app-elevated: #172235;
+        --app-border: #2b3950;
+        --app-border-soft: #202c40;
+        --chart-grid: #26344a;
+        --chart-tick: #8391a7;
+        --chart-tooltip-bg: #172235;
+        --chart-tooltip-border: #35455f;
         --chart-tooltip-text: #e2e8f0;
     }
 
@@ -25,6 +41,16 @@
     body,
     #app {
         min-height: 100%;
+    }
+
+    body {
+        background: var(--app-bg);
+        color: #0f172a;
+        transition: background-color 200ms ease, color 200ms ease;
+    }
+
+    html.dark body {
+        color: #dbe5f1;
     }
 
     [class^='fi-'],
@@ -60,39 +86,66 @@
     }
 }
 
-/* Keep the established dashboard palette while translating every existing
-   screen, modal, and form to the selected dark theme. */
+/* Dark theme foundation. Existing utility-heavy screens inherit these
+   translations, while semantic app-* classes preserve depth between layers. */
 .dark body,
 .dark .bg-slate-50 {
-    background-color: #0b1120 !important;
+    background-color: var(--app-main) !important;
 }
 
 .dark .bg-white,
+.dark .bg-white\/60,
 .dark .bg-white\/70,
-.dark .bg-white\/80 {
-    background-color: #111827 !important;
+.dark .bg-white\/80,
+.dark .bg-white\/90,
+.dark .bg-white\/95 {
+    background-color: var(--app-surface) !important;
 }
 
 .dark .bg-slate-100 {
-    background-color: #1e293b !important;
+    background-color: #1b2739 !important;
+}
+
+.dark .bg-slate-100\/70,
+.dark .bg-slate-200\/70 {
+    background-color: rgb(30 41 59 / 0.78) !important;
 }
 
 .dark .bg-slate-50\/60,
+.dark .bg-slate-50\/70,
+.dark .bg-slate-50\/80,
 .dark .bg-slate-50\/95 {
-    background-color: #0f172a !important;
+    background-color: #0d1625 !important;
 }
 
 .dark .bg-slate-200 {
     background-color: #334155 !important;
 }
 
-.dark .bg-indigo-50,
-.dark .bg-indigo-50\/60 {
-    background-color: rgb(49 46 129 / 0.35) !important;
+.dark .bg-slate-900 {
+    background-color: #26344a !important;
 }
 
-.dark .bg-emerald-50 {
-    background-color: rgb(6 78 59 / 0.35) !important;
+.dark .bg-slate-800 {
+    background-color: #33445e !important;
+}
+
+.dark .bg-indigo-50,
+.dark .bg-indigo-50\/30,
+.dark .bg-indigo-50\/40,
+.dark .bg-indigo-50\/60 {
+    background-color: rgb(67 56 202 / 0.18) !important;
+}
+
+.dark .bg-indigo-50\/70,
+.dark .bg-indigo-100 {
+    background-color: rgb(67 56 202 / 0.25) !important;
+}
+
+.dark .bg-emerald-50,
+.dark .bg-emerald-50\/60,
+.dark .bg-emerald-50\/70 {
+    background-color: rgb(6 95 70 / 0.22) !important;
 }
 
 .dark .bg-emerald-100 {
@@ -104,7 +157,16 @@
 }
 
 .dark .bg-sky-50 {
-    background-color: rgb(12 74 110 / 0.34) !important;
+    background-color: rgb(3 105 161 / 0.2) !important;
+}
+
+.dark .bg-sky-100,
+.dark .bg-sky-100\/60 {
+    background-color: rgb(3 105 161 / 0.28) !important;
+}
+
+.dark .bg-blue-50 {
+    background-color: rgb(29 78 216 / 0.18) !important;
 }
 
 .dark .bg-rose-50,
@@ -113,35 +175,41 @@
 }
 
 .dark .bg-amber-50 {
-    background-color: rgb(120 53 15 / 0.3) !important;
+    background-color: rgb(146 64 14 / 0.22) !important;
 }
 
+.dark .bg-amber-50\/70,
+.dark .bg-amber-100 {
+    background-color: rgb(146 64 14 / 0.3) !important;
+}
+
+.dark .text-slate-950,
 .dark .text-slate-900 {
     color: #f8fafc !important;
 }
 
 .dark .text-slate-800 {
-    color: #f1f5f9 !important;
+    color: #e8eef7 !important;
 }
 
 .dark .text-slate-700 {
-    color: #e2e8f0 !important;
+    color: #d6e0ec !important;
 }
 
 .dark .text-slate-600 {
-    color: #cbd5e1 !important;
+    color: #b8c5d6 !important;
 }
 
 .dark .text-slate-500 {
-    color: #94a3b8 !important;
+    color: #9aa9bd !important;
 }
 
 .dark .text-slate-400 {
-    color: #64748b !important;
+    color: #8291a7 !important;
 }
 
 .dark .text-slate-300 {
-    color: #475569 !important;
+    color: #68788f !important;
 }
 
 .dark .text-sky-900,
@@ -155,15 +223,70 @@
     color: #6ee7b7 !important;
 }
 
+.dark .text-indigo-900,
+.dark .text-indigo-800,
+.dark .text-indigo-700,
+.dark .text-indigo-600,
+.dark .text-indigo-500 {
+    color: #a5b4fc !important;
+}
+
+.dark .text-blue-700,
+.dark .text-blue-600 {
+    color: #93c5fd !important;
+}
+
+.dark .text-amber-900,
+.dark .text-amber-800,
+.dark .text-amber-700,
+.dark .text-amber-600 {
+    color: #fcd34d !important;
+}
+
+.dark .text-rose-700,
+.dark .text-rose-600,
+.dark .text-rose-500,
+.dark .text-red-600 {
+    color: #fda4af !important;
+}
+
 .dark .border-slate-100,
-.dark .border-slate-200,
 .dark .border-slate-200\/70,
+.dark .border-slate-200\/80,
+.dark .border-slate-200,
 .dark .border-slate-300 {
-    border-color: #334155 !important;
+    border-color: var(--app-border) !important;
+}
+
+.dark .border-slate-900 {
+    border-color: #33445e !important;
 }
 
 .dark .border-sky-200 {
     border-color: rgb(14 165 233 / 0.42) !important;
+}
+
+.dark .border-indigo-100,
+.dark .border-indigo-200,
+.dark .border-indigo-300 {
+    border-color: rgb(99 102 241 / 0.38) !important;
+}
+
+.dark .border-emerald-100,
+.dark .border-emerald-200 {
+    border-color: rgb(16 185 129 / 0.3) !important;
+}
+
+.dark .border-amber-200,
+.dark .border-amber-200\/60,
+.dark .border-amber-300 {
+    border-color: rgb(245 158 11 / 0.35) !important;
+}
+
+.dark .border-rose-100,
+.dark .border-rose-200,
+.dark .border-rose-300 {
+    border-color: rgb(244 63 94 / 0.32) !important;
 }
 
 .dark .divide-slate-100 > :not([hidden]) ~ :not([hidden]) {
@@ -171,6 +294,8 @@
 }
 
 .dark .shadow-slate-200\/40,
+.dark .shadow-slate-200\/30,
+.dark .shadow-slate-200\/50,
 .dark .shadow-slate-200\/60 {
     --tw-shadow-color: rgb(2 6 23 / 0.45) !important;
 }
@@ -188,6 +313,20 @@
 .dark textarea::placeholder {
     color: #64748b !important;
     opacity: 1;
+}
+
+.dark input[type='file'] {
+    border-color: #334155 !important;
+    background-color: #0f172a !important;
+    color: #94a3b8 !important;
+}
+
+.dark input[type='file']::file-selector-button {
+    margin-right: 0.75rem;
+    border: 0;
+    border-right: 1px solid #334155;
+    background: #1b2739;
+    color: #d6e0ec;
 }
 
 .dark select option {
@@ -218,13 +357,52 @@
     --tw-ring-color: rgb(79 70 229 / 0.32) !important;
 }
 
+.dark .ring-indigo-100,
+.dark .ring-indigo-100\/70 {
+    --tw-ring-color: rgb(99 102 241 / 0.3) !important;
+}
+
+.dark .ring-slate-200 {
+    --tw-ring-color: #334155 !important;
+}
+
+.dark .ring-amber-100 {
+    --tw-ring-color: rgb(245 158 11 / 0.28) !important;
+}
+
+.dark .ring-emerald-100 {
+    --tw-ring-color: rgb(16 185 129 / 0.25) !important;
+}
+
+.dark .ring-rose-100 {
+    --tw-ring-color: rgb(244 63 94 / 0.25) !important;
+}
+
+.dark .focus\:ring-amber-100:focus {
+    --tw-ring-color: rgb(245 158 11 / 0.28) !important;
+}
+
+.dark .focus\:ring-emerald-100:focus {
+    --tw-ring-color: rgb(16 185 129 / 0.25) !important;
+}
+
 .dark .hover\:bg-slate-50:hover,
 .dark .hover\:bg-slate-50\/60:hover,
+.dark .hover\:bg-slate-50\/70:hover,
 .dark .hover\:bg-slate-100:hover {
     background-color: #1e293b !important;
 }
 
+.dark .hover\:bg-slate-800:hover {
+    background-color: #40516d !important;
+}
+
 .dark .hover\:bg-indigo-50\/40:hover {
+    background-color: rgb(49 46 129 / 0.3) !important;
+}
+
+.dark .hover\:bg-indigo-50\/30:hover,
+.dark .hover\:bg-indigo-50\/60:hover {
     background-color: rgb(49 46 129 / 0.3) !important;
 }
 
@@ -236,6 +414,20 @@
 .dark .hover\:bg-rose-50:hover,
 .dark .enabled\:hover\:bg-rose-50:enabled:hover {
     background-color: rgb(127 29 29 / 0.36) !important;
+}
+
+.dark .hover\:bg-amber-50:hover,
+.dark .hover\:bg-amber-100:hover {
+    background-color: rgb(146 64 14 / 0.38) !important;
+}
+
+.dark .hover\:bg-sky-50:hover,
+.dark .hover\:bg-sky-100:hover {
+    background-color: rgb(3 105 161 / 0.34) !important;
+}
+
+.dark .hover\:bg-emerald-50:hover {
+    background-color: rgb(6 95 70 / 0.34) !important;
 }
 
 .dark .focus\:bg-white:focus {
@@ -254,6 +446,113 @@
 
 .dark .scrollbar-thin::-webkit-scrollbar-thumb {
     background-color: #475569;
+}
+
+/* Semantic shell layers keep dark mode dimensional and readable. */
+.app-shell {
+    background: var(--app-bg);
+}
+
+.app-main {
+    min-height: calc(100vh - 4rem);
+    background-color: var(--app-main);
+}
+
+.dark .app-main {
+    background-image:
+        radial-gradient(circle at 82% -12%, rgb(79 70 229 / 0.09), transparent 28rem),
+        linear-gradient(180deg, rgb(255 255 255 / 0.01), transparent 18rem);
+}
+
+.dark .app-sidebar {
+    border-color: #202d42 !important;
+    background: var(--app-sidebar) !important;
+    box-shadow: 12px 0 40px rgb(0 0 0 / 0.18) !important;
+}
+
+.dark .app-sidebar-brand {
+    border-color: #202d42 !important;
+    background: linear-gradient(135deg, rgb(99 102 241 / 0.08), transparent 65%);
+}
+
+.dark .app-nav-link:not(.app-nav-link-active) {
+    color: #91a0b5 !important;
+}
+
+.dark .app-nav-link:not(.app-nav-link-active):hover {
+    background: #142033 !important;
+    color: #f1f5f9 !important;
+}
+
+.dark .app-nav-link-active {
+    border-color: rgb(99 102 241 / 0.25) !important;
+    background: linear-gradient(90deg, rgb(79 70 229 / 0.3), rgb(79 70 229 / 0.12)) !important;
+    color: #e0e7ff !important;
+    box-shadow: inset 0 0 0 1px rgb(129 140 248 / 0.14), 0 8px 24px rgb(0 0 0 / 0.12) !important;
+}
+
+.dark .app-nav-link-active i {
+    color: #a5b4fc !important;
+}
+
+.dark .app-topbar {
+    border-color: #26344a !important;
+    background: var(--app-topbar) !important;
+    box-shadow: 0 1px 0 rgb(255 255 255 / 0.018), 0 12px 30px rgb(0 0 0 / 0.12);
+}
+
+.dark .app-topbar-search {
+    border-color: #2b3a52 !important;
+    background: #0a1322 !important;
+}
+
+.dark .app-topbar-search:focus {
+    border-color: rgb(99 102 241 / 0.65) !important;
+    background: #101b2d !important;
+}
+
+.dark .app-clock {
+    border-color: #2b3a52 !important;
+    background: #101a2a !important;
+    box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.025) !important;
+}
+
+.dark .app-theme-toggle {
+    border: 1px solid transparent;
+    color: #91a0b5 !important;
+}
+
+.dark .app-theme-toggle-active {
+    border-color: rgb(129 140 248 / 0.25);
+    background: rgb(79 70 229 / 0.16);
+    color: #c7d2fe !important;
+}
+
+.dark .app-popover,
+.dark .app-modal-panel,
+.dark .app-toast {
+    border-color: #35455f !important;
+    background: var(--app-elevated) !important;
+    box-shadow: 0 24px 60px rgb(0 0 0 / 0.42), inset 0 1px 0 rgb(255 255 255 / 0.025) !important;
+}
+
+.dark .app-popover .bg-white {
+    background: var(--app-elevated) !important;
+}
+
+.dark .app-popover-wrap {
+    --tw-shadow-color: rgb(0 0 0 / 0.42) !important;
+}
+
+.dark .app-modal-header,
+.dark .app-modal-footer {
+    border-color: #314159 !important;
+    background: var(--app-elevated) !important;
+}
+
+.dark .app-modal-backdrop,
+.dark .app-mobile-backdrop {
+    background: rgb(1 4 10 / 0.72) !important;
 }
 
 .dark .receipt-page,

@@ -315,7 +315,7 @@ const navigationByRole = {
 
 const SidebarContent = ({ navigation, onClose }) => (
     <>
-        <div className="flex h-[72px] shrink-0 items-center justify-between gap-3 border-b border-slate-100 px-5">
+        <div className="app-sidebar-brand flex h-[72px] shrink-0 items-center justify-between gap-3 border-b border-slate-100 px-5">
             <div className="flex min-w-0 items-center gap-3">
                 <BrandLogo className="h-9 w-9" />
                 <div className="min-w-0">
@@ -353,9 +353,9 @@ const SidebarContent = ({ navigation, onClose }) => (
                                 <Link
                                     key={item.name}
                                     href={route(item.href)}
-                                    className={`group relative flex min-h-10 items-center gap-3 overflow-hidden rounded-xl px-3 py-2 text-sm font-medium transition-all duration-200 ${
+                                    className={`app-nav-link group relative flex min-h-10 items-center gap-3 overflow-hidden rounded-xl px-3 py-2 text-sm font-medium transition-all duration-200 ${
                                         active
-                                            ? "bg-indigo-50 text-indigo-700 shadow-sm shadow-indigo-100/40 ring-1 ring-inset ring-indigo-100/70"
+                                            ? "app-nav-link-active bg-indigo-50 text-indigo-700 shadow-sm shadow-indigo-100/40 ring-1 ring-inset ring-indigo-100/70"
                                             : "text-slate-500 hover:bg-slate-50 hover:text-slate-900"
                                     }`}
                                 >
@@ -424,11 +424,6 @@ export default function AdminLayout({ header, children }) {
         );
     }, [darkMode]);
 
-    useEffect(
-        () => () => document.documentElement.classList.remove("dark"),
-        [],
-    );
-
     const searchableItems = useMemo(
         () =>
             navigation.flatMap((section) =>
@@ -480,9 +475,9 @@ export default function AdminLayout({ header, children }) {
     const seconds = String(now.getSeconds()).padStart(2, "0");
 
     return (
-        <div className="min-h-screen bg-slate-50 transition-colors duration-300">
+        <div className="app-shell min-h-screen bg-slate-50 transition-colors duration-300">
             <aside
-                className={`fixed inset-y-0 left-0 z-30 hidden w-64 flex-col border-r border-slate-200/80 bg-white shadow-[4px_0_24px_rgba(15,23,42,0.025)] transition-transform duration-300 xl:flex ${
+                className={`app-sidebar fixed inset-y-0 left-0 z-30 hidden w-64 flex-col border-r border-slate-200/80 bg-white shadow-[4px_0_24px_rgba(15,23,42,0.025)] transition-transform duration-300 xl:flex ${
                     desktopSidebarOpen ? "xl:translate-x-0" : "xl:-translate-x-full"
                 }`}
             >
@@ -504,7 +499,7 @@ export default function AdminLayout({ header, children }) {
                         leaveTo="opacity-0"
                     >
                         <div
-                            className="fixed inset-0 bg-slate-900/30"
+                            className="app-mobile-backdrop fixed inset-0 bg-slate-900/30 backdrop-blur-[2px]"
                             onClick={() => setSidebarOpen(false)}
                         />
                     </Transition.Child>
@@ -518,7 +513,7 @@ export default function AdminLayout({ header, children }) {
                         leaveFrom="translate-x-0"
                         leaveTo="-translate-x-full"
                     >
-                        <aside className="fixed inset-y-0 left-0 flex w-64 flex-col border-r border-slate-200/80 bg-white shadow-2xl shadow-slate-900/10">
+                        <aside className="app-sidebar fixed inset-y-0 left-0 flex w-64 flex-col border-r border-slate-200/80 bg-white shadow-2xl shadow-slate-900/10">
                             <SidebarContent
                                 navigation={navigation}
                                 onClose={() => setSidebarOpen(false)}
@@ -571,7 +566,7 @@ export default function AdminLayout({ header, children }) {
                         </div>
                     )}
 
-                <header className="flex h-16 items-center justify-between gap-4 border-b border-slate-200 bg-white/90 px-4 backdrop-blur sm:px-6">
+                <header className="app-topbar flex h-16 items-center justify-between gap-4 border-b border-slate-200 bg-white/90 px-4 backdrop-blur-xl sm:px-6">
                     <div className="flex items-center gap-4">
                         <button
                             type="button"
@@ -613,12 +608,12 @@ export default function AdminLayout({ header, children }) {
                                         )
                                     }
                                     placeholder="Cari menu..."
-                                    className="w-full rounded-xl border border-slate-200 bg-slate-50 py-2 pl-9 pr-3 text-sm text-slate-700 placeholder:text-slate-400 focus:border-indigo-300 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-100"
+                                    className="app-topbar-search w-full rounded-xl border border-slate-200 bg-slate-50 py-2 pl-9 pr-3 text-sm text-slate-700 placeholder:text-slate-400 focus:border-indigo-300 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-100"
                                 />
                             </div>
 
                             {searchOpen && searchQuery.trim() !== "" && (
-                                <div className="absolute left-0 top-full z-30 mt-2 w-72 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-lg">
+                                <div className="app-popover absolute left-0 top-full z-30 mt-2 w-72 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-lg">
                                     {searchResults.length === 0 ? (
                                         <p className="px-4 py-3 text-sm text-slate-400">
                                             Menu tidak ditemukan.
@@ -655,7 +650,7 @@ export default function AdminLayout({ header, children }) {
 
                     <div className="flex items-center gap-2 sm:gap-3">
                         <div
-                            className="hidden h-10 items-center gap-2.5 rounded-xl border border-slate-200/80 bg-white px-2.5 shadow-sm shadow-slate-200/50 sm:flex"
+                            className="app-clock hidden h-10 items-center gap-2.5 rounded-xl border border-slate-200/80 bg-white px-2.5 shadow-sm shadow-slate-200/50 sm:flex"
                             aria-label={`Pukul ${hours}:${minutes}:${seconds}`}
                             title="Waktu lokal"
                         >
@@ -675,7 +670,7 @@ export default function AdminLayout({ header, children }) {
                         <button
                             type="button"
                             onClick={() => setDarkMode((enabled) => !enabled)}
-                            className="flex h-10 w-10 items-center justify-center rounded-xl text-slate-500 transition hover:bg-slate-50 hover:text-indigo-600"
+                            className={`app-theme-toggle flex h-10 w-10 items-center justify-center rounded-xl text-slate-500 transition hover:bg-slate-50 hover:text-indigo-600 ${darkMode ? 'app-theme-toggle-active' : ''}`}
                             aria-label={darkMode ? "Gunakan mode terang" : "Gunakan mode gelap"}
                             title={darkMode ? "Mode terang" : "Mode gelap"}
                         >
@@ -700,7 +695,7 @@ export default function AdminLayout({ header, children }) {
                             </button>
                         </Dropdown.Trigger>
 
-                        <Dropdown.Content contentClasses="py-1 bg-white border border-slate-200">
+                        <Dropdown.Content contentClasses="app-popover py-1 bg-white border border-slate-200">
                             <div className="border-b border-slate-100 px-4 py-2.5">
                                 <p className="text-sm font-semibold text-slate-800">
                                     {user.name}
@@ -725,7 +720,7 @@ export default function AdminLayout({ header, children }) {
                 </header>
                 </div>
 
-                <main className="p-4 sm:p-6">{children}</main>
+                <main className="app-main p-4 sm:p-6">{children}</main>
             </div>
         </div>
     );

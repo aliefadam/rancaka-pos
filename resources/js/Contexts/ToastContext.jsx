@@ -90,7 +90,7 @@ function Toast({ variant, message, show, onDismiss, onLeaveComplete }) {
             leaveTo="opacity-0 -translate-y-2 sm:translate-y-0 sm:translate-x-4"
             afterLeave={onLeaveComplete}
         >
-            <div className="pointer-events-auto flex w-full max-w-sm items-start gap-3 rounded-xl border border-slate-200 bg-white p-4 shadow-lg shadow-slate-200/60">
+            <div className="app-toast pointer-events-auto flex w-full max-w-sm items-start gap-3 rounded-xl border border-slate-200 bg-white p-4 shadow-lg shadow-slate-200/60">
                 <span
                     className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full ${config.iconClass}`}
                 >

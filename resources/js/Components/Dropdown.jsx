@@ -69,7 +69,7 @@ const Content = ({
                 leaveTo="opacity-0 scale-95"
             >
                 <div
-                    className={`absolute z-50 mt-2 rounded-xl shadow-lg shadow-slate-200/60 ${alignmentClasses} ${widthClasses}`}
+                    className={`app-popover-wrap absolute z-50 mt-2 rounded-xl shadow-lg shadow-slate-200/60 ${alignmentClasses} ${widthClasses}`}
                     onClick={() => setOpen(false)}
                 >
                     <div className={`overflow-hidden rounded-xl ${contentClasses}`}>

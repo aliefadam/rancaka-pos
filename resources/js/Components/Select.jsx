@@ -55,7 +55,7 @@ export default function Select({
                 >
                     <ListboxOptions
                         anchor={{ to: 'bottom start', gap: 8 }}
-                        className="scrollbar-thin z-[100] w-[var(--button-width)] max-h-64 overflow-auto rounded-xl border border-slate-200 bg-white p-1.5 shadow-lg shadow-slate-200/60 focus:outline-none"
+                        className="app-popover scrollbar-thin z-[100] w-[var(--button-width)] max-h-64 overflow-auto rounded-xl border border-slate-200 bg-white p-1.5 shadow-lg shadow-slate-200/60 focus:outline-none"
                     >
                         {searchable && (
                             <div className="sticky top-0 z-10 mb-1 bg-white pb-1.5">

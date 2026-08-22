@@ -39,7 +39,7 @@ export default function ConfirmDialog({
                     leaveFrom="opacity-100"
                     leaveTo="opacity-0"
                 >
-                    <div className="fixed inset-0 bg-slate-900/30 backdrop-blur-sm" />
+                    <div className="app-modal-backdrop fixed inset-0 bg-slate-900/30 backdrop-blur-sm" />
                 </Transition.Child>
 
                 <div className="fixed inset-0 z-50 overflow-y-auto">
@@ -53,7 +53,7 @@ export default function ConfirmDialog({
                             leaveFrom="opacity-100 translate-y-0 scale-100"
                             leaveTo="opacity-0 translate-y-4 scale-95"
                         >
-                            <Dialog.Panel className="w-full max-w-sm rounded-2xl bg-white p-6 text-center shadow-xl">
+                            <Dialog.Panel className="app-modal-panel w-full max-w-sm rounded-2xl border border-transparent bg-white p-6 text-center shadow-xl">
                                 <div
                                     className={`mx-auto flex h-12 w-12 items-center justify-center rounded-full ${iconWrapClass}`}
                                 >

@@ -33,7 +33,7 @@ export default function Modal({
                     leaveFrom="opacity-100"
                     leaveTo="opacity-0"
                 >
-                    <div className="fixed inset-0 bg-slate-900/30 backdrop-blur-sm" />
+                    <div className="app-modal-backdrop fixed inset-0 bg-slate-900/30 backdrop-blur-sm" />
                 </Transition.Child>
 
                 <div className="fixed inset-0 z-50 overflow-y-auto">
@@ -48,7 +48,7 @@ export default function Modal({
                             leaveTo="opacity-0 translate-y-4 scale-95"
                         >
                             <Dialog.Panel
-                                className={`relative flex max-h-[85vh] w-full ${maxWidthClasses[maxWidth]} flex-col overflow-hidden rounded-2xl bg-white text-left shadow-xl`}
+                                className={`app-modal-panel relative flex max-h-[85vh] w-full ${maxWidthClasses[maxWidth]} flex-col overflow-hidden rounded-2xl border border-transparent bg-white text-left shadow-xl`}
                             >
                                 {closeable && (
                                     <button
@@ -71,7 +71,7 @@ export default function Modal({
 
 Modal.Header = function ModalHeader({ children }) {
     return (
-        <div className="flex h-16 shrink-0 items-center border-b border-slate-200 px-6">
+        <div className="app-modal-header flex h-16 shrink-0 items-center border-b border-slate-200 px-6">
             {children}
         </div>
     );
@@ -87,7 +87,7 @@ Modal.Body = function ModalBody({ children }) {
 
 Modal.Footer = function ModalFooter({ children }) {
     return (
-        <div className="flex h-16 shrink-0 items-center justify-end gap-3 border-t border-slate-200 bg-white px-6">
+        <div className="app-modal-footer flex h-16 shrink-0 items-center justify-end gap-3 border-t border-slate-200 bg-white px-6">
             {children}
         </div>
     );
