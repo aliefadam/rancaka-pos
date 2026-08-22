@@ -70,7 +70,11 @@ class ShiftController extends Controller
                 ->get();
 
             $cashSales = (int) $cashTransactions->sum('total');
-            $expectedCash = $shift->opening_cash + $cashSales;
+            $debtPayments = (int) $shift->creditPayments()
+                ->lockForUpdate()
+                ->get()
+                ->sum('amount');
+            $expectedCash = $shift->opening_cash + $cashSales + $debtPayments;
 
             if ((int) $validated['closing_cash'] !== $expectedCash) {
                 if ($request->user()->hasRestrictedCashierAccess()) {
@@ -82,7 +86,7 @@ class ShiftController extends Controller
                 $formattedExpectedCash = number_format($expectedCash, 0, ',', '.');
 
                 throw ValidationException::withMessages([
-                    'closing_cash' => "Modal akhir harus sama dengan saldo awal + penjualan tunai, yaitu Rp {$formattedExpectedCash}.",
+                    'closing_cash' => "Modal akhir harus sama dengan saldo awal + penjualan tunai + pembayaran utang, yaitu Rp {$formattedExpectedCash}.",
                 ]);
             }
             $shift->update([

@@ -103,6 +103,38 @@ class StockSynchronizationTest extends TestCase
         ]);
     }
 
+    public function test_credit_initial_payment_is_recorded_in_the_active_shift(): void
+    {
+        [$user, $category] = $this->inventory();
+        $product = $this->product($category, 'Pesanan Kredit', 5);
+        $payload = $this->payload([[
+            'product_id' => $product->id,
+            'quantity' => 1,
+        ]]);
+        $payload['payment_method'] = 'credit';
+        $payload['amount_received'] = null;
+        $payload['credit_customer_name'] = 'Pelanggan Tempo';
+        $payload['credit_initial_payment'] = 5000;
+
+        $this->actingAs($user)
+            ->post(route('tenant.pos.checkout'), $payload)
+            ->assertRedirect(route('tenant.pos.index'));
+
+        $shift = Shift::query()->sole();
+        $this->assertDatabaseHas('credit_payments', [
+            'shift_id' => $shift->id,
+            'amount' => 5000,
+            'note' => 'Pembayaran awal saat transaksi',
+        ]);
+
+        $this->actingAs($user)
+            ->get(route('tenant.pos.index'))
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('shiftSummary.credit_sales', 15000)
+                ->where('shiftSummary.debt_payments', 5000)
+                ->where('shiftSummary.expected_cash', 105000));
+    }
+
     public function test_checkout_applies_percentage_discount_before_tax_and_service_charge(): void
     {
         [$user, $category] = $this->inventory();

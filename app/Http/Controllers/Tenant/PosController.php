@@ -60,6 +60,7 @@ class PosController extends Controller
                 $qrisSales = (int) (clone $completed)->where('payment_method', PaymentMethod::Qris)->sum('total');
                 $onlineSales = (int) (clone $completed)->where('payment_method', PaymentMethod::Online)->sum('total');
                 $creditSales = (int) (clone $completed)->where('payment_method', PaymentMethod::Credit)->sum('total');
+                $debtPayments = (int) $activeShift->creditPayments()->sum('amount');
 
                 $shiftSummary = [
                     'transaction_count' => $transactionCount,
@@ -68,8 +69,9 @@ class PosController extends Controller
                     'qris_sales' => $qrisSales,
                     'online_sales' => $onlineSales,
                     'credit_sales' => $creditSales,
+                    'debt_payments' => $debtPayments,
                     'total_sales' => $cashSales + $qrisSales + $onlineSales + $creditSales,
-                    'expected_cash' => $activeShift->opening_cash + $cashSales,
+                    'expected_cash' => $activeShift->opening_cash + $cashSales + $debtPayments,
                 ];
             }
         }
@@ -402,6 +404,7 @@ class PosController extends Controller
                 if ($initialPayment > 0) {
                     $creditSale->payments()->create([
                         'tenant_id' => $tenantId, 'user_id' => $request->user()->id,
+                        'shift_id' => $activeShift->id,
                         'amount' => $initialPayment, 'note' => 'Pembayaran awal saat transaksi',
                     ]);
                 }

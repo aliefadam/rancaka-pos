@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Tenant;
 use App\Http\Controllers\Controller;
 use App\Models\CreditPayment;
 use App\Models\CreditSale;
+use App\Models\Shift;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -61,11 +62,21 @@ class CreditSaleController extends Controller
         $data = $request->validate(['amount' => ['required', 'integer', 'min:1'], 'note' => ['nullable', 'string', 'max:255']]);
         $payment = DB::transaction(function () use ($creditSale, $data, $request) {
             $sale = CreditSale::lockForUpdate()->findOrFail($creditSale->id);
+            $activeShift = Shift::where('tenant_id', $request->user()->tenant_id)
+                ->whereNull('closed_at')
+                ->lockForUpdate()
+                ->first();
             $remaining = $sale->total_amount - $sale->paid_amount;
             if ($sale->status === 'paid' || $data['amount'] > $remaining) {
                 throw ValidationException::withMessages(['amount' => 'Nominal melebihi sisa hutang.']);
             }
-            $payment = $sale->payments()->create(['tenant_id' => $sale->tenant_id, 'user_id' => $request->user()->id, 'amount' => $data['amount'], 'note' => $data['note'] ?? null]);
+            $payment = $sale->payments()->create([
+                'tenant_id' => $sale->tenant_id,
+                'user_id' => $request->user()->id,
+                'shift_id' => $activeShift?->id,
+                'amount' => $data['amount'],
+                'note' => $data['note'] ?? null,
+            ]);
             $sale->paid_amount += $data['amount'];
             $sale->status = $sale->paid_amount >= $sale->total_amount ? 'paid' : 'outstanding';
             $sale->save();

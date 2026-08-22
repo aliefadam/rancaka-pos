@@ -120,6 +120,14 @@ export default function CloseShiftModal({ show, onClose, summary, heldCount = 0 
                                     <span className="text-slate-500">Penjualan Kredit</span>
                                     <span className="font-medium text-slate-800">{formatRupiah(summary.credit_sales)}</span>
                                 </div>
+                                <div className="flex items-center justify-between rounded-lg bg-emerald-50 px-2 py-1.5">
+                                    <span className="font-medium text-emerald-700">
+                                        Pembayaran Utang
+                                    </span>
+                                    <span className="font-semibold text-emerald-700">
+                                        {formatRupiah(summary.debt_payments)}
+                                    </span>
+                                </div>
                                 <div className="flex items-center justify-between border-t border-slate-200 pt-2">
                                     <span className="font-semibold text-slate-700">Total Penjualan</span>
                                     <span className="font-bold text-slate-900">{formatRupiah(summary.total_sales)}</span>
@@ -182,7 +190,7 @@ export default function CloseShiftModal({ show, onClose, summary, heldCount = 0 
                             )}
                             <p className="mt-1.5 text-xs text-slate-400">
                                 Hitung uang tunai fisik di laci. Modal akhir sistem
-                                hanya berasal dari modal awal + penjualan tunai.
+                                berasal dari modal awal + penjualan tunai + pembayaran utang.
                             </p>
                             {errors.closing_cash && (
                                 <p className="mt-1.5 text-sm text-red-600">

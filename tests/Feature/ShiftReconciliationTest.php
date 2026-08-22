@@ -5,6 +5,9 @@ namespace Tests\Feature;
 use App\Enums\PaymentMethod;
 use App\Enums\TransactionStatus;
 use App\Enums\UserRole;
+use App\Models\CreditCustomer;
+use App\Models\CreditPayment;
+use App\Models\CreditSale;
 use App\Models\Shift;
 use App\Models\Tenant;
 use App\Models\Transaction;
@@ -34,7 +37,7 @@ class ShiftReconciliationTest extends TestCase
         $this->transaction($shift, $owner, PaymentMethod::Cash, 104000);
         $this->transaction($shift, $owner, PaymentMethod::Qris, 50000);
         $this->transaction($shift, $owner, PaymentMethod::Online, 75000);
-        $this->transaction($shift, $owner, PaymentMethod::Credit, 25000);
+        $creditTransaction = $this->transaction($shift, $owner, PaymentMethod::Credit, 25000);
         $this->transaction(
             $shift,
             $owner,
@@ -42,6 +45,28 @@ class ShiftReconciliationTest extends TestCase
             999000,
             TransactionStatus::Voided,
         );
+        $customer = CreditCustomer::create([
+            'tenant_id' => $shift->tenant_id,
+            'name' => 'Pelanggan Kredit',
+        ]);
+        $creditSale = CreditSale::create([
+            'tenant_id' => $shift->tenant_id,
+            'transaction_id' => $creditTransaction->id,
+            'credit_customer_id' => $customer->id,
+            'total_amount' => 25000,
+            'paid_amount' => 0,
+            'status' => 'outstanding',
+        ]);
+
+        $this->actingAs($owner)
+            ->from(route('tenant.credit-sales.show', $creditSale))
+            ->post(route('tenant.credit-sales.pay', $creditSale), [
+                'amount' => 10000,
+                'note' => 'Cicilan tunai saat shift',
+            ])
+            ->assertSessionHasNoErrors();
+
+        $this->assertSame($shift->id, CreditPayment::query()->sole()->shift_id);
 
         $this->actingAs($owner)
             ->get(route('tenant.pos.index'))
@@ -50,20 +75,21 @@ class ShiftReconciliationTest extends TestCase
                 ->where('shiftSummary.qris_sales', 50000)
                 ->where('shiftSummary.online_sales', 75000)
                 ->where('shiftSummary.credit_sales', 25000)
+                ->where('shiftSummary.debt_payments', 10000)
                 ->where('shiftSummary.total_sales', 254000)
-                ->where('shiftSummary.expected_cash', 104500));
+                ->where('shiftSummary.expected_cash', 114500));
 
         $this->actingAs($owner)
-            ->post(route('tenant.shift.close'), ['closing_cash' => 104400])
+            ->post(route('tenant.shift.close'), ['closing_cash' => 114400])
             ->assertSessionHasErrors('closing_cash');
 
         $this->assertNull($shift->fresh()->closed_at);
 
         $this->actingAs($owner)
-            ->post(route('tenant.shift.close'), ['closing_cash' => 104500])
+            ->post(route('tenant.shift.close'), ['closing_cash' => 114500])
             ->assertRedirect(route('tenant.pos.index'));
 
-        $this->assertSame(104500, $shift->fresh()->closing_cash);
+        $this->assertSame(114500, $shift->fresh()->closing_cash);
         $this->assertNotNull($shift->fresh()->closed_at);
 
         $this->actingAs($owner)
@@ -73,9 +99,10 @@ class ShiftReconciliationTest extends TestCase
                 ->where('shifts.data.0.qris_sales', 50000)
                 ->where('shifts.data.0.online_sales', 75000)
                 ->where('shifts.data.0.credit_sales', 25000)
+                ->where('shifts.data.0.debt_payments', 10000)
                 ->where('shifts.data.0.total_sales', 254000)
-                ->where('shifts.data.0.expected_closing_cash', 104500)
-                ->where('shifts.data.0.closing_cash', 104500)
+                ->where('shifts.data.0.expected_closing_cash', 114500)
+                ->where('shifts.data.0.closing_cash', 114500)
                 ->where('shifts.data.0.cash_difference', 0)
                 ->where('shifts.data.0.transaction_count', 4));
     }

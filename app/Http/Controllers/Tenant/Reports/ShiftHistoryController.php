@@ -43,6 +43,7 @@ class ShiftHistoryController extends Controller
                 $query->where('status', TransactionStatus::Completed)
                     ->where('payment_method', PaymentMethod::Credit);
             }], 'total')
+            ->withSum('creditPayments as debt_payments', 'amount')
             ->when($search, function ($query, $search) {
                 $query->whereHas('user', fn ($q) => $q->where('name', 'like', "%{$search}%"));
             })
@@ -55,12 +56,14 @@ class ShiftHistoryController extends Controller
 
         $shifts->getCollection()->each(function (Shift $shift) {
             $cashSales = (int) ($shift->cash_sales ?? 0);
-            $expectedClosingCash = (int) $shift->opening_cash + $cashSales;
+            $debtPayments = (int) ($shift->debt_payments ?? 0);
+            $expectedClosingCash = (int) $shift->opening_cash + $cashSales + $debtPayments;
 
             $shift->setAttribute('cash_sales', $cashSales);
             $shift->setAttribute('qris_sales', (int) ($shift->qris_sales ?? 0));
             $shift->setAttribute('online_sales', (int) ($shift->online_sales ?? 0));
             $shift->setAttribute('credit_sales', (int) ($shift->credit_sales ?? 0));
+            $shift->setAttribute('debt_payments', $debtPayments);
             $shift->setAttribute('total_sales', (int) ($shift->total_sales ?? 0));
             $shift->setAttribute('expected_closing_cash', $expectedClosingCash);
             $shift->setAttribute(
