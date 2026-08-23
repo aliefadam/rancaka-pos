@@ -29,8 +29,12 @@ export default function Index({ sales, allSales, commissions, payouts, eligibleT
 
     const applyFilters = (values) => router.get(route('admin.sales.index'), {
         ...(values.search ? { search: values.search } : {}),
+        ...(values.sales_status ? { sales_status: values.sales_status } : {}),
         ...(values.sales_id ? { sales_id: values.sales_id } : {}),
         ...(values.commission_status ? { commission_status: values.commission_status } : {}),
+        ...(values.commission_search ? { commission_search: values.commission_search } : {}),
+        ...(values.date_from ? { date_from: values.date_from } : {}),
+        ...(values.date_to ? { date_to: values.date_to } : {}),
     }, { preserveState: true, replace: true });
 
     const toggleCommission = (commission) => {
@@ -97,7 +101,41 @@ export default function Index({ sales, allSales, commissions, payouts, eligibleT
 
             <section className="mt-5 grid gap-5 xl:grid-cols-[1.45fr_0.55fr]">
                 <div className="overflow-hidden rounded-2xl border border-slate-200/70 bg-white shadow-sm shadow-slate-200/40">
-                    <div className="border-b border-slate-100 p-5"><div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"><div><h2 className="font-bold text-slate-900">Ledger komisi</h2><p className="mt-1 text-xs text-slate-500">Pilih komisi terutang dari satu sales untuk payout.</p></div><div className="flex gap-2"><select value={filters.sales_id || ''} onChange={(e) => applyFilters({ ...filters, sales_id: e.target.value })} className="rounded-xl border-slate-200 py-2 text-xs"><option value="">Semua sales</option>{allSales.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}</select><select value={filters.commission_status || ''} onChange={(e) => applyFilters({ ...filters, commission_status: e.target.value })} className="rounded-xl border-slate-200 py-2 text-xs"><option value="">Semua status</option><option value="accrued">Belum dibayar</option><option value="paid">Sudah dibayar</option></select></div></div><form onSubmit={(e) => { e.preventDefault(); applyFilters({ ...filters, commission_search: e.currentTarget.commission_search.value, date_from: e.currentTarget.date_from.value, date_to: e.currentTarget.date_to.value }); }} className="mt-4 grid gap-2 sm:grid-cols-[1fr_auto_auto_auto]"><input name="commission_search" defaultValue={filters.commission_search} placeholder="Cari tenant atau invoice" className="rounded-xl border-slate-200 py-2 text-xs" /><input name="date_from" type="date" defaultValue={filters.date_from} className="rounded-xl border-slate-200 py-2 text-xs" /><input name="date_to" type="date" defaultValue={filters.date_to} className="rounded-xl border-slate-200 py-2 text-xs" /><button className="rounded-xl border border-slate-200 px-3 py-2 text-xs font-bold text-slate-600 hover:bg-slate-50">Terapkan</button></form></div>
+                    <div className="border-b border-slate-100 p-5">
+                        <div><h2 className="font-bold text-slate-900">Ledger komisi</h2><p className="mt-1 text-xs text-slate-500">Pilih komisi terutang dari satu sales untuk payout.</p></div>
+                        <form
+                            onSubmit={(e) => {
+                                e.preventDefault();
+                                const f = e.currentTarget;
+                                applyFilters({ ...filters, sales_id: f.sales_id.value, commission_status: f.commission_status.value, commission_search: f.commission_search.value, date_from: f.date_from.value, date_to: f.date_to.value });
+                            }}
+                            className="mt-4 space-y-3"
+                        >
+                            <div>
+                                <label className="mb-1.5 block text-[10px] font-bold uppercase tracking-wide text-slate-400">Cari tenant / invoice</label>
+                                <div className="relative"><i className="fi fi-rr-search absolute left-3 top-1/2 -translate-y-1/2 text-xs text-slate-400" /><input name="commission_search" defaultValue={filters.commission_search} placeholder="Cari tenant atau invoice" className="w-full rounded-xl border-slate-200 py-2 pl-9 text-xs" /></div>
+                            </div>
+                            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+                                <div>
+                                    <label className="mb-1.5 block text-[10px] font-bold uppercase tracking-wide text-slate-400">Sales</label>
+                                    <select name="sales_id" defaultValue={filters.sales_id || ''} className="w-full rounded-xl border-slate-200 py-2 text-xs"><option value="">Semua sales</option>{allSales.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}</select>
+                                </div>
+                                <div>
+                                    <label className="mb-1.5 block text-[10px] font-bold uppercase tracking-wide text-slate-400">Status komisi</label>
+                                    <select name="commission_status" defaultValue={filters.commission_status || ''} className="w-full rounded-xl border-slate-200 py-2 text-xs"><option value="">Semua status</option><option value="accrued">Belum dibayar</option><option value="paid">Sudah dibayar</option></select>
+                                </div>
+                                <div>
+                                    <label className="mb-1.5 block text-[10px] font-bold uppercase tracking-wide text-slate-400">Dari tanggal</label>
+                                    <input name="date_from" type="date" defaultValue={filters.date_from} className="w-full rounded-xl border-slate-200 py-2 text-xs" />
+                                </div>
+                                <div>
+                                    <label className="mb-1.5 block text-[10px] font-bold uppercase tracking-wide text-slate-400">Sampai tanggal</label>
+                                    <input name="date_to" type="date" defaultValue={filters.date_to} className="w-full rounded-xl border-slate-200 py-2 text-xs" />
+                                </div>
+                            </div>
+                            <div className="flex justify-end"><button className="rounded-xl border border-slate-200 px-4 py-2 text-xs font-bold text-slate-600 hover:bg-slate-50">Terapkan filter</button></div>
+                        </form>
+                    </div>
                     {selected.length > 0 && <div className="flex items-center justify-between gap-4 border-b border-indigo-100 bg-indigo-50 px-5 py-3"><p className="text-sm font-semibold text-indigo-800">{selected.length} komisi · {money(selectedTotal)}</p><button onClick={openPayout} className="rounded-lg bg-indigo-600 px-3 py-2 text-xs font-bold text-white">Catat payout</button></div>}
                     <div className="overflow-x-auto"><table className="min-w-full"><thead><tr className="bg-slate-50 text-left text-[10px] font-bold uppercase tracking-wider text-slate-400"><th className="w-10 px-4 py-3"/><th className="px-3 py-3">Sales / Tenant</th><th className="px-3 py-3">Invoice</th><th className="px-3 py-3">Dasar</th><th className="px-3 py-3">Komisi</th><th className="px-3 py-3">Status</th></tr></thead><tbody>{commissions.data.map((item) => <tr key={item.id} className="border-t border-slate-100 text-sm"><td className="px-4 py-4"><input type="checkbox" checked={selected.includes(item.id)} disabled={item.status !== 'accrued'} onChange={() => toggleCommission(item)} className="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500" /></td><td className="px-3 py-4"><p className="font-semibold text-slate-800">{item.sales_profile.name}</p><p className="text-xs text-slate-400">{item.tenant.name}</p></td><td className="px-3 py-4"><p className="font-medium text-slate-700">{item.invoice.number}</p><p className="text-xs text-slate-400">{date(item.approved_at)}</p></td><td className="px-3 py-4 text-slate-600">{money(item.base_amount)} <span className="text-xs text-slate-400">× {Number(item.commission_rate_snapshot)}%</span></td><td className="px-3 py-4 font-bold text-slate-900">{money(item.commission_amount)}</td><td className="px-3 py-4"><span className={`rounded-full px-2.5 py-1 text-[10px] font-bold uppercase ${item.status === 'paid' ? 'bg-emerald-50 text-emerald-700' : 'bg-amber-50 text-amber-700'}`}>{item.status === 'paid' ? 'Dibayar' : 'Terutang'}</span></td></tr>)}{commissions.data.length === 0 && <tr><td colSpan="6" className="px-5 py-12 text-center text-sm text-slate-400">Belum ada komisi.</td></tr>}</tbody></table></div>
                     <div className="border-t border-slate-100 p-4"><Pagination links={commissions.links} /></div>
