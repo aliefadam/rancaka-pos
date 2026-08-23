@@ -43,6 +43,11 @@ const navigationByRole = {
                     href: "admin.sales.index",
                     icon: "fi-rr-handshake",
                 },
+                {
+                    name: "Koreksi Referral",
+                    href: "admin.sales.referral-correction",
+                    icon: "fi-rr-arrows-repeat",
+                },
             ],
         },
         {

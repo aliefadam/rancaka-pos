@@ -54,18 +54,11 @@ class SalesController extends Controller
             ->paginate(12, ['*'], 'commission_page')
             ->withQueryString();
 
-        $eligibleTenants = Tenant::query()
-            ->whereDoesntHave('billingInvoices.payments', fn ($query) => $query->where('status', 'approved'))
-            ->with('referringSales:id,name,referral_code')
-            ->orderBy('name')
-            ->get(['id', 'name', 'email', 'referred_by_sales_id', 'referral_code_used']);
-
         return Inertia::render('Admin/Sales/Index', [
             'sales' => $sales,
             'allSales' => SalesProfile::query()->orderBy('name')->get(['id', 'name', 'referral_code', 'status']),
             'commissions' => $commissions,
             'payouts' => CommissionPayout::query()->with('salesProfile:id,name')->latest('paid_at')->limit(10)->get(),
-            'eligibleTenants' => $eligibleTenants,
             'filters' => [
                 'search' => $search,
                 'sales_status' => $salesStatus,
@@ -81,6 +74,14 @@ class SalesController extends Controller
                 'accrued' => (int) SalesCommission::query()->where('status', 'accrued')->sum('commission_amount'),
                 'paid' => (int) SalesCommission::query()->where('status', 'paid')->sum('commission_amount'),
             ],
+        ]);
+    }
+
+    public function referralCorrection(): Response
+    {
+        return Inertia::render('Admin/Sales/ReferralCorrection', [
+            'eligibleTenants' => $this->eligibleTenants(),
+            'allSales' => SalesProfile::query()->orderBy('name')->get(['id', 'name', 'referral_code', 'status']),
         ]);
     }
 
@@ -164,6 +165,15 @@ class SalesController extends Controller
         ]);
 
         return back()->with('success', 'Atribusi referral tenant diperbarui.');
+    }
+
+    private function eligibleTenants()
+    {
+        return Tenant::query()
+            ->whereDoesntHave('billingInvoices.payments', fn ($query) => $query->where('status', 'approved'))
+            ->with('referringSales:id,name,referral_code')
+            ->orderBy('name')
+            ->get(['id', 'name', 'email', 'referred_by_sales_id', 'referral_code_used']);
     }
 
     private function validated(Request $request, ?SalesProfile $salesProfile = null): array
