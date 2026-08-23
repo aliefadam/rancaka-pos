@@ -105,6 +105,7 @@ Route::middleware(['auth', 'role:superadmin'])->prefix('admin')->name('admin.')-
     Route::post('/sales', [SalesController::class, 'store'])->name('sales.store');
     Route::put('/sales/{salesProfile}', [SalesController::class, 'update'])->name('sales.update');
     Route::patch('/sales/tenant/{tenant}/referral', [SalesController::class, 'updateTenantReferral'])->name('sales.tenant-referral.update');
+    Route::get('/sales/commissions', [SalesController::class, 'commissions'])->name('sales.commissions');
     Route::get('/sales/referral-correction', [SalesController::class, 'referralCorrection'])->name('sales.referral-correction');
     Route::post('/commission-payouts', [CommissionPayoutController::class, 'store'])->name('commission-payouts.store');
     Route::get('/commission-payouts/{payout}/proof', [CommissionPayoutController::class, 'proof'])->name('commission-payouts.proof');

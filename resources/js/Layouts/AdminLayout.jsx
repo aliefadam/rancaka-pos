@@ -39,9 +39,14 @@ const navigationByRole = {
                     networkOnly: true,
                 },
                 {
-                    name: "Sales & Komisi",
+                    name: "Sales",
                     href: "admin.sales.index",
                     icon: "fi-rr-handshake",
+                },
+                {
+                    name: "Komisi",
+                    href: "admin.sales.commissions",
+                    icon: "fi-rr-coins",
                 },
                 {
                     name: "Koreksi Referral",

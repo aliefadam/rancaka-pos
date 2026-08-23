@@ -23,11 +23,6 @@ class SalesController extends Controller
     {
         $search = $request->string('search')->trim()->toString();
         $salesStatus = $request->string('sales_status')->toString();
-        $salesId = $request->integer('sales_id');
-        $commissionStatus = $request->string('commission_status')->toString();
-        $commissionSearch = $request->string('commission_search')->trim()->toString();
-        $dateFrom = $request->date('date_from')?->toDateString();
-        $dateTo = $request->date('date_to')?->toDateString();
 
         $sales = SalesProfile::query()
             ->when($search, fn ($query, $value) => $query->where(fn ($query) => $query
@@ -40,6 +35,26 @@ class SalesController extends Controller
             ->withSum(['commissions as accrued_commission' => fn ($query) => $query->where('status', 'accrued')], 'commission_amount')
             ->orderBy('name')
             ->get();
+
+        return Inertia::render('Admin/Sales/Index', [
+            'sales' => $sales,
+            'filters' => [
+                'search' => $search,
+                'sales_status' => $salesStatus,
+            ],
+            'metrics' => [
+                'referrals' => Tenant::query()->whereNotNull('referred_by_sales_id')->count(),
+            ],
+        ]);
+    }
+
+    public function commissions(Request $request): Response
+    {
+        $salesId = $request->integer('sales_id');
+        $commissionStatus = $request->string('commission_status')->toString();
+        $commissionSearch = $request->string('commission_search')->trim()->toString();
+        $dateFrom = $request->date('date_from')?->toDateString();
+        $dateTo = $request->date('date_to')?->toDateString();
 
         $commissions = SalesCommission::query()
             ->with(['salesProfile:id,name,referral_code', 'tenant:id,name', 'invoice:id,number'])
@@ -54,14 +69,11 @@ class SalesController extends Controller
             ->paginate(12, ['*'], 'commission_page')
             ->withQueryString();
 
-        return Inertia::render('Admin/Sales/Index', [
-            'sales' => $sales,
+        return Inertia::render('Admin/Sales/Commissions', [
             'allSales' => SalesProfile::query()->orderBy('name')->get(['id', 'name', 'referral_code', 'status']),
             'commissions' => $commissions,
             'payouts' => CommissionPayout::query()->with('salesProfile:id,name')->latest('paid_at')->limit(10)->get(),
             'filters' => [
-                'search' => $search,
-                'sales_status' => $salesStatus,
                 'sales_id' => $salesId ?: '',
                 'commission_status' => $commissionStatus,
                 'commission_search' => $commissionSearch,
@@ -69,7 +81,6 @@ class SalesController extends Controller
                 'date_to' => $dateTo ?? '',
             ],
             'metrics' => [
-                'referrals' => Tenant::query()->whereNotNull('referred_by_sales_id')->count(),
                 'earned' => (int) SalesCommission::query()->sum('commission_amount'),
                 'accrued' => (int) SalesCommission::query()->where('status', 'accrued')->sum('commission_amount'),
                 'paid' => (int) SalesCommission::query()->where('status', 'paid')->sum('commission_amount'),
