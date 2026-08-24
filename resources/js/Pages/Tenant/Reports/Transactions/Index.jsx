@@ -31,6 +31,13 @@ const paymentLabels = {
     credit: 'Kredit',
 };
 
+const paymentVisuals = {
+    cash: { icon: 'fi-rr-money-bill-wave', accent: 'text-emerald-700', iconBg: 'bg-emerald-100' },
+    qris: { icon: 'fi-rr-qr-scan', accent: 'text-sky-700', iconBg: 'bg-sky-100' },
+    online: { icon: 'fi-rr-globe', accent: 'text-indigo-700', iconBg: 'bg-indigo-100' },
+    credit: { icon: 'fi-rr-calendar-clock', accent: 'text-amber-700', iconBg: 'bg-amber-100' },
+};
+
 function formatDateTime(value) {
     return new Date(value).toLocaleString('id-ID', {
         day: 'numeric',
@@ -64,12 +71,13 @@ function StatusBadge({ status }) {
     );
 }
 
-export default function Index({ transactions, filters, limitedToOwnToday = false }) {
+export default function Index({ transactions, paymentSummary, filters, limitedToOwnToday = false }) {
     const toast = useToast();
     const can = usePermission();
 
     const [search, setSearch] = useState(filters.search ?? '');
-    const [date, setDate] = useState(filters.date ?? '');
+    const [dateFrom, setDateFrom] = useState(filters.date_from ?? filters.date ?? '');
+    const [dateTo, setDateTo] = useState(filters.date_to ?? filters.date ?? '');
     const [status, setStatus] = useState(filters.status ?? '');
     const [paymentMethod, setPaymentMethod] = useState(filters.payment_method ?? '');
     const [refreshing, setRefreshing] = useState(false);
@@ -99,7 +107,8 @@ export default function Index({ transactions, filters, limitedToOwnToday = false
                 route('tenant.reports.transactions.index'),
                 {
                     ...(search ? { search } : {}),
-                    ...(date ? { date } : {}),
+                    ...(dateFrom ? { date_from: dateFrom } : {}),
+                    ...(dateTo ? { date_to: dateTo } : {}),
                     ...(status ? { status } : {}),
                     ...(paymentMethod ? { payment_method: paymentMethod } : {}),
                 },
@@ -107,19 +116,19 @@ export default function Index({ transactions, filters, limitedToOwnToday = false
                     preserveState: true,
                     preserveScroll: true,
                     replace: true,
-                    only: ['transactions', 'filters'],
+                    only: ['transactions', 'paymentSummary', 'filters'],
                 },
             );
         }, 400);
 
         return () => clearTimeout(timeout);
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [search, date, status, paymentMethod]);
+    }, [search, dateFrom, dateTo, status, paymentMethod]);
 
     const refresh = () => {
         setRefreshing(true);
         router.reload({
-            only: ['transactions'],
+            only: ['transactions', 'paymentSummary'],
             onFinish: () => setRefreshing(false),
         });
     };
@@ -238,12 +247,30 @@ export default function Index({ transactions, filters, limitedToOwnToday = false
                     </div>
 
                     {!limitedToOwnToday && (
-                        <input
-                            type="date"
-                            value={date}
-                            onChange={(e) => setDate(e.target.value)}
-                            className="w-full rounded-lg border border-slate-200 px-3 py-2.5 text-sm text-slate-900 focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-100 sm:w-48"
-                        />
+                        <div className="grid w-full grid-cols-2 gap-2 sm:w-auto">
+                            <label className="relative">
+                                <span className="absolute -top-2 left-2.5 bg-white px-1 text-[10px] font-semibold uppercase tracking-wider text-slate-400">Dari</span>
+                                <input
+                                    type="date"
+                                    value={dateFrom}
+                                    max={dateTo || undefined}
+                                    onChange={(e) => setDateFrom(e.target.value)}
+                                    aria-label="Tanggal mulai"
+                                    className="w-full rounded-lg border border-slate-200 px-3 py-2.5 text-sm text-slate-900 focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-100 sm:w-40"
+                                />
+                            </label>
+                            <label className="relative">
+                                <span className="absolute -top-2 left-2.5 bg-white px-1 text-[10px] font-semibold uppercase tracking-wider text-slate-400">Sampai</span>
+                                <input
+                                    type="date"
+                                    value={dateTo}
+                                    min={dateFrom || undefined}
+                                    onChange={(e) => setDateTo(e.target.value)}
+                                    aria-label="Tanggal akhir"
+                                    className="w-full rounded-lg border border-slate-200 px-3 py-2.5 text-sm text-slate-900 focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-100 sm:w-40"
+                                />
+                            </label>
+                        </div>
                     )}
 
                     <Select
@@ -261,6 +288,40 @@ export default function Index({ transactions, filters, limitedToOwnToday = false
                         className="w-full sm:w-48"
                     />
                 </div>
+
+                <section className="border-b border-slate-100 bg-slate-50/70 px-5 py-4 sm:px-6" aria-label="Ringkasan metode pembayaran">
+                    <div className="mb-3 flex items-end justify-between gap-4">
+                        <div>
+                            <p className="text-xs font-bold uppercase tracking-[0.16em] text-slate-500">Ringkasan pembayaran</p>
+                            <p className="mt-0.5 text-xs text-slate-400">Mengikuti rentang waktu dan filter transaksi</p>
+                        </div>
+                        <span className="hidden text-[11px] font-medium text-slate-400 sm:block">Seluruh halaman</span>
+                    </div>
+                    <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-4">
+                        {paymentSummary.map((item) => {
+                            const visual = paymentVisuals[item.method] ?? paymentVisuals.online;
+                            const isActive = !paymentMethod || paymentMethod === item.method;
+
+                            return (
+                                <div
+                                    key={item.method}
+                                    className={`flex items-center gap-3 rounded-xl border bg-white px-3.5 py-3 transition ${isActive ? 'border-slate-200 shadow-sm shadow-slate-200/50' : 'border-slate-100 opacity-50'}`}
+                                >
+                                    <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg ${visual.iconBg} ${visual.accent}`}>
+                                        <i className={`fi ${visual.icon}`} />
+                                    </span>
+                                    <div className="min-w-0">
+                                        <div className="flex items-center gap-1.5">
+                                            <p className="text-xs font-semibold text-slate-500">{paymentLabels[item.method] ?? item.method}</p>
+                                            <span className="rounded-full bg-slate-100 px-1.5 py-0.5 text-[9px] font-bold tabular-nums text-slate-500">{item.transaction_count}</span>
+                                        </div>
+                                        <p className={`mt-0.5 truncate text-base font-extrabold tabular-nums ${visual.accent}`}>{formatRupiah(item.total_amount)}</p>
+                                    </div>
+                                </div>
+                            );
+                        })}
+                    </div>
+                </section>
 
                 <BulkSelectionBar
                     count={selected.length}

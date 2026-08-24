@@ -97,7 +97,7 @@ export default function CategoryFormModal({ show, onClose, category }) {
 
                         <div>
                             <label className="mb-1.5 block text-sm font-medium text-slate-700">
-                                Icon
+                                Pilih Ikon
                             </label>
                             <IconPicker
                                 value={data.icon}
