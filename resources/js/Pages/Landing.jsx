@@ -9,6 +9,9 @@ const TRUST_BADGES = [
     { icon: 'fi fi-rr-laptop-mobile', label: 'Akses Kapan Saja' },
 ];
 
+const WIMPI_WHATSAPP_URL =
+    'https://wa.me/6281336471505?text=Halo%20Wimpi%2C%20saya%20ingin%20mengetahui%20lebih%20lanjut%20tentang%20Rancaka%20POS.';
+
 const BUSINESS_TYPES = [
     { icon: 'fi fi-rr-shop', label: 'Retail & Toko' },
     { icon: 'fi fi-rr-restaurant', label: 'Restoran & Kafe' },
@@ -332,6 +335,16 @@ export default function Landing() {
                                     className="rounded-lg border border-white/30 px-6 py-3 text-sm font-semibold text-white transition hover:bg-white/10"
                                 >
                                     Lihat Fitur
+                                </a>
+                                <a
+                                    href={WIMPI_WHATSAPP_URL}
+                                    target="_blank"
+                                    rel="noreferrer"
+                                    aria-label="Tanya Wimpi melalui WhatsApp di +62 813-3647-1505"
+                                    className="inline-flex items-center justify-center gap-2 rounded-lg bg-emerald-400 px-5 py-3 text-sm font-bold text-emerald-950 shadow-sm transition hover:-translate-y-0.5 hover:bg-emerald-300 hover:shadow-lg hover:shadow-emerald-950/20 focus:outline-none focus:ring-2 focus:ring-white/70"
+                                >
+                                    <i className="fi fi-rr-phone-call" />
+                                    Tanya via WhatsApp
                                 </a>
                             </div>
 
