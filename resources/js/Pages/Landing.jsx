@@ -325,7 +325,7 @@ export default function Landing() {
                                     href={route('register')}
                                     className="rounded-lg bg-white px-6 py-3 text-sm font-semibold text-indigo-700 shadow-sm transition hover:bg-indigo-50"
                                 >
-                                    Coba Gratis 14 Hari
+                                    Coba Gratis 7 Hari
                                 </Link>
                                 <a
                                     href="#fitur"
