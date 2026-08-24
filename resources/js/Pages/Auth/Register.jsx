@@ -1,6 +1,7 @@
 import BrandLogo from '@/Components/BrandLogo';
 import GoogleAuthButton from '@/Components/GoogleAuthButton';
 import { Head, Link, useForm } from '@inertiajs/react';
+import { useState } from 'react';
 
 const fields = [
     ['store_name', 'Nama toko', 'Nama usaha Anda'], ['owner_name', 'Nama owner', 'Nama lengkap'],
@@ -11,8 +12,10 @@ const fields = [
 
 export default function Register({ googleAuthEnabled, branchNetworkEnabled = false }) {
     const form = useForm({ ...Object.fromEntries(fields.map(([key]) => [key, ''])), account_type: 'standalone', referral_code: '', network_code: '' });
+    const [visiblePasswords, setVisiblePasswords] = useState({ password: false, password_confirmation: false });
     const branch = form.data.account_type === 'branch';
     const chooseType = (type) => form.setData((data) => ({ ...data, account_type: type, referral_code: type === 'branch' ? '' : data.referral_code, network_code: type === 'standalone' ? '' : data.network_code }));
+    const togglePassword = (key) => setVisiblePasswords((current) => ({ ...current, [key]: !current[key] }));
     const googleParams = branch ? { account_type: 'branch', network_code: form.data.network_code } : form.data.referral_code ? { referral_code: form.data.referral_code } : {};
 
     return <><Head title="Daftar Toko" /><div className="min-h-screen bg-[#f4f5f7] px-4 py-8 sm:px-6">
@@ -31,7 +34,12 @@ export default function Register({ googleAuthEnabled, branchNetworkEnabled = fal
                 </div>
                 {googleAuthEnabled && <><div className="mt-5"><GoogleAuthButton label="Daftar dengan Google" href={route('auth.google.redirect', googleParams)} /></div><div className="my-5 flex items-center gap-3 text-[10px] font-black uppercase tracking-[.16em] text-slate-400"><span className="h-px flex-1 bg-slate-200" />atau isi formulir<span className="h-px flex-1 bg-slate-200" /></div></>}
                 <form onSubmit={(event) => { event.preventDefault(); form.post(route('register')); }} className={`${googleAuthEnabled ? '' : 'mt-6'} grid gap-4 sm:grid-cols-2`}>
-                    {fields.map(([key,label,placeholder]) => <div key={key} className={!key.includes('password') && key === 'store_name' ? 'sm:col-span-2' : ''}><label className="mb-1.5 block text-sm font-bold text-slate-700" htmlFor={key}>{label} <span className="text-rose-500">*</span></label><input id={key} type={key.includes('password') ? 'password' : key === 'email' ? 'email' : 'text'} value={form.data[key]} onChange={(e) => form.setData(key,e.target.value)} placeholder={placeholder} className="w-full rounded-xl border-slate-200 text-sm focus:border-slate-500 focus:ring-slate-200" />{form.errors[key] && <p className="mt-1 text-xs text-rose-600">{form.errors[key]}</p>}</div>)}
+                    {fields.map(([key,label,placeholder]) => {
+                        const isPassword = key.includes('password');
+                        const isVisible = visiblePasswords[key] ?? false;
+
+                        return <div key={key} className={!isPassword && key === 'store_name' ? 'sm:col-span-2' : ''}><label className="mb-1.5 block text-sm font-bold text-slate-700" htmlFor={key}>{label} <span className="text-rose-500">*</span></label><div className={isPassword ? 'relative' : ''}><input id={key} type={isPassword ? (isVisible ? 'text' : 'password') : key === 'email' ? 'email' : 'text'} autoComplete={isPassword ? 'new-password' : undefined} value={form.data[key]} onChange={(e) => form.setData(key,e.target.value)} placeholder={placeholder} className={`w-full rounded-xl border-slate-200 text-sm focus:border-slate-500 focus:ring-slate-200 ${isPassword ? 'pr-11' : ''}`} />{isPassword && <button type="button" onClick={() => togglePassword(key)} aria-label={isVisible ? `Sembunyikan ${label.toLowerCase()}` : `Tampilkan ${label.toLowerCase()}`} aria-controls={key} aria-pressed={isVisible} className="absolute inset-y-0 right-0 flex w-11 items-center justify-center rounded-r-xl text-slate-400 transition hover:bg-slate-50 hover:text-slate-700 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-indigo-300"><i className={`fi ${isVisible ? 'fi-rr-eye-crossed' : 'fi-rr-eye'}`} /></button>}</div>{form.errors[key] && <p className="mt-1 text-xs text-rose-600">{form.errors[key]}</p>}</div>;
+                    })}
                     <button disabled={form.processing} className="mt-2 rounded-xl bg-indigo-600 px-4 py-3 text-sm font-black text-white transition hover:bg-indigo-700 disabled:opacity-60 sm:col-span-2">{form.processing ? 'Mendaftarkan...' : branch ? 'Kirim Pengajuan Cabang' : 'Mulai Trial 7 Hari'}</button>
                 </form><p className="mt-5 text-center text-sm text-slate-500">Sudah punya akun? <Link href={route('login')} className="font-bold text-indigo-600">Masuk</Link></p>
             </main>
