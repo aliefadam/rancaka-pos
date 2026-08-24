@@ -226,7 +226,7 @@ export default function Show({
                         <>
                             <div className="border-b border-dashed border-black py-3 text-center">
                                 <div className="text-sm font-bold uppercase">
-                                    Bukti Pembayaran Hutang
+                                    Nota Pelunasan
                                 </div>
                                 <div>{sale.payment_number}</div>
                             </div>
@@ -245,7 +245,7 @@ export default function Show({
                                     </span>
                                 </div>
                                 <div className="flex justify-between gap-2">
-                                    <span>Total Hutang</span>
+                                    <span>Sisa Tagihan</span>
                                     <span>{money(sale.total_credit)}</span>
                                 </div>
                                 <div className="flex justify-between gap-2">
@@ -253,11 +253,11 @@ export default function Show({
                                     <span>{money(sale.remaining_before)}</span>
                                 </div>
                                 <div className="flex justify-between gap-2 font-bold">
-                                    <span>Pembayaran</span>
+                                    <span>Pelunasan</span>
                                     <span>-{money(sale.payment_amount)}</span>
                                 </div>
                                 <div className="flex justify-between gap-2 border-t border-dashed border-black pt-1 font-bold">
-                                    <span>Sisa Hutang</span>
+                                    <span>Sisa Tagihan</span>
                                     <span>{money(sale.remaining_after)}</span>
                                 </div>
                                 <div className="flex justify-between gap-2 uppercase">
@@ -376,7 +376,7 @@ export default function Show({
                                     </div>
                                 )}
                                 <div className="flex justify-between border-t border-dashed border-black pt-1 font-bold">
-                                    <span>Sisa hutang</span>
+                                    <span>Sisa tagihan</span>
                                     <span>
                                         {money(
                                             sale.payment?.remaining_amount,

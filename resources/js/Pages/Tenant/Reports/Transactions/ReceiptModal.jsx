@@ -222,7 +222,7 @@ export default function ReceiptModal({ show, onClose, transaction, tenant }) {
                                         </span>
                                     </div>
                                     <div className="flex items-center justify-between border-t border-dashed border-slate-300 pt-1 font-bold text-slate-900">
-                                        <span>Sisa Hutang</span>
+                                        <span>Sisa Tagihan</span>
                                         <span>
                                             {formatRupiah(
                                                 Math.max(

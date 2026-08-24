@@ -16,6 +16,38 @@ class ProductManagementTest extends TestCase
 {
     use RefreshDatabase;
 
+    public function test_tenant_can_store_product_without_stock_tracking_when_stock_is_empty(): void
+    {
+        $tenant = Tenant::factory()->create();
+        $owner = User::factory()->create([
+            'tenant_id' => $tenant->id,
+            'role' => UserRole::Owner,
+        ]);
+        $category = Category::factory()->create(['tenant_id' => $tenant->id]);
+
+        $this->actingAs($owner)
+            ->post(route('tenant.products.store'), [
+                'name' => 'Jasa Tanpa Stok',
+                'category_id' => $category->id,
+                'price' => 25_000,
+                'cost' => 10_000,
+                'margin_percentage' => 150,
+                'track_stock' => false,
+                'stock' => '',
+                'is_active' => true,
+                'ingredients' => [],
+            ])
+            ->assertRedirect(route('tenant.products.index'))
+            ->assertSessionHasNoErrors();
+
+        $this->assertDatabaseHas('products', [
+            'tenant_id' => $tenant->id,
+            'name' => 'Jasa Tanpa Stok',
+            'track_stock' => false,
+            'stock' => 0,
+        ]);
+    }
+
     public function test_tenant_can_store_a_price_above_unsigned_integer_range(): void
     {
         $tenant = Tenant::factory()->create();

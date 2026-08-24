@@ -953,16 +953,16 @@ public class MainActivity extends Activity {
 
         if ("credit_payment".equals(sale.optString("receipt_type", ""))) {
             formatter.bold(true);
-            formatter.center("BUKTI PEMBAYARAN HUTANG");
+            formatter.center("NOTA PELUNASAN");
             formatter.bold(false);
             formatter.center(sale.optString("payment_number", "-"));
             formatter.hr();
             formatter.leftRight("Pelanggan", sale.optString("customer", "-"));
-            formatter.leftRight("Total hutang", ReceiptFormatter.money(sale.optDouble("total_credit", 0)));
+            formatter.leftRight("Sisa tagihan", ReceiptFormatter.money(sale.optDouble("total_credit", 0)));
             formatter.leftRight("Sisa sebelumnya", ReceiptFormatter.money(sale.optDouble("remaining_before", 0)));
             formatter.bold(true);
-            formatter.leftRight("Pembayaran", "-" + ReceiptFormatter.money(sale.optDouble("payment_amount", 0)));
-            formatter.leftRight("Sisa hutang", ReceiptFormatter.money(sale.optDouble("remaining_after", 0)));
+            formatter.leftRight("Pelunasan", "-" + ReceiptFormatter.money(sale.optDouble("payment_amount", 0)));
+            formatter.leftRight("Sisa tagihan", ReceiptFormatter.money(sale.optDouble("remaining_after", 0)));
             formatter.bold(false);
             formatter.leftRight("Status", sale.optBoolean("is_paid", false) ? "LUNAS" : "BELUM LUNAS");
             if (!sale.optString("note", "").isEmpty()) {
@@ -1032,7 +1032,7 @@ public class MainActivity extends Activity {
                 }
                 formatter.leftRight("Sudah dibayar", ReceiptFormatter.money(payment.optDouble("paid_amount", 0)));
                 formatter.bold(true);
-                formatter.leftRight("Sisa hutang", ReceiptFormatter.money(payment.optDouble("remaining_amount", 0)));
+                formatter.leftRight("Sisa tagihan", ReceiptFormatter.money(payment.optDouble("remaining_amount", 0)));
                 formatter.bold(false);
             } else {
                 formatter.leftRight("Bayar", ReceiptFormatter.money(payment.optDouble("paid_amount", payment.optDouble("amount", 0))));

@@ -338,6 +338,11 @@ class ProductController extends Controller
         $priceOptions = $validated['price_options'] ?? null;
         unset($validated['price_options']);
 
+        $validated['track_stock'] = $request->boolean('track_stock');
+        $validated['stock'] = $validated['track_stock']
+            ? ($validated['stock'] ?? 0)
+            : 0;
+
         if ($priceOptions !== null) {
             $defaultOptions = collect($priceOptions)->where('is_default', true);
             if ($defaultOptions->count() !== 1 || ! $defaultOptions->first()['is_active']) {
