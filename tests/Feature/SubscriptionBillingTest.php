@@ -130,6 +130,35 @@ class SubscriptionBillingTest extends TestCase
         ]);
     }
 
+    public function test_superadmin_can_update_bank_account_shown_to_tenant(): void
+    {
+        $admin = User::factory()->create(['role' => UserRole::Superadmin, 'tenant_id' => null]);
+
+        $this->actingAs($admin)
+            ->patch(route('admin.billing.bank-settings.update'), [
+                'bank_name' => 'Bank BCA',
+                'bank_account' => '1234567890',
+                'bank_holder' => 'PT Rancaka Digital Indonesia',
+            ])
+            ->assertSessionHasNoErrors()
+            ->assertSessionHas('success', 'Rekening pembayaran diperbarui.');
+
+        $this->assertDatabaseHas('billing_settings', [
+            'bank_name' => 'Bank BCA',
+            'bank_account' => '1234567890',
+            'bank_holder' => 'PT Rancaka Digital Indonesia',
+        ]);
+
+        [, $owner] = $this->tenantOwner();
+
+        $this->actingAs($owner)
+            ->get(route('tenant.billing.index'))
+            ->assertInertia(fn ($page) => $page
+                ->where('billing.bank_name', 'Bank BCA')
+                ->where('billing.bank_account', '1234567890')
+                ->where('billing.bank_holder', 'PT Rancaka Digital Indonesia'));
+    }
+
     /** @return array{Tenant, User} */
     private function tenantOwner(): array
     {

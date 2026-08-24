@@ -5,6 +5,11 @@ import { Head, router, useForm } from '@inertiajs/react';
 
 const money = (value) => `Rp ${Number(value || 0).toLocaleString('id-ID')}`;
 export default function Index({ payments, settings }) {
+    const bankForm = useForm({
+        bank_name: settings?.bank_name ?? '',
+        bank_account: settings?.bank_account ?? '',
+        bank_holder: settings?.bank_holder ?? '',
+    });
     const qrisForm = useForm({
         qris_enabled: Boolean(settings?.qris_enabled),
         qris_merchant_name: settings?.qris_merchant_name ?? '',
@@ -15,6 +20,12 @@ export default function Index({ payments, settings }) {
         event.preventDefault();
         qrisForm.post(route('admin.billing.settings.update'), {
             forceFormData: true,
+        });
+    };
+    const saveBank = (event) => {
+        event.preventDefault();
+        bankForm.patch(route('admin.billing.bank-settings.update'), {
+            preserveScroll: true,
         });
     };
     const approve = (payment) =>
@@ -29,6 +40,80 @@ export default function Index({ payments, settings }) {
         <AdminLayout header="Billing Tenant">
             <Head title="Billing Tenant" />
             <Breadcrumb items={[{ label: 'SaaS' }, { label: 'Billing Tenant' }]} homeHref={route('admin.dashboard')} />
+            <form
+                onSubmit={saveBank}
+                className="mb-6 overflow-hidden rounded-2xl border border-slate-200/70 bg-white shadow-sm shadow-slate-200/40"
+            >
+                <div className="grid lg:grid-cols-[minmax(0,1fr)_340px]">
+                    <div className="p-5 sm:p-6">
+                        <div className="flex items-start gap-3">
+                            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-emerald-50 text-emerald-700">
+                                <i className="fi fi-rr-bank" />
+                            </span>
+                            <div>
+                                <h2 className="font-bold text-slate-900">Rekening Pembayaran</h2>
+                                <p className="mt-1 text-sm text-slate-500">Rekening ini ditampilkan kepada tenant saat memilih transfer bank.</p>
+                            </div>
+                        </div>
+
+                        <div className="mt-5 grid gap-4 sm:grid-cols-2">
+                            <label className="block">
+                                <span className="mb-1.5 block text-xs font-bold uppercase tracking-wide text-slate-500">Nama Bank</span>
+                                <input
+                                    value={bankForm.data.bank_name}
+                                    onChange={(event) => bankForm.setData('bank_name', event.target.value)}
+                                    placeholder="Contoh: Bank BCA"
+                                    className="w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-sm text-slate-900 placeholder-slate-400 focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-100"
+                                />
+                                {bankForm.errors.bank_name && <span className="mt-1.5 block text-xs text-rose-600">{bankForm.errors.bank_name}</span>}
+                            </label>
+                            <label className="block">
+                                <span className="mb-1.5 block text-xs font-bold uppercase tracking-wide text-slate-500">Nomor Rekening</span>
+                                <input
+                                    value={bankForm.data.bank_account}
+                                    onChange={(event) => bankForm.setData('bank_account', event.target.value)}
+                                    inputMode="numeric"
+                                    placeholder="Contoh: 1234567890"
+                                    className="w-full rounded-xl border border-slate-200 px-3.5 py-2.5 font-mono text-sm tracking-wide text-slate-900 placeholder:font-sans placeholder:tracking-normal placeholder:text-slate-400 focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-100"
+                                />
+                                {bankForm.errors.bank_account && <span className="mt-1.5 block text-xs text-rose-600">{bankForm.errors.bank_account}</span>}
+                            </label>
+                            <label className="block sm:col-span-2">
+                                <span className="mb-1.5 block text-xs font-bold uppercase tracking-wide text-slate-500">Nama Pemilik Rekening</span>
+                                <input
+                                    value={bankForm.data.bank_holder}
+                                    onChange={(event) => bankForm.setData('bank_holder', event.target.value)}
+                                    placeholder="Contoh: PT Rancaka Digital Indonesia"
+                                    className="w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-sm text-slate-900 placeholder-slate-400 focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-100"
+                                />
+                                {bankForm.errors.bank_holder && <span className="mt-1.5 block text-xs text-rose-600">{bankForm.errors.bank_holder}</span>}
+                            </label>
+                        </div>
+
+                        <button
+                            disabled={bankForm.processing}
+                            className="mt-5 inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-4 py-2.5 text-sm font-bold text-white shadow-sm transition hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-60"
+                        >
+                            <i className={`fi ${bankForm.processing ? 'fi-rr-spinner animate-spin' : 'fi-rr-disk'}`} />
+                            Simpan Rekening
+                        </button>
+                    </div>
+
+                    <div className="relative flex min-h-56 items-center overflow-hidden bg-slate-950 p-6 text-white">
+                        <div className="absolute -right-12 -top-12 h-44 w-44 rounded-full border-[28px] border-emerald-400/10" />
+                        <div className="absolute -bottom-16 left-16 h-40 w-40 rounded-full bg-emerald-400/5" />
+                        <div className="relative w-full">
+                            <div className="flex items-center justify-between">
+                                <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-emerald-300">Rekening Aktif</span>
+                                <i className="fi fi-rr-credit-card text-xl text-white/40" />
+                            </div>
+                            <p className="mt-7 text-sm font-semibold text-white/70">{bankForm.data.bank_name || 'Nama bank'}</p>
+                            <p className="mt-1 break-all font-mono text-2xl font-bold tracking-[0.08em]">{bankForm.data.bank_account || '0000000000'}</p>
+                            <p className="mt-5 text-xs uppercase tracking-[0.12em] text-white/50">a.n. {bankForm.data.bank_holder || 'Nama pemilik rekening'}</p>
+                        </div>
+                    </div>
+                </div>
+            </form>
             <form
                 onSubmit={saveQris}
                 className="mb-6 grid gap-5 rounded-2xl border border-slate-200/70 bg-white p-5 shadow-sm shadow-slate-200/40 lg:grid-cols-[1fr_auto]"

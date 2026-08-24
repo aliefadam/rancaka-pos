@@ -63,6 +63,23 @@ class BillingController extends Controller
         return back()->with('success', 'Pengaturan QRIS diperbarui.');
     }
 
+    public function updateBankSettings(Request $request): RedirectResponse
+    {
+        $data = $request->validate([
+            'bank_name' => ['required', 'string', 'max:100'],
+            'bank_account' => ['required', 'string', 'max:100'],
+            'bank_holder' => ['required', 'string', 'max:255'],
+        ], [
+            'bank_name.required' => 'Nama bank wajib diisi.',
+            'bank_account.required' => 'Nomor rekening wajib diisi.',
+            'bank_holder.required' => 'Nama pemilik rekening wajib diisi.',
+        ]);
+
+        BillingSetting::query()->firstOrFail()->update($data);
+
+        return back()->with('success', 'Rekening pembayaran diperbarui.');
+    }
+
     public function approve(Request $request, SubscriptionPayment $payment, SalesCommissionService $commissionService, ConsolidatedBillingService $billing, BranchNetworkService $network): RedirectResponse
     {
         DB::transaction(function () use ($request, $payment, $commissionService, $billing, $network) {

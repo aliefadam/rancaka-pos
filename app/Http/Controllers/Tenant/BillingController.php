@@ -36,10 +36,17 @@ class BillingController extends Controller
             ->with(['parentTenant:id,name,email', 'parentTenant.subscription:id,tenant_id,status,trial_ends_at,current_period_end'])
             ->first();
 
+        $paymentSettings = BillingSetting::query()->first();
+
         return Inertia::render('Tenant/Billing/Index', [
             'subscription' => $subscription,
-            'billing' => config('billing'),
-            'paymentSettings' => BillingSetting::query()->first(),
+            'billing' => [
+                ...config('billing'),
+                'bank_name' => $paymentSettings?->bank_name ?: config('billing.bank_name'),
+                'bank_account' => $paymentSettings?->bank_account ?: config('billing.bank_account'),
+                'bank_holder' => $paymentSettings?->bank_holder ?: config('billing.bank_holder'),
+            ],
+            'paymentSettings' => $paymentSettings,
             'networkRelationship' => $relationship,
             'paymentCentralized' => $network->paymentIsCentralized($tenant),
         ]);

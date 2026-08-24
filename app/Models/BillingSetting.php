@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Storage;
 
-#[Fillable(['qris_enabled', 'qris_merchant_name', 'qris_image_path'])]
+#[Fillable(['qris_enabled', 'qris_merchant_name', 'qris_image_path', 'bank_name', 'bank_account', 'bank_holder'])]
 class BillingSetting extends Model
 {
     protected $appends = ['qris_image_url'];

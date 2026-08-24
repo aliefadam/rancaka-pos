@@ -98,6 +98,7 @@ Route::middleware(['auth', 'role:superadmin'])->prefix('admin')->name('admin.')-
     Route::patch('/networks/{relationship}/exit', [AdminBranchNetworkController::class, 'decideExit'])->name('networks.exit');
     Route::patch('/networks/central/{tenant}/code', [AdminBranchNetworkController::class, 'updateCode'])->name('networks.code.update');
     Route::post('/billing/settings', [AdminBillingController::class, 'updateSettings'])->name('billing.settings.update');
+    Route::patch('/billing/bank-settings', [AdminBillingController::class, 'updateBankSettings'])->name('billing.bank-settings.update');
     Route::patch('/billing/{payment}/approve', [AdminBillingController::class, 'approve'])->name('billing.approve');
     Route::patch('/billing/{payment}/reject', [AdminBillingController::class, 'reject'])->name('billing.reject');
 
