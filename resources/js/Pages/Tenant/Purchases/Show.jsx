@@ -101,10 +101,10 @@ export default function Show({ purchase }) {
                         {purchase.items.map((i) => (
                             <div
                                 key={i.id}
-                                className="grid grid-cols-[1fr_auto] border-b border-slate-100 px-5 py-4"
+                                className="grid gap-3 border-b border-slate-100 px-5 py-4 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center"
                             >
-                                <div>
-                                    <b className="text-slate-900">
+                                <div className="min-w-0">
+                                    <b className="break-words text-slate-900">
                                         {i.item_name}
                                     </b>
                                     <div className="text-xs text-slate-500">
@@ -112,7 +112,14 @@ export default function Show({ purchase }) {
                                         {money(i.unit_cost)}
                                     </div>
                                 </div>
-                                <b>{money(i.inventory_cost_total)}</b>
+                                <div className="flex items-center justify-between gap-3 rounded-lg bg-slate-50/70 px-3 py-2 sm:block sm:bg-transparent sm:p-0 sm:text-right">
+                                    <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-400 sm:hidden">
+                                        Total
+                                    </span>
+                                    <b className="break-all text-slate-900 sm:break-normal">
+                                        {money(i.inventory_cost_total)}
+                                    </b>
+                                </div>
                             </div>
                         ))}
                     </section>
@@ -124,9 +131,9 @@ export default function Show({ purchase }) {
                                     key={p.id}
                                     className={`rounded-xl border p-4 ${p.status === "void" ? "opacity-50" : "border-slate-200"}`}
                                 >
-                                    <div className="flex justify-between">
-                                        <div>
-                                            <b>{p.number}</b>
+                                    <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                                        <div className="min-w-0">
+                                            <b className="break-all sm:break-normal">{p.number}</b>
                                             <div className="text-xs text-slate-500">
                                                 {new Date(
                                                     p.payment_date,
@@ -136,7 +143,12 @@ export default function Show({ purchase }) {
                                                 · {method[p.payment_method]}
                                             </div>
                                         </div>
-                                        <b>{money(p.amount)}</b>
+                                        <div className="flex items-center justify-between gap-3 rounded-lg bg-slate-50/70 px-3 py-2 sm:block sm:bg-transparent sm:p-0 sm:text-right">
+                                            <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-400 sm:hidden">
+                                                Nominal
+                                            </span>
+                                            <b className="break-all sm:break-normal">{money(p.amount)}</b>
+                                        </div>
                                     </div>
                                         {p.proof_path && (
                                         <a
@@ -212,11 +224,12 @@ export default function Show({ purchase }) {
                 </aside>
             </div>
             {payOpen && (
-                <div className="fixed inset-0 z-50 grid place-items-center bg-slate-950/60 p-4">
-                    <form
-                        onSubmit={submit}
-                        className="w-full max-w-lg rounded-2xl bg-white p-6"
-                    >
+                <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-950/60 p-4">
+                    <div className="flex min-h-full items-center justify-center">
+                        <form
+                            onSubmit={submit}
+                            className="scrollbar-thin max-h-[calc(100vh-2rem)] w-full max-w-lg overflow-y-auto rounded-2xl bg-white p-5 sm:p-6"
+                        >
                         <div className="flex justify-between">
                             <h3 className="text-lg font-bold">
                                 Pembayaran supplier
@@ -311,7 +324,8 @@ export default function Show({ purchase }) {
                         >
                             Simpan pembayaran
                         </button>
-                    </form>
+                        </form>
+                    </div>
                 </div>
             )}
             <PasswordConfirmDialog

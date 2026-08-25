@@ -321,10 +321,24 @@ export default function Create({ suppliers, products, rawMaterials }) {
                                     >+ Termin</button>
                                 </div>
                                 {form.data.installments.map((row, index) => (
-                                    <div key={index} className="mt-3 grid grid-cols-[1fr_1fr_auto] gap-2">
-                                        <input type="date" min={form.data.purchase_date} value={row.due_date} onChange={(e) => form.setData("installments", form.data.installments.map((item, itemIndex) => itemIndex === index ? { ...item, due_date: e.target.value } : item))} className="rounded-lg border-slate-200 text-sm" />
-                                        <input type="number" min="1" value={row.amount} onChange={(e) => form.setData("installments", form.data.installments.map((item, itemIndex) => itemIndex === index ? { ...item, amount: e.target.value } : item))} className="rounded-lg border-slate-200 text-sm" />
-                                        <button type="button" onClick={() => form.setData("installments", form.data.installments.filter((_, itemIndex) => itemIndex !== index))} className="text-rose-500">✕</button>
+                                    <div key={index} className="mt-3 grid gap-2 rounded-xl bg-slate-50/70 p-3 sm:grid-cols-[1fr_1fr_auto] sm:items-end">
+                                        <label className="text-xs font-medium text-slate-500">
+                                            Jatuh tempo
+                                            <input type="date" min={form.data.purchase_date} value={row.due_date} onChange={(e) => form.setData("installments", form.data.installments.map((item, itemIndex) => itemIndex === index ? { ...item, due_date: e.target.value } : item))} className="mt-1 w-full rounded-lg border-slate-200 text-sm" />
+                                        </label>
+                                        <label className="text-xs font-medium text-slate-500">
+                                            Nominal
+                                            <input type="number" min="1" value={row.amount} onChange={(e) => form.setData("installments", form.data.installments.map((item, itemIndex) => itemIndex === index ? { ...item, amount: e.target.value } : item))} className="mt-1 w-full rounded-lg border-slate-200 text-sm" />
+                                        </label>
+                                        <button
+                                            type="button"
+                                            onClick={() => form.setData("installments", form.data.installments.filter((_, itemIndex) => itemIndex !== index))}
+                                            className="flex h-10 items-center justify-center gap-2 rounded-lg border border-rose-100 text-sm font-semibold text-rose-500 transition hover:bg-rose-50 sm:w-10"
+                                            aria-label={`Hapus termin ${index + 1}`}
+                                        >
+                                            <i className="fi fi-rr-trash" />
+                                            <span className="sm:hidden">Hapus termin</span>
+                                        </button>
                                     </div>
                                 ))}
                             </div>
