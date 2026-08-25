@@ -1,4 +1,5 @@
 import Breadcrumb from "@/Components/Breadcrumb";
+import FileDropzone from "@/Components/FileDropzone";
 import MoneyInput from "@/Components/MoneyInput";
 import AdminLayout from "@/Layouts/AdminLayout";
 import { Head, Link, useForm } from "@inertiajs/react";
@@ -9,6 +10,9 @@ const money = (v) =>
         maximumFractionDigits: 0,
     }).format(v || 0);
 const today = new Date().toISOString().slice(0, 10);
+const proofAccept = "image/jpeg,image/png,image/webp,application/pdf,.jpg,.jpeg,.png,.webp,.pdf";
+const maxProofSize = 12 * 1024 * 1024;
+const maxProofSizeByType = { "application/pdf": 2 * 1024 * 1024 };
 export default function Create({ suppliers, products, rawMaterials }) {
     const form = useForm({
         supplier_id: "",
@@ -180,12 +184,23 @@ export default function Create({ suppliers, products, rawMaterials }) {
                                 <select
                                     value={item.item_type}
                                     onChange={(e) => {
-                                        setItem(
-                                            idx,
-                                            "item_type",
-                                            e.target.value,
+                                        const nextType = e.target.value;
+                                        form.setData(
+                                            "items",
+                                            form.data.items.map((row, rowIndex) =>
+                                                rowIndex === idx
+                                                    ? {
+                                                          ...row,
+                                                          item_type: nextType,
+                                                          item_id: "",
+                                                          quantity:
+                                                              nextType === "product"
+                                                                  ? Math.max(1, Math.ceil(Number(row.quantity) || 1))
+                                                                  : row.quantity,
+                                                      }
+                                                    : row,
+                                            ),
                                         );
-                                        setItem(idx, "item_id", "");
                                     }}
                                     className="rounded-lg border-slate-200 text-sm"
                                 >
@@ -214,7 +229,9 @@ export default function Create({ suppliers, products, rawMaterials }) {
                                     step={
                                         item.item_type === "product" ? 1 : 0.01
                                     }
-                                    min="0.01"
+                                    min={
+                                        item.item_type === "product" ? 1 : 0.01
+                                    }
                                     value={item.quantity}
                                     onChange={(e) =>
                                         setItem(idx, "quantity", e.target.value)
@@ -364,22 +381,17 @@ export default function Create({ suppliers, products, rawMaterials }) {
                                         <option value="other">Lainnya</option>
                                     </select>
                                 </label>
-                                <label className="block text-sm text-slate-600">
-                                    Bukti pembayaran{" "}
-                                    {form.data.initial_payment_method !==
-                                        "cash" && "*"}
-                                    <input
-                                        type="file"
-                                        accept="image/*,.pdf"
-                                        onChange={(e) =>
-                                            form.setData(
-                                                "initial_payment_proof",
-                                                e.target.files[0],
-                                            )
-                                        }
-                                        className="mt-1 block w-full text-sm"
-                                    />
-                                </label>
+                                <FileDropzone
+                                    label="Bukti pembayaran"
+                                    required={form.data.initial_payment_method !== "cash"}
+                                    file={form.data.initial_payment_proof}
+                                    onFileChange={(file) => form.setData("initial_payment_proof", file)}
+                                    accept={proofAccept}
+                                    maxSize={maxProofSize}
+                                    maxSizeByType={maxProofSizeByType}
+                                    helperText="JPG, PNG, WEBP, atau PDF"
+                                    error={form.errors.initial_payment_proof}
+                                />
                             </>
                         )}
                     </section>
@@ -431,20 +443,19 @@ export default function Create({ suppliers, products, rawMaterials }) {
                                 )}
                             </div>
                         </div>
-                        <label className="mt-6 block text-xs text-slate-400">
-                            Nota / faktur supplier
-                            <input
-                                type="file"
-                                accept="image/*,.pdf"
-                                onChange={(e) =>
-                                    form.setData(
-                                        "supplier_invoice",
-                                        e.target.files[0],
-                                    )
-                                }
-                                className="mt-2 block w-full text-xs text-slate-300"
+                        <div className="mt-6">
+                            <FileDropzone
+                                label="Nota / faktur supplier"
+                                file={form.data.supplier_invoice}
+                                onFileChange={(file) => form.setData("supplier_invoice", file)}
+                                accept={proofAccept}
+                                maxSize={maxProofSize}
+                                maxSizeByType={maxProofSizeByType}
+                                helperText="JPG, PNG, WEBP, atau PDF"
+                                error={form.errors.supplier_invoice}
+                                variant="dark"
                             />
-                        </label>
+                        </div>
                         <button
                             disabled={form.processing || total <= 0}
                             className="mt-6 w-full rounded-xl bg-indigo-500 px-4 py-3 font-bold text-white disabled:opacity-50"

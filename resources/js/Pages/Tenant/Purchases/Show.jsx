@@ -1,4 +1,5 @@
 import Breadcrumb from "@/Components/Breadcrumb";
+import FileDropzone from "@/Components/FileDropzone";
 import MoneyInput from "@/Components/MoneyInput";
 import PasswordConfirmDialog from "@/Components/PasswordConfirmDialog";
 import AdminLayout from "@/Layouts/AdminLayout";
@@ -17,6 +18,9 @@ const method = {
     qris: "QRIS",
     other: "Lainnya",
 };
+const proofAccept = "image/jpeg,image/png,image/webp,application/pdf,.jpg,.jpeg,.png,.webp,.pdf";
+const maxProofSize = 12 * 1024 * 1024;
+const maxProofSizeByType = { "application/pdf": 2 * 1024 * 1024 };
 export default function Show({ purchase }) {
     const can = usePermission();
     const { auth } = usePage().props;
@@ -303,18 +307,19 @@ export default function Show({ purchase }) {
                                     className="mt-1 w-full rounded-xl border-slate-200"
                                 />
                             </label>
-                            <label className="sm:col-span-2 text-sm">
-                                Bukti{" "}
-                                {pay.data.payment_method !== "cash" && "*"}
-                                <input
-                                    type="file"
-                                    accept="image/*,.pdf"
-                                    onChange={(e) =>
-                                        pay.setData("proof", e.target.files[0])
-                                    }
-                                    className="mt-1 block w-full"
+                            <div className="sm:col-span-2">
+                                <FileDropzone
+                                    label="Bukti pembayaran"
+                                    required={pay.data.payment_method !== "cash"}
+                                    file={pay.data.proof}
+                                    onFileChange={(file) => pay.setData("proof", file)}
+                                    accept={proofAccept}
+                                    maxSize={maxProofSize}
+                                    maxSizeByType={maxProofSizeByType}
+                                    helperText="JPG, PNG, WEBP, atau PDF"
+                                    error={pay.errors.proof}
                                 />
-                            </label>
+                            </div>
                         </div>
                         <button
                             disabled={pay.processing}
