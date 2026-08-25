@@ -123,6 +123,8 @@ class FinancialReportTest extends TestCase
             ->where('summary.transactionCount', 1)
             ->where('comparison.revenue.previousValue', 50000)
             ->where('comparison.revenue.percentage', 100)
+            ->where('comparison.costOfGoodsSold.previousValue', 0)
+            ->where('comparison.costOfGoodsSold.percentage', null)
             ->where('chart.'.(now()->day - 1).'.revenue', 100000)
             ->where('chart.'.(now()->day - 1).'.expenses', 30000)
             ->where('chart.'.(now()->day - 1).'.costOfGoodsSold', 30000)

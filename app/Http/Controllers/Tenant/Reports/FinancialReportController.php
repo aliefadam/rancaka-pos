@@ -124,6 +124,7 @@ class FinancialReportController extends Controller
             'comparison' => [
                 'label' => $this->previousPeriodLabel($filters['period']),
                 'revenue' => $this->comparison($revenue, $previousSummary['revenue']),
+                'costOfGoodsSold' => $this->comparison($costOfGoodsSold, $previousSummary['costOfGoodsSold']),
                 'expenses' => $this->comparison($expenseTotal, $previousSummary['expenses']),
                 'netProfit' => $this->comparison($netProfit, $previousSummary['netProfit']),
             ],
@@ -239,7 +240,7 @@ class FinancialReportController extends Controller
         };
     }
 
-    /** @return array{revenue: int, expenses: int, netProfit: int} */
+    /** @return array{revenue: int, costOfGoodsSold: int, expenses: int, netProfit: int} */
     private function summaryForRange(int $tenantId, Carbon $start, Carbon $end): array
     {
         $revenue = (int) Transaction::query()
@@ -265,6 +266,7 @@ class FinancialReportController extends Controller
 
         return [
             'revenue' => $revenue,
+            'costOfGoodsSold' => $costOfGoodsSold,
             'expenses' => $expenses + $supplierPayments,
             'netProfit' => $revenue - $costOfGoodsSold - $expenses,
         ];

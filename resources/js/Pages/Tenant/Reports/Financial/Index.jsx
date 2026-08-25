@@ -130,7 +130,7 @@ export default function Index({
                 onApplyCustom={applyCustomRange}
             />
 
-            <div className="mt-5 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+            <div className="mt-5 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-5">
                 <SummaryCard
                     label="Pendapatan"
                     value={summary.revenue}
@@ -138,6 +138,15 @@ export default function Index({
                     tone="emerald"
                     comparison={comparison.revenue}
                     comparisonLabel={comparison.label}
+                />
+                <SummaryCard
+                    label="HPP"
+                    value={summary.costOfGoodsSold}
+                    icon="fi-rr-box-dollar"
+                    tone="amber"
+                    comparison={comparison.costOfGoodsSold}
+                    comparisonLabel={comparison.label}
+                    inverseComparison
                 />
                 <SummaryCard
                     label="Pengeluaran"
@@ -156,7 +165,6 @@ export default function Index({
                     tone={summary.netProfitValue < 0 ? 'amber' : 'indigo'}
                     comparison={comparison.netProfit}
                     comparisonLabel={comparison.label}
-                    footer={`HPP ${summary.costOfGoodsSold} · laba kotor ${summary.grossProfit}`}
                 />
                 <SummaryCard
                     label="Transaksi Selesai"
