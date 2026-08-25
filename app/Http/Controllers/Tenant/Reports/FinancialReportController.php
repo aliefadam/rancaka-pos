@@ -50,7 +50,6 @@ class FinancialReportController extends Controller
         $revenue = (int) $transactions->sum('total');
         $operatingExpenseTotal = (int) $expenses->sum('amount');
         $supplierPaymentTotal = (int) $supplierPayments->sum('amount');
-        $expenseTotal = $operatingExpenseTotal + $supplierPaymentTotal;
         $costOfGoodsSold = (int) $transactions->sum('cost_of_goods_sold');
         $netProfit = $revenue - $costOfGoodsSold - $operatingExpenseTotal;
         $previousSummary = $this->summaryForRange($tenantId, $previousStart, $previousEnd);
@@ -108,8 +107,8 @@ class FinancialReportController extends Controller
             'summary' => [
                 'revenue' => $this->formatRupiah($revenue),
                 'revenueValue' => $revenue,
-                'expenses' => $this->formatRupiah($expenseTotal),
-                'expensesValue' => $expenseTotal,
+                'expenses' => $this->formatRupiah($operatingExpenseTotal),
+                'expensesValue' => $operatingExpenseTotal,
                 'operatingExpenses' => $this->formatRupiah($operatingExpenseTotal),
                 'operatingExpensesValue' => $operatingExpenseTotal,
                 'supplierPayments' => $this->formatRupiah($supplierPaymentTotal),
@@ -125,7 +124,7 @@ class FinancialReportController extends Controller
                 'label' => $this->previousPeriodLabel($filters['period']),
                 'revenue' => $this->comparison($revenue, $previousSummary['revenue']),
                 'costOfGoodsSold' => $this->comparison($costOfGoodsSold, $previousSummary['costOfGoodsSold']),
-                'expenses' => $this->comparison($expenseTotal, $previousSummary['expenses']),
+                'expenses' => $this->comparison($operatingExpenseTotal, $previousSummary['expenses']),
                 'netProfit' => $this->comparison($netProfit, $previousSummary['netProfit']),
             ],
             'chart' => $breakdown,
@@ -254,8 +253,6 @@ class FinancialReportController extends Controller
             ->where('expense_date', '>=', $start->toDateString())
             ->where('expense_date', '<', $end->toDateString())
             ->sum('amount');
-        $supplierPayments = (int) SupplierPayment::query()->where('tenant_id', $tenantId)->where('status', 'valid')
-            ->where('payment_date', '>=', $start->toDateString())->where('payment_date', '<', $end->toDateString())->sum('amount');
         $costOfGoodsSold = (int) TransactionItem::query()
             ->join('transactions', 'transactions.id', '=', 'transaction_items.transaction_id')
             ->where('transactions.tenant_id', $tenantId)
@@ -267,7 +264,7 @@ class FinancialReportController extends Controller
         return [
             'revenue' => $revenue,
             'costOfGoodsSold' => $costOfGoodsSold,
-            'expenses' => $expenses + $supplierPayments,
+            'expenses' => $expenses,
             'netProfit' => $revenue - $costOfGoodsSold - $expenses,
         ];
     }
@@ -319,7 +316,7 @@ class FinancialReportController extends Controller
                 ? $payment->created_at : $payment->payment_date->copy()->startOfDay();
             $key = $this->bucketKey($bucketDate, $granularity);
             if (isset($buckets[$key])) {
-                $buckets[$key]['expenses'] += (int) $payment->amount;
+                $buckets[$key]['supplierPayments'] += (int) $payment->amount;
             }
         }
 
@@ -384,6 +381,7 @@ class FinancialReportController extends Controller
             'revenue' => 0,
             'expenses' => 0,
             'operatingExpenses' => 0,
+            'supplierPayments' => 0,
             'costOfGoodsSold' => 0,
             'netProfit' => 0,
             'transactions' => 0,

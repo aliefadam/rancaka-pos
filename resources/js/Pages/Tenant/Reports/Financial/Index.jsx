@@ -156,7 +156,7 @@ export default function Index({
                     comparison={comparison.expenses}
                     comparisonLabel={comparison.label}
                     inverseComparison
-                    footer={`Operasional ${summary.operatingExpenses} · supplier ${summary.supplierPayments}`}
+                    footer={`Pembayaran supplier ${summary.supplierPayments} dicatat sebagai arus kas, bukan biaya ulang`}
                 />
                 <SummaryCard
                     label="Laba Bersih"
@@ -556,7 +556,7 @@ function SummaryCard({
                 </span>
             </div>
 
-            {comparison ? (
+            {comparison && (
                 <div className="mt-4 border-t border-slate-100 pt-3">
                     <div className="flex items-center gap-2 text-xs">
                         {percentage === null ? (
@@ -587,8 +587,11 @@ function SummaryCard({
                         </p>
                     )}
                 </div>
-            ) : (
-                <p className="mt-4 border-t border-slate-100 pt-3 text-xs text-slate-400">
+            )}
+            {footer && (
+                <p
+                    className={`${comparison ? 'mt-2' : 'mt-4 border-t border-slate-100 pt-3'} text-xs leading-5 text-slate-400`}
+                >
                     {footer}
                 </p>
             )}

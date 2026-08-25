@@ -8,7 +8,10 @@ use App\Enums\UserRole;
 use App\Models\Category;
 use App\Models\Expense;
 use App\Models\Product;
+use App\Models\Purchase;
 use App\Models\Shift;
+use App\Models\Supplier;
+use App\Models\SupplierPayment;
 use App\Models\Tenant;
 use App\Models\Transaction;
 use App\Models\User;
@@ -104,6 +107,33 @@ class FinancialReportTest extends TestCase
             'description' => 'Biaya operasional',
             'receipt_path' => 'expenses/test.pdf',
         ]);
+        $supplier = Supplier::create([
+            'tenant_id' => $tenant->id,
+            'name' => 'Supplier Laporan',
+        ]);
+        $purchase = Purchase::create([
+            'tenant_id' => $tenant->id,
+            'supplier_id' => $supplier->id,
+            'number' => 'PUR-REPORT-001',
+            'purchase_date' => today(),
+            'payment_term' => 'paid',
+            'items_subtotal' => 40000,
+            'total_amount' => 40000,
+            'paid_amount' => 40000,
+            'balance_amount' => 0,
+            'payment_status' => 'paid',
+            'created_by' => $owner->id,
+        ]);
+        SupplierPayment::create([
+            'tenant_id' => $tenant->id,
+            'supplier_id' => $supplier->id,
+            'purchase_id' => $purchase->id,
+            'number' => 'PAY-REPORT-001',
+            'payment_date' => today(),
+            'amount' => 40000,
+            'payment_method' => 'cash',
+            'created_by' => $owner->id,
+        ]);
 
         $response = $this->actingAs($owner)->get(route(
             'tenant.reports.financial.index',
@@ -116,6 +146,7 @@ class FinancialReportTest extends TestCase
             ->where('filters.month', now()->format('Y-m'))
             ->where('summary.revenue', 'Rp 100.000')
             ->where('summary.expenses', 'Rp 30.000')
+            ->where('summary.supplierPayments', 'Rp 40.000')
             ->where('summary.costOfGoodsSold', 'Rp 30.000')
             ->where('summary.grossProfit', 'Rp 70.000')
             ->where('summary.netProfit', 'Rp 40.000')
@@ -127,6 +158,7 @@ class FinancialReportTest extends TestCase
             ->where('comparison.costOfGoodsSold.percentage', null)
             ->where('chart.'.(now()->day - 1).'.revenue', 100000)
             ->where('chart.'.(now()->day - 1).'.expenses', 30000)
+            ->where('chart.'.(now()->day - 1).'.supplierPayments', 40000)
             ->where('chart.'.(now()->day - 1).'.costOfGoodsSold', 30000)
             ->where('chart.'.(now()->day - 1).'.netProfit', 40000)
             ->where('topProducts.0.name', 'Kopi Susu')
