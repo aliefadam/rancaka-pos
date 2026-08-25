@@ -1,4 +1,5 @@
 import Breadcrumb from '@/Components/Breadcrumb';
+import Select from '@/Components/Select';
 import AdminLayout from '@/Layouts/AdminLayout';
 import { Head, router } from '@inertiajs/react';
 import { useEffect, useState } from 'react';
@@ -453,17 +454,16 @@ function PeriodPicker({
 
             {filters.period === 'yearly' && (
                 <FilterField label="Pilih Tahun">
-                    <select
+                    <Select
                         value={filters.year}
-                        onChange={(event) => onChange('year', event.target.value)}
-                        className="w-full rounded-lg border border-slate-200 px-3 py-2.5 text-sm text-slate-800 focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-100 sm:w-40"
-                    >
-                        {reportYears.map((year) => (
-                            <option key={year} value={year}>
-                                {year}
-                            </option>
-                        ))}
-                    </select>
+                        onChange={(value) => onChange('year', value)}
+                        options={reportYears.map((year) => ({
+                            value: String(year),
+                            label: String(year),
+                        }))}
+                        className="w-full sm:w-40"
+                        searchPlaceholder="Cari tahun..."
+                    />
                 </FilterField>
             )}
 

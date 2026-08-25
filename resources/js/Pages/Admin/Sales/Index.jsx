@@ -1,4 +1,5 @@
 import Breadcrumb from '@/Components/Breadcrumb';
+import Select from '@/Components/Select';
 import AdminLayout from '@/Layouts/AdminLayout';
 import SalesFormModal from '@/Pages/Admin/Sales/SalesFormModal';
 import { Head, router } from '@inertiajs/react';
@@ -45,7 +46,7 @@ export default function Index({ sales, filters, metrics }) {
                         </div>
                         <div className="sm:w-48">
                             <label className="mb-1.5 block text-[10px] font-bold uppercase tracking-wide text-slate-400">Status</label>
-                            <select name="sales_status" defaultValue={filters.sales_status} className="w-full rounded-xl border-slate-200 py-2 text-xs"><option value="">Semua status</option><option value="active">Aktif</option><option value="inactive">Nonaktif</option></select>
+                            <Select name="sales_status" defaultValue={filters.sales_status} options={[{ value: '', label: 'Semua status' }, { value: 'active', label: 'Aktif' }, { value: 'inactive', label: 'Nonaktif' }]} searchPlaceholder="Cari status..." />
                         </div>
                         <button className="rounded-xl bg-slate-900 px-4 py-2 text-xs font-bold text-white">Cari</button>
                     </form>

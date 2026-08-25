@@ -1,6 +1,7 @@
 import Breadcrumb from '@/Components/Breadcrumb';
 import RichTextContent from '@/Components/RichTextContent';
 import RichTextEditor, { EMPTY_DOCUMENT } from '@/Components/RichTextEditor';
+import Select from '@/Components/Select';
 import AdminLayout from '@/Layouts/AdminLayout';
 import { Head, Link, router, useForm } from '@inertiajs/react';
 import { useState } from 'react';
@@ -45,7 +46,7 @@ export default function Show({ ticket, options, canManage }) {
                         </section>
 
                         <section className="rounded-3xl border border-slate-200/70 bg-white p-5 shadow-sm shadow-slate-200/40 sm:p-6">
-                            <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between"><div><p className="text-[10px] font-bold uppercase tracking-[0.17em] text-indigo-500">Work log</p><h2 className="mt-1 text-xl font-black tracking-tight text-slate-900">Tambahkan update pengerjaan</h2><p className="mt-1 text-xs text-slate-400">Status dan catatan akan masuk ke timeline permanen.</p></div><select value={form.data.status} onChange={(e) => form.setData('status', e.target.value)} className="rounded-xl border-slate-200 text-sm font-bold">{options.statuses.map((item) => <option key={item.value} value={item.value}>{item.label}</option>)}</select></div>
+                            <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between"><div><p className="text-[10px] font-bold uppercase tracking-[0.17em] text-indigo-500">Work log</p><h2 className="mt-1 text-xl font-black tracking-tight text-slate-900">Tambahkan update pengerjaan</h2><p className="mt-1 text-xs text-slate-400">Status dan catatan akan masuk ke timeline permanen.</p></div><Select value={form.data.status} onChange={(value) => form.setData('status', value)} options={options.statuses} className="w-full sm:w-52" searchPlaceholder="Cari status..." /></div>
                             <form onSubmit={submitUpdate} className="mt-4"><RichTextEditor key={editorKey} value={form.data.note} onChange={(value) => form.setData('note', value)} error={form.errors.note} placeholder="Jelaskan apa yang dikerjakan, kendala, atau alasan revisi…" minHeight="180px" /><div className="mt-3 flex justify-end"><button disabled={form.processing} className="rounded-xl bg-indigo-600 px-5 py-2.5 text-sm font-bold text-white shadow-lg shadow-indigo-200 transition hover:bg-indigo-700 disabled:opacity-50">{form.processing ? 'Mengirim...' : 'Kirim update'}</button></div></form>
                         </section>
 

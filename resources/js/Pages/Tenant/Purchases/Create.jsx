@@ -1,6 +1,7 @@
 import Breadcrumb from "@/Components/Breadcrumb";
 import FileDropzone from "@/Components/FileDropzone";
 import MoneyInput from "@/Components/MoneyInput";
+import Select from "@/Components/Select";
 import AdminLayout from "@/Layouts/AdminLayout";
 import { Head, Link, useForm } from "@inertiajs/react";
 const money = (v) =>
@@ -107,20 +108,17 @@ export default function Create({ suppliers, products, rawMaterials }) {
                 <section className="grid gap-4 rounded-2xl border border-slate-200/70 bg-white p-5 shadow-sm shadow-slate-200/40 md:grid-cols-3">
                     <label className="text-sm text-slate-600">
                         Supplier *
-                        <select
+                        <Select
                             value={form.data.supplier_id}
-                            onChange={(e) =>
-                                form.setData("supplier_id", e.target.value)
-                            }
-                            className="mt-1 w-full rounded-xl border-slate-200"
-                        >
-                            <option value="">Pilih supplier</option>
-                            {suppliers.map((s) => (
-                                <option key={s.id} value={s.id}>
-                                    {s.name}
-                                </option>
-                            ))}
-                        </select>
+                            onChange={(value) => form.setData("supplier_id", value)}
+                            options={suppliers.map((supplier) => ({
+                                value: String(supplier.id),
+                                label: supplier.name,
+                            }))}
+                            placeholder="Pilih supplier"
+                            searchPlaceholder="Cari supplier..."
+                            className="mt-1 w-full"
+                        />
                     </label>
                     <label className="text-sm text-slate-600">
                         Tanggal pembelian *
@@ -182,10 +180,9 @@ export default function Create({ suppliers, products, rawMaterials }) {
                                 key={idx}
                                 className="grid gap-3 rounded-xl bg-slate-50 p-3 md:grid-cols-[150px_1fr_120px_170px_40px]"
                             >
-                                <select
+                                <Select
                                     value={item.item_type}
-                                    onChange={(e) => {
-                                        const nextType = e.target.value;
+                                    onChange={(nextType) => {
                                         form.setData(
                                             "items",
                                             form.data.items.map((row, rowIndex) =>
@@ -203,28 +200,24 @@ export default function Create({ suppliers, products, rawMaterials }) {
                                             ),
                                         );
                                     }}
-                                    className="rounded-lg border-slate-200 text-sm"
-                                >
-                                    <option value="product">Produk</option>
-                                    <option value="raw_material">
-                                        Bahan baku
-                                    </option>
-                                </select>
-                                <select
+                                    options={[
+                                        { value: "product", label: "Produk" },
+                                        { value: "raw_material", label: "Bahan baku" },
+                                    ]}
+                                    searchPlaceholder="Cari tipe..."
+                                />
+                                <Select
                                     value={item.item_id}
-                                    onChange={(e) =>
-                                        setItem(idx, "item_id", e.target.value)
+                                    onChange={(value) =>
+                                        setItem(idx, "item_id", value)
                                     }
-                                    className="rounded-lg border-slate-200 text-sm"
-                                >
-                                    <option value="">Pilih barang</option>
-                                    {options(item.item_type).map((x) => (
-                                        <option key={x.id} value={x.id}>
-                                            {x.name} · stok {x.stock}{" "}
-                                            {x.unit || "pcs"}
-                                        </option>
-                                    ))}
-                                </select>
+                                    options={options(item.item_type).map((entry) => ({
+                                        value: String(entry.id),
+                                        label: `${entry.name} · stok ${entry.stock} ${entry.unit || "pcs"}`,
+                                    }))}
+                                    placeholder="Pilih barang"
+                                    searchPlaceholder="Cari barang..."
+                                />
                                 <input
                                     type="number"
                                     step={
@@ -364,23 +357,23 @@ export default function Create({ suppliers, products, rawMaterials }) {
                             <>
                                 <label className="block text-sm text-slate-600">
                                     Metode pembayaran awal
-                                    <select
+                                    <Select
                                         value={form.data.initial_payment_method}
-                                        onChange={(e) =>
+                                        onChange={(value) =>
                                             form.setData(
                                                 "initial_payment_method",
-                                                e.target.value,
+                                                value,
                                             )
                                         }
-                                        className="mt-1 w-full rounded-xl border-slate-200"
-                                    >
-                                        <option value="cash">Tunai</option>
-                                        <option value="transfer">
-                                            Transfer bank
-                                        </option>
-                                        <option value="qris">QRIS</option>
-                                        <option value="other">Lainnya</option>
-                                    </select>
+                                        options={[
+                                            { value: "cash", label: "Tunai" },
+                                            { value: "transfer", label: "Transfer bank" },
+                                            { value: "qris", label: "QRIS" },
+                                            { value: "other", label: "Lainnya" },
+                                        ]}
+                                        className="mt-1 w-full"
+                                        searchPlaceholder="Cari metode..."
+                                    />
                                 </label>
                                 <FileDropzone
                                     label="Bukti pembayaran"

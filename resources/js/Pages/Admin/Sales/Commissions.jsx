@@ -2,6 +2,7 @@ import Breadcrumb from '@/Components/Breadcrumb';
 import FileDropzone from '@/Components/FileDropzone';
 import Modal from '@/Components/Modal';
 import Pagination from '@/Components/Pagination';
+import Select from '@/Components/Select';
 import { useToast } from '@/Contexts/ToastContext';
 import AdminLayout from '@/Layouts/AdminLayout';
 import { Head, router, useForm } from '@inertiajs/react';
@@ -84,11 +85,11 @@ export default function Commissions({ allSales, commissions, payouts, filters, m
                             <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
                                 <div>
                                     <label className="mb-1.5 block text-[10px] font-bold uppercase tracking-wide text-slate-400">Sales</label>
-                                    <select name="sales_id" defaultValue={filters.sales_id || ''} className="w-full rounded-xl border-slate-200 py-2 text-xs"><option value="">Semua sales</option>{allSales.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}</select>
+                                    <Select name="sales_id" defaultValue={filters.sales_id || ''} options={[{ value: '', label: 'Semua sales' }, ...allSales.map((item) => ({ value: String(item.id), label: item.name }))]} searchPlaceholder="Cari sales..." />
                                 </div>
                                 <div>
                                     <label className="mb-1.5 block text-[10px] font-bold uppercase tracking-wide text-slate-400">Status komisi</label>
-                                    <select name="commission_status" defaultValue={filters.commission_status || ''} className="w-full rounded-xl border-slate-200 py-2 text-xs"><option value="">Semua status</option><option value="accrued">Belum dibayar</option><option value="paid">Sudah dibayar</option></select>
+                                    <Select name="commission_status" defaultValue={filters.commission_status || ''} options={[{ value: '', label: 'Semua status' }, { value: 'accrued', label: 'Belum dibayar' }, { value: 'paid', label: 'Sudah dibayar' }]} searchPlaceholder="Cari status..." />
                                 </div>
                                 <div>
                                     <label className="mb-1.5 block text-[10px] font-bold uppercase tracking-wide text-slate-400">Dari tanggal</label>

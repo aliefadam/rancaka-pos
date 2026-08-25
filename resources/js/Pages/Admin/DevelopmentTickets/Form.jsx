@@ -1,5 +1,6 @@
 import Breadcrumb from '@/Components/Breadcrumb';
 import RichTextEditor, { EMPTY_DOCUMENT } from '@/Components/RichTextEditor';
+import Select from '@/Components/Select';
 import AdminLayout from '@/Layouts/AdminLayout';
 import { Head, Link, useForm } from '@inertiajs/react';
 
@@ -42,10 +43,10 @@ export default function Form({ ticket, developers, tenants, options }) {
 
                     <aside className="space-y-4">
                         <section className="rounded-2xl border border-slate-200/70 bg-white p-5 shadow-sm shadow-slate-200/40"><div className="flex items-center gap-2"><span className="flex h-8 w-8 items-center justify-center rounded-lg bg-amber-50 text-amber-600"><i className="fi fi-rr-settings-sliders" /></span><h2 className="font-black text-slate-900">Klasifikasi</h2></div><div className="mt-5 space-y-4">
-                            <Field label="Tipe" error={form.errors.type}><select value={form.data.type} onChange={(e) => form.setData('type', e.target.value)} className="w-full rounded-xl border-slate-200 text-sm">{options.types.map((item) => <option key={item.value} value={item.value}>{item.label}</option>)}</select></Field>
-                            <Field label="Prioritas" error={form.errors.priority}><select value={form.data.priority} onChange={(e) => form.setData('priority', e.target.value)} className="w-full rounded-xl border-slate-200 text-sm">{options.priorities.map((item) => <option key={item.value} value={item.value}>{item.label}</option>)}</select></Field>
-                            <Field label="PIC developer" error={form.errors.assigned_to}><select value={form.data.assigned_to} onChange={(e) => form.setData('assigned_to', e.target.value)} className="w-full rounded-xl border-slate-200 text-sm"><option value="">Belum ditentukan</option>{developers.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}</select></Field>
-                            <Field label="Tenant terkait" error={form.errors.tenant_id}><select value={form.data.tenant_id} onChange={(e) => form.setData('tenant_id', e.target.value)} className="w-full rounded-xl border-slate-200 text-sm"><option value="">Produk umum</option>{tenants.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}</select></Field>
+                            <Field label="Tipe" error={form.errors.type}><Select value={form.data.type} onChange={(value) => form.setData('type', value)} options={options.types} searchPlaceholder="Cari tipe..." /></Field>
+                            <Field label="Prioritas" error={form.errors.priority}><Select value={form.data.priority} onChange={(value) => form.setData('priority', value)} options={options.priorities} searchPlaceholder="Cari prioritas..." /></Field>
+                            <Field label="PIC developer" error={form.errors.assigned_to}><Select value={form.data.assigned_to} onChange={(value) => form.setData('assigned_to', value)} options={[{ value: '', label: 'Belum ditentukan' }, ...developers.map((item) => ({ value: String(item.id), label: item.name }))]} searchPlaceholder="Cari developer..." /></Field>
+                            <Field label="Tenant terkait" error={form.errors.tenant_id}><Select value={form.data.tenant_id} onChange={(value) => form.setData('tenant_id', value)} options={[{ value: '', label: 'Produk umum' }, ...tenants.map((item) => ({ value: String(item.id), label: item.name }))]} searchPlaceholder="Cari tenant..." /></Field>
                             <Field label="Target selesai" error={form.errors.target_date}><input type="date" value={form.data.target_date} onChange={(e) => form.setData('target_date', e.target.value)} className="w-full rounded-xl border-slate-200 text-sm" /></Field>
                         </div></section>
                         <div className="rounded-2xl bg-slate-950 p-5 text-slate-300"><p className="text-xs font-bold text-white"><i className="fi fi-rr-bulb mr-2 text-amber-300" />Tiket yang enak dikerjakan</p><p className="mt-2 text-xs leading-5">Sertakan masalah, ekspektasi hasil, contoh data, dan kondisi kapan tiket dianggap selesai.</p></div>

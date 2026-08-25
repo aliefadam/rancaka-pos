@@ -2,6 +2,7 @@ import Breadcrumb from "@/Components/Breadcrumb";
 import FileDropzone from "@/Components/FileDropzone";
 import MoneyInput from "@/Components/MoneyInput";
 import PasswordConfirmDialog from "@/Components/PasswordConfirmDialog";
+import Select from "@/Components/Select";
 import AdminLayout from "@/Layouts/AdminLayout";
 import usePermission from "@/Hooks/usePermission";
 import { Head, Link, router, useForm, usePage } from "@inertiajs/react";
@@ -278,21 +279,23 @@ export default function Show({ purchase }) {
                             </label>
                             <label className="text-sm">
                                 Metode
-                                <select
+                                <Select
                                     value={pay.data.payment_method}
-                                    onChange={(e) =>
+                                    onChange={(value) =>
                                         pay.setData(
                                             "payment_method",
-                                            e.target.value,
+                                            value,
                                         )
                                     }
-                                    className="mt-1 w-full rounded-xl border-slate-200"
-                                >
-                                    <option value="cash">Tunai</option>
-                                    <option value="transfer">Transfer</option>
-                                    <option value="qris">QRIS</option>
-                                    <option value="other">Lainnya</option>
-                                </select>
+                                    options={[
+                                        { value: "cash", label: "Tunai" },
+                                        { value: "transfer", label: "Transfer" },
+                                        { value: "qris", label: "QRIS" },
+                                        { value: "other", label: "Lainnya" },
+                                    ]}
+                                    className="mt-1 w-full"
+                                    searchPlaceholder="Cari metode..."
+                                />
                             </label>
                             <label className="text-sm">
                                 No. referensi

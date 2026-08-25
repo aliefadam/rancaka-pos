@@ -10,31 +10,59 @@ import { Fragment, useMemo, useState } from 'react';
 export default function Select({
     value,
     onChange,
+    defaultValue = '',
+    name,
+    id,
+    disabled = false,
     options,
     placeholder = 'Pilih...',
-    searchable = false,
+    searchable = true,
     searchPlaceholder = 'Cari...',
     onCreateOption,
     createLabel = (query) => `Tambah “${query}”`,
     className = '',
+    buttonClassName = '',
 }) {
     const [query, setQuery] = useState('');
+    const [internalValue, setInternalValue] = useState(defaultValue);
+    const selectedValue = value === undefined ? internalValue : value;
 
     const filteredOptions = useMemo(() => {
         if (!searchable || !query.trim()) return options;
 
         const q = query.toLowerCase();
         return options.filter((option) =>
-            option.label.toLowerCase().includes(q),
+            String(option.label).toLowerCase().includes(q),
         );
     }, [options, query, searchable]);
 
-    const selected = options.find((option) => option.value === value);
+    const selected = options.find(
+        (option) => String(option.value) === String(selectedValue),
+    );
+
+    const changeValue = (nextValue) => {
+        if (value === undefined) setInternalValue(nextValue);
+        onChange?.(nextValue);
+    };
 
     return (
-        <Listbox value={value} onChange={onChange}>
+        <Listbox
+            value={selectedValue}
+            onChange={changeValue}
+            disabled={disabled}
+        >
             <div className={`relative ${className}`}>
-                <ListboxButton className="flex w-full items-center justify-between gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-left text-sm text-slate-900 transition focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-100">
+                {name && (
+                    <input
+                        type="hidden"
+                        name={name}
+                        value={selectedValue ?? ''}
+                    />
+                )}
+                <ListboxButton
+                    id={id}
+                    className={`flex w-full items-center justify-between gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-left text-sm text-slate-900 transition focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-100 disabled:cursor-not-allowed disabled:opacity-60 ${buttonClassName}`}
+                >
                     <span
                         className={`truncate ${selected ? 'text-slate-900' : 'text-slate-400'}`}
                     >
@@ -71,6 +99,7 @@ export default function Select({
                                         }
                                         onKeyDown={(e) => e.stopPropagation()}
                                         placeholder={searchPlaceholder}
+                                        autoFocus
                                         className="w-full rounded-lg border border-slate-200 py-1.5 pl-8 pr-2 text-sm text-slate-900 placeholder-slate-400 focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-100"
                                     />
                                 </div>
@@ -101,8 +130,9 @@ export default function Select({
                             <ListboxOption
                                 key={option.value}
                                 value={option.value}
+                                disabled={option.disabled}
                                 className={({ focus }) =>
-                                    `flex cursor-pointer items-center justify-between rounded-lg px-3 py-2 text-sm transition ${
+                                    `flex cursor-pointer items-center justify-between rounded-lg px-3 py-2 text-sm transition data-[disabled]:cursor-not-allowed data-[disabled]:opacity-50 ${
                                         focus
                                             ? 'bg-indigo-50 text-indigo-700'
                                             : 'text-slate-700'

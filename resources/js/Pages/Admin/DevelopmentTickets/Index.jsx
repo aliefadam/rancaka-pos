@@ -1,5 +1,6 @@
 import Breadcrumb from '@/Components/Breadcrumb';
 import Pagination from '@/Components/Pagination';
+import Select from '@/Components/Select';
 import AdminLayout from '@/Layouts/AdminLayout';
 import { Head, Link, router } from '@inertiajs/react';
 import { priorityUi, shortDate, statusUi, typeLabels } from './ticketUi';
@@ -45,10 +46,10 @@ export default function Index({ tickets, filters, metrics, developers, options, 
             <section className="mt-5 overflow-hidden rounded-2xl border border-slate-200/70 bg-white shadow-sm shadow-slate-200/40">
                 <form onSubmit={(event) => { event.preventDefault(); applyFilters(Object.fromEntries(new FormData(event.currentTarget))); }} className="grid gap-3 border-b border-slate-100 bg-slate-50/60 p-4 lg:grid-cols-[minmax(220px,1fr)_repeat(4,minmax(135px,auto))_auto]">
                     <div className="relative"><i className="fi fi-rr-search absolute left-3 top-1/2 -translate-y-1/2 text-xs text-slate-400" /><input name="search" defaultValue={filters.search} placeholder="Cari nomor atau judul tiket" className="w-full rounded-xl border-slate-200 py-2.5 pl-9 pr-3 text-sm" /></div>
-                    <select name="status" defaultValue={filters.status} className="rounded-xl border-slate-200 py-2.5 text-xs"><option value="">Semua status</option>{options.statuses.map((item) => <option key={item.value} value={item.value}>{item.label}</option>)}</select>
-                    <select name="type" defaultValue={filters.type} className="rounded-xl border-slate-200 py-2.5 text-xs"><option value="">Semua tipe</option>{options.types.map((item) => <option key={item.value} value={item.value}>{item.label}</option>)}</select>
-                    <select name="priority" defaultValue={filters.priority} className="rounded-xl border-slate-200 py-2.5 text-xs"><option value="">Semua prioritas</option>{options.priorities.map((item) => <option key={item.value} value={item.value}>{item.label}</option>)}</select>
-                    <select name="assigned_to" defaultValue={filters.assigned_to} className="rounded-xl border-slate-200 py-2.5 text-xs"><option value="">Semua PIC</option>{developers.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}</select>
+                    <Select name="status" defaultValue={filters.status} options={[{ value: '', label: 'Semua status' }, ...options.statuses]} searchPlaceholder="Cari status..." />
+                    <Select name="type" defaultValue={filters.type} options={[{ value: '', label: 'Semua tipe' }, ...options.types]} searchPlaceholder="Cari tipe..." />
+                    <Select name="priority" defaultValue={filters.priority} options={[{ value: '', label: 'Semua prioritas' }, ...options.priorities]} searchPlaceholder="Cari prioritas..." />
+                    <Select name="assigned_to" defaultValue={filters.assigned_to} options={[{ value: '', label: 'Semua PIC' }, ...developers.map((item) => ({ value: String(item.id), label: item.name }))]} searchPlaceholder="Cari PIC..." />
                     <button className="rounded-xl bg-slate-900 px-4 py-2.5 text-xs font-bold text-white transition hover:bg-indigo-600">Terapkan</button>
                 </form>
 

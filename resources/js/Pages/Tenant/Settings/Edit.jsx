@@ -1,4 +1,5 @@
 import Breadcrumb from '@/Components/Breadcrumb';
+import Select from '@/Components/Select';
 import { useToast } from '@/Contexts/ToastContext';
 import AdminLayout from '@/Layouts/AdminLayout';
 import {
@@ -285,14 +286,16 @@ export default function Edit({ tenant }) {
                             <label className="mb-1.5 block text-sm font-medium text-slate-700">
                                 Ukuran Struk <span className="text-rose-500">*</span>
                             </label>
-                            <select
+                            <Select
                                 value={data.receipt_size}
-                                onChange={(e) => setData('receipt_size', e.target.value)}
-                                className="block w-full rounded-lg border border-slate-200 px-3 py-2.5 text-sm text-slate-900 focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-100 sm:max-w-xs"
-                            >
-                                <option value="58mm">58mm</option>
-                                <option value="80mm">80mm</option>
-                            </select>
+                                onChange={(value) => setData('receipt_size', value)}
+                                options={[
+                                    { value: '58mm', label: '58mm' },
+                                    { value: '80mm', label: '80mm' },
+                                ]}
+                                className="w-full sm:max-w-xs"
+                                searchPlaceholder="Cari ukuran struk..."
+                            />
                             {errors.receipt_size && (
                                 <p className="mt-1.5 text-sm text-red-600">{errors.receipt_size}</p>
                             )}
