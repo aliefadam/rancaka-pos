@@ -443,6 +443,9 @@ export default function AdminLayout({ header, children }) {
     const { auth, flash } = page.props;
     const user = auth.user;
     const impersonation = auth.impersonation;
+    const supplierPayableNotifications = Number(
+        auth.supplier_payable_notifications ?? 0,
+    );
     const navigation = useMemo(() => {
         const sections = navigationByRole[user.role] ?? [];
         const availableSections = sections
@@ -712,9 +715,24 @@ export default function AdminLayout({ header, children }) {
 
                     <div className="flex items-center gap-2 sm:gap-3">
                         {(user.role === "owner" || (auth.permissions ?? []).includes("supplier-payables.view")) && (
-                            <Link href={route("tenant.supplier-payables.index")} className="relative flex h-10 w-10 items-center justify-center rounded-xl text-slate-500 transition hover:bg-slate-50 hover:text-indigo-600" aria-label="Notifikasi hutang supplier">
-                                <i className="fi fi-rr-bell text-lg" />
-                                {auth.supplier_payable_notifications > 0 && <span className="absolute right-1 top-1 h-2.5 w-2.5 rounded-full bg-rose-500 ring-2 ring-white" />}
+                            <Link
+                                href={route("tenant.supplier-payables.index")}
+                                className={`relative flex h-10 w-10 items-center justify-center rounded-xl transition ${
+                                    supplierPayableNotifications > 0
+                                        ? "bg-amber-50 text-amber-700 hover:bg-amber-100"
+                                        : "text-slate-500 hover:bg-slate-50 hover:text-indigo-600"
+                                }`}
+                                aria-label={`Hutang Supplier${supplierPayableNotifications > 0 ? `, ${supplierPayableNotifications} tagihan perlu diperhatikan` : ""}`}
+                                title="Hutang Supplier"
+                            >
+                                <i className="fi fi-rr-file-invoice-dollar text-lg" />
+                                {supplierPayableNotifications > 0 && (
+                                    <span className="absolute -right-1 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-rose-500 px-1 text-[9px] font-bold leading-none text-white ring-2 ring-white dark:ring-slate-900">
+                                        {supplierPayableNotifications > 99
+                                            ? "99+"
+                                            : supplierPayableNotifications}
+                                    </span>
+                                )}
                             </Link>
                         )}
                         <div
