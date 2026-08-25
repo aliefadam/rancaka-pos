@@ -1,4 +1,5 @@
 import Breadcrumb from '@/Components/Breadcrumb';
+import FileDropzone from '@/Components/FileDropzone';
 import Modal from '@/Components/Modal';
 import Pagination from '@/Components/Pagination';
 import { useToast } from '@/Contexts/ToastContext';
@@ -8,6 +9,9 @@ import { useState } from 'react';
 
 const money = (value) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(Number(value ?? 0));
 const date = (value) => value ? new Date(value).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' }) : '—';
+const proofAccept = 'image/jpeg,image/png,image/webp,application/pdf,.jpg,.jpeg,.png,.webp,.pdf';
+const maxProofSize = 12 * 1024 * 1024;
+const maxProofSizeByType = { 'application/pdf': 2 * 1024 * 1024 };
 
 export default function Commissions({ allSales, commissions, payouts, filters, metrics }) {
     const toast = useToast();
@@ -106,7 +110,43 @@ export default function Commissions({ allSales, commissions, payouts, filters, m
                 <div className="rounded-2xl border border-slate-200/70 bg-white p-5 shadow-sm shadow-slate-200/40"><h2 className="font-bold text-slate-900">Payout terbaru</h2><div className="mt-4 space-y-3">{payouts.map((item) => <div key={item.id} className="rounded-xl border border-slate-100 p-3"><div className="flex justify-between gap-3"><div><p className="text-sm font-semibold text-slate-800">{item.sales_profile.name}</p><p className="mt-0.5 font-mono text-[10px] text-slate-400">{item.number}</p></div><p className="text-sm font-bold text-emerald-600">{money(item.amount)}</p></div><div className="mt-2 flex items-center justify-between text-[11px] text-slate-400"><span>{date(item.paid_at)}</span>{item.proof_url && <a href={item.proof_url} target="_blank" rel="noreferrer" className="font-semibold text-indigo-600">Bukti</a>}</div></div>)}{payouts.length === 0 && <p className="py-5 text-center text-xs text-slate-400">Belum ada payout.</p>}</div></div>
             </section>
 
-            <Modal show={payoutOpen} onClose={() => setPayoutOpen(false)} maxWidth="md"><form onSubmit={submitPayout}><Modal.Header><div><p className="text-[10px] font-bold uppercase tracking-widest text-emerald-600">Payout manual</p><h2 className="mt-1 text-lg font-bold text-slate-900">Konfirmasi pembayaran komisi</h2></div></Modal.Header><Modal.Body><div className="rounded-2xl bg-slate-950 p-5 text-white"><p className="text-xs text-slate-400">Total payout</p><p className="mt-1 text-2xl font-black">{money(selectedTotal)}</p><p className="mt-2 text-xs text-slate-400">{selected.length} komisi · {selectedRows[0]?.sales_profile.name}</p></div><div className="mt-4 space-y-4"><div><label className="mb-1.5 block text-sm font-semibold text-slate-700">Bukti transfer (opsional)</label><input type="file" accept="image/jpeg,image/png,image/webp,application/pdf" onChange={(e) => payoutForm.setData('proof', e.target.files[0] ?? null)} className="w-full rounded-xl border border-slate-200 p-2 text-sm" />{payoutForm.errors.proof && <p className="mt-1 text-xs text-rose-600">{payoutForm.errors.proof}</p>}</div><div><label className="mb-1.5 block text-sm font-semibold text-slate-700">Catatan (opsional)</label><textarea rows="3" value={payoutForm.data.note} onChange={(e) => payoutForm.setData('note', e.target.value)} className="w-full rounded-xl border-slate-200 text-sm" /></div></div></Modal.Body><Modal.Footer><button type="button" onClick={() => setPayoutOpen(false)} className="rounded-xl border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-600">Batal</button><button disabled={payoutForm.processing} className="rounded-xl bg-emerald-600 px-4 py-2 text-sm font-bold text-white disabled:opacity-60">{payoutForm.processing ? 'Mencatat...' : 'Tandai sudah dibayar'}</button></Modal.Footer></form></Modal>
+            <Modal show={payoutOpen} onClose={() => setPayoutOpen(false)} maxWidth="md">
+                <form onSubmit={submitPayout}>
+                    <Modal.Header>
+                        <div>
+                            <p className="text-[10px] font-bold uppercase tracking-widest text-emerald-600">Payout manual</p>
+                            <h2 className="mt-1 text-lg font-bold text-slate-900">Konfirmasi pembayaran komisi</h2>
+                        </div>
+                    </Modal.Header>
+                    <Modal.Body>
+                        <div className="rounded-2xl bg-slate-950 p-5 text-white">
+                            <p className="text-xs text-slate-400">Total payout</p>
+                            <p className="mt-1 text-2xl font-black">{money(selectedTotal)}</p>
+                            <p className="mt-2 text-xs text-slate-400">{selected.length} komisi · {selectedRows[0]?.sales_profile.name}</p>
+                        </div>
+                        <div className="mt-4 space-y-4">
+                            <FileDropzone
+                                label="Bukti transfer (opsional)"
+                                file={payoutForm.data.proof}
+                                onFileChange={(file) => payoutForm.setData('proof', file)}
+                                accept={proofAccept}
+                                maxSize={maxProofSize}
+                                maxSizeByType={maxProofSizeByType}
+                                helperText="JPG, PNG, WEBP, atau PDF"
+                                error={payoutForm.errors.proof}
+                            />
+                            <div>
+                                <label className="mb-1.5 block text-sm font-semibold text-slate-700">Catatan (opsional)</label>
+                                <textarea rows="3" value={payoutForm.data.note} onChange={(e) => payoutForm.setData('note', e.target.value)} className="w-full rounded-xl border-slate-200 text-sm" />
+                            </div>
+                        </div>
+                    </Modal.Body>
+                    <Modal.Footer>
+                        <button type="button" onClick={() => setPayoutOpen(false)} className="rounded-xl border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-600">Batal</button>
+                        <button disabled={payoutForm.processing} className="rounded-xl bg-emerald-600 px-4 py-2 text-sm font-bold text-white disabled:opacity-60">{payoutForm.processing ? 'Mencatat...' : 'Tandai sudah dibayar'}</button>
+                    </Modal.Footer>
+                </form>
+            </Modal>
         </AdminLayout>
     );
 }

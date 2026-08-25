@@ -1,9 +1,12 @@
 import Breadcrumb from '@/Components/Breadcrumb';
+import FileDropzone from '@/Components/FileDropzone';
 import AdminLayout from '@/Layouts/AdminLayout';
 import Pagination from '@/Components/Pagination';
 import { Head, router, useForm } from '@inertiajs/react';
 
 const money = (value) => `Rp ${Number(value || 0).toLocaleString('id-ID')}`;
+const imageAccept = 'image/jpeg,image/png,image/webp,.jpg,.jpeg,.png,.webp';
+const maxImageSize = 12 * 1024 * 1024;
 export default function Index({ payments, settings }) {
     const bankForm = useForm({
         bank_name: settings?.bank_name ?? '',
@@ -137,16 +140,22 @@ export default function Index({ payments, settings }) {
                             placeholder="Nama merchant QRIS"
                             className="rounded-xl border border-slate-200 px-3 py-2.5 text-sm"
                         />
-                        <input
-                            type="file"
-                            accept="image/jpeg,image/png,image/webp"
-                            onChange={(e) =>
-                                qrisForm.setData(
-                                    'qris_image',
-                                    e.target.files[0],
-                                )
+                        <FileDropzone
+                            label="Gambar QRIS"
+                            file={qrisForm.data.qris_image}
+                            onFileChange={(file) =>
+                                qrisForm.setData({
+                                    ...qrisForm.data,
+                                    qris_image: file,
+                                    remove_qris: file
+                                        ? false
+                                        : qrisForm.data.remove_qris,
+                                })
                             }
-                            className="rounded-xl border border-dashed border-slate-300 p-2 text-sm"
+                            accept={imageAccept}
+                            maxSize={maxImageSize}
+                            helperText="JPG, PNG, atau WEBP · maks. 12 MB"
+                            error={qrisForm.errors.qris_image}
                         />
                     </div>
                     <div className="mt-3 flex flex-wrap gap-4">
@@ -179,11 +188,6 @@ export default function Index({ payments, settings }) {
                             </label>
                         )}
                     </div>
-                    {qrisForm.errors.qris_image && (
-                        <p className="mt-2 text-sm text-red-600">
-                            {qrisForm.errors.qris_image}
-                        </p>
-                    )}
                 </div>
                 <div className="flex items-center gap-4">
                     {settings?.qris_image_url && (

@@ -9,14 +9,14 @@ function formatRupiah(value) {
 
 export default function CloseShiftModal({ show, onClose, summary, heldCount = 0 }) {
     const { data, setData, post, processing, errors, reset, clearErrors } =
-        useForm({ closing_cash: '' });
+        useForm({ closing_cash: '0' });
 
     useEffect(() => {
         if (!show) return;
-        setData('closing_cash', String(summary?.expected_cash ?? ''));
+        setData('closing_cash', '0');
         clearErrors();
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [show, summary?.expected_cash]);
+    }, [show]);
 
     const cashDifference =
         data.closing_cash === '' || !summary
@@ -169,6 +169,7 @@ export default function CloseShiftModal({ show, onClose, summary, heldCount = 0 
                                 min="0"
                                 value={data.closing_cash}
                                 onValueChange={(value) => setData('closing_cash', value)}
+                                onFocus={(event) => event.currentTarget.select()}
                                 className="block w-full rounded-lg border border-slate-200 px-3 py-2.5 text-sm text-slate-900 placeholder-slate-400 focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-100"
                                 placeholder="0"
                             />

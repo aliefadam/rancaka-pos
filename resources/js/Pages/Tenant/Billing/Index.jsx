@@ -1,8 +1,12 @@
 import Breadcrumb from '@/Components/Breadcrumb';
+import FileDropzone from '@/Components/FileDropzone';
 import AdminLayout from '@/Layouts/AdminLayout';
 import { Head, useForm, usePage } from '@inertiajs/react';
 
 const money = (value) => `Rp ${Number(value || 0).toLocaleString('id-ID')}`;
+const proofAccept = 'image/jpeg,image/png,image/webp,application/pdf,.jpg,.jpeg,.png,.webp,.pdf';
+const maxProofSize = 12 * 1024 * 1024;
+const maxProofSizeByType = { 'application/pdf': 2 * 1024 * 1024 };
 const date = (value) =>
     value
         ? new Date(value).toLocaleDateString('id-ID', {
@@ -164,16 +168,16 @@ export default function Index({ subscription, billing, paymentSettings, networkR
                                             Transfer Bank
                                         </button>
                                     </div>
-                                    <input
-                                        type="file"
-                                        accept="image/jpeg,image/png,image/webp,application/pdf"
-                                        onChange={(e) =>
-                                            form.setData(
-                                                'proof',
-                                                e.target.files[0],
-                                            )
-                                        }
-                                        className="w-full rounded-xl border border-dashed border-slate-300 p-4 text-sm"
+                                    <FileDropzone
+                                        label="Bukti pembayaran"
+                                        required
+                                        file={form.data.proof}
+                                        onFileChange={(file) => form.setData('proof', file)}
+                                        accept={proofAccept}
+                                        maxSize={maxProofSize}
+                                        maxSizeByType={maxProofSizeByType}
+                                        helperText="JPG, PNG, WEBP, atau PDF"
+                                        error={form.errors.proof}
                                     />
                                     <textarea
                                         value={form.data.note}
@@ -183,11 +187,6 @@ export default function Index({ subscription, billing, paymentSettings, networkR
                                         placeholder="Catatan pembayaran (opsional)"
                                         className="w-full rounded-xl border border-slate-200 p-3 text-sm"
                                     />
-                                    {form.errors.proof && (
-                                        <p className="text-sm text-red-600">
-                                            {form.errors.proof}
-                                        </p>
-                                    )}
                                     <button
                                         disabled={form.processing}
                                         className="w-full rounded-xl bg-indigo-600 px-4 py-3 text-sm font-bold text-white hover:bg-indigo-700"
