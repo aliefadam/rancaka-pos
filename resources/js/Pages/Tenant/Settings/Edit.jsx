@@ -1,13 +1,23 @@
 import Breadcrumb from '@/Components/Breadcrumb';
 import { useToast } from '@/Contexts/ToastContext';
 import AdminLayout from '@/Layouts/AdminLayout';
+import {
+    canInstallPwa,
+    isPwaInstalled,
+    promptPwaInstall,
+} from '@/pwa';
 import { Head, useForm } from '@inertiajs/react';
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 export default function Edit({ tenant }) {
     const toast = useToast();
     const fileInputRef = useRef(null);
     const [logoPreview, setLogoPreview] = useState(tenant.logo_url);
+    const [pwaInstallAvailable, setPwaInstallAvailable] = useState(() =>
+        canInstallPwa(),
+    );
+    const [pwaInstalled, setPwaInstalled] = useState(() => isPwaInstalled());
+    const [showPwaHelp, setShowPwaHelp] = useState(false);
 
     const { data, setData, post, processing, errors, transform } = useForm({
         name: tenant.name ?? '',
@@ -22,6 +32,46 @@ export default function Edit({ tenant }) {
     });
 
     transform((data) => ({ ...data, _method: 'put' }));
+
+    useEffect(() => {
+        const installAvailable = () => setPwaInstallAvailable(true);
+        const installed = () => {
+            setPwaInstalled(true);
+            setPwaInstallAvailable(false);
+            setShowPwaHelp(false);
+        };
+
+        window.addEventListener(
+            'rancaka:pwa-install-available',
+            installAvailable,
+        );
+        window.addEventListener('rancaka:pwa-installed', installed);
+
+        return () => {
+            window.removeEventListener(
+                'rancaka:pwa-install-available',
+                installAvailable,
+            );
+            window.removeEventListener('rancaka:pwa-installed', installed);
+        };
+    }, []);
+
+    const installPwa = async () => {
+        const outcome = await promptPwaInstall();
+
+        if (outcome === 'accepted' || outcome === 'installed') {
+            toast.success('Rancaka POS berhasil dipasang di perangkat.');
+            setShowPwaHelp(false);
+            return;
+        }
+
+        if (outcome === 'unavailable') {
+            setShowPwaHelp(true);
+            return;
+        }
+
+        toast.info('Instalasi PWA dibatalkan. Anda dapat mencobanya kembali.');
+    };
 
     const handleLogoChange = (e) => {
         const file = e.target.files?.[0];
@@ -280,6 +330,74 @@ export default function Edit({ tenant }) {
                             </span>
                         </label>
                     </div>
+                </section>
+
+                <section className="rounded-2xl border border-slate-200/70 bg-white p-6 shadow-sm shadow-slate-200/40">
+                    <h2 className="text-base font-semibold text-slate-900">
+                        Aplikasi &amp; Printer
+                    </h2>
+                    <p className="mt-1 text-sm text-slate-500">
+                        Pasang Rancaka POS di layar utama dan hubungkan printer
+                        thermal melalui aplikasi Android.
+                    </p>
+
+                    <div className="mt-5 grid gap-3 sm:grid-cols-2">
+                        <div className="flex flex-col rounded-2xl border border-indigo-100 bg-indigo-50/40 p-4">
+                            <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-indigo-600 text-white">
+                                <i className="fi fi-rr-apps text-lg" />
+                            </span>
+                            <h3 className="mt-4 text-sm font-bold text-slate-900">
+                                Rancaka POS PWA
+                            </h3>
+                            <p className="mt-1 flex-1 text-xs leading-5 text-slate-500">
+                                Akses POS seperti aplikasi tanpa mengunduh APK.
+                            </p>
+                            <button
+                                type="button"
+                                onClick={installPwa}
+                                disabled={pwaInstalled}
+                                className="mt-4 flex w-full items-center justify-center gap-2 rounded-xl bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-indigo-700 disabled:cursor-default disabled:bg-emerald-600"
+                            >
+                                <i
+                                    className={`fi ${pwaInstalled ? 'fi-rr-check-circle' : pwaInstallAvailable ? 'fi-rr-download' : 'fi-rr-info'}`}
+                                />
+                                {pwaInstalled
+                                    ? 'PWA Sudah Terpasang'
+                                    : pwaInstallAvailable
+                                      ? 'Instal Aplikasi PWA'
+                                      : 'Cara Instal PWA'}
+                            </button>
+                        </div>
+
+                        <div className="flex flex-col rounded-2xl border border-amber-100 bg-amber-50/40 p-4">
+                            <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-amber-500 text-white">
+                                <i className="fi fi-rr-print text-lg" />
+                            </span>
+                            <h3 className="mt-4 text-sm font-bold text-slate-900">
+                                Rancaka Print Android
+                            </h3>
+                            <p className="mt-1 flex-1 text-xs leading-5 text-slate-500">
+                                Jembatan Bluetooth untuk mencetak struk ke printer thermal.
+                            </p>
+                            <a
+                                href={route('tenant.printer.download')}
+                                download
+                                className="mt-4 flex w-full items-center justify-center gap-2 rounded-xl bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-slate-800"
+                            >
+                                <i className="fi fi-rr-download" />
+                                Download Rancaka Print
+                            </a>
+                        </div>
+                    </div>
+
+                    {showPwaHelp && (
+                        <div className="mt-4 rounded-xl border border-sky-200 bg-sky-50 p-4 text-xs leading-5 text-sky-700">
+                            <p className="font-bold text-sky-900">Instal secara manual</p>
+                            <p className="mt-1">
+                                Android/Chrome: buka menu browser lalu pilih <b>Instal aplikasi</b> atau <b>Tambahkan ke layar utama</b>. iPhone/Safari: tekan <b>Bagikan</b>, lalu pilih <b>Tambahkan ke Layar Utama</b>.
+                            </p>
+                        </div>
+                    )}
                 </section>
 
                 <div className="flex justify-end">

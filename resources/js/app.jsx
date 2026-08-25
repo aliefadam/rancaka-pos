@@ -5,8 +5,11 @@ import { createInertiaApp, router } from '@inertiajs/react';
 import { resolvePageComponent } from 'laravel-vite-plugin/inertia-helpers';
 import { createRoot } from 'react-dom/client';
 import { ToastProvider } from './Contexts/ToastContext';
+import { setupPwa } from './pwa';
 
 const appName = import.meta.env.VITE_APP_NAME || 'Rancaka';
+
+setupPwa();
 
 router.on('navigate', (event) => {
     if (!event.detail.page.props.auth?.user) {
