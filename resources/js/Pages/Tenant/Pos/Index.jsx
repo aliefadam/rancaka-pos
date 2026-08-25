@@ -196,7 +196,7 @@ export default function Index({
     creditCustomers,
 }) {
     const toast = useToast();
-    const { flash } = usePage().props;
+    const { flash, impersonation } = usePage().props;
     const restoredDraft = useMemo(
         () => restoreCartDraft(activeShift, products),
         [activeShift, products],
@@ -887,91 +887,92 @@ export default function Index({
 
             <div className="flex flex-col gap-6 lg:flex-row lg:items-start">
                 <div className="min-w-0 flex-1">
-                    <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                        <div>
-                            <h2 className="text-2xl font-bold text-slate-900">
-                                Transaksi Baru
-                            </h2>
-                            <p className="mt-1 text-sm text-slate-500">
-                                Pilih produk lalu proses pembayaran.
-                            </p>
+                    <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+                        <span
+                            className="flex min-w-0 items-center gap-2 text-xs font-semibold text-emerald-700"
+                            title={`Shift aktif sejak ${formatDateTime(activeShift.opened_at)}`}
+                        >
+                            <span className="h-2 w-2 shrink-0 rounded-full bg-emerald-500 ring-4 ring-emerald-100" />
+                            <span className="truncate">
+                                Shift aktif · {formatDateTime(activeShift.opened_at)}
+                            </span>
+                        </span>
+                        <div className="flex items-center gap-1.5">
+                            <button
+                                type="button"
+                                onClick={() => setHeldPanelOpen(true)}
+                                className="flex h-8 items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-2.5 text-xs font-semibold text-slate-600 transition hover:border-indigo-200 hover:text-indigo-600 active:scale-95"
+                            >
+                                <i className="fi fi-rr-clock" />
+                                Ditahan
+                                {heldTransactions.length > 0 && (
+                                    <span className="flex h-4 min-w-[1rem] items-center justify-center rounded-full bg-indigo-600 px-1 text-[10px] font-bold text-white">
+                                        {heldTransactions.length}
+                                    </span>
+                                )}
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => setCloseShiftOpen(true)}
+                                className="flex h-8 items-center gap-1.5 rounded-lg border border-rose-200 bg-white px-2.5 text-xs font-semibold text-rose-600 transition hover:bg-rose-50 active:scale-95"
+                            >
+                                <i className="fi fi-rr-power" />
+                                Tutup Shift
+                            </button>
                         </div>
                     </div>
 
-                    <div className="mt-3 flex flex-wrap items-center gap-2">
-                        <span className="flex items-center gap-1.5 rounded-full bg-emerald-50 px-3 py-1.5 text-xs font-semibold text-emerald-700">
-                            <i className="fi fi-rr-shop" />
-                            Shift aktif sejak{' '}
-                            {formatDateTime(activeShift.opened_at)}
-                        </span>
-                        <button
-                            type="button"
-                            onClick={() => setCloseShiftOpen(true)}
-                            className="flex items-center gap-1.5 rounded-full bg-rose-600 px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-rose-700 active:scale-95"
-                        >
-                            <i className="fi fi-rr-power" />
-                            Tutup Shift
-                        </button>
-                        <button
-                            type="button"
-                            onClick={() => setHeldPanelOpen(true)}
-                            className="flex items-center gap-1.5 rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-600 transition hover:bg-slate-50 active:scale-95"
-                        >
-                            <i className="fi fi-rr-clock" />
-                            Ditahan
-                            {heldTransactions.length > 0 && (
-                                <span className="flex h-4 min-w-[1rem] items-center justify-center rounded-full bg-indigo-600 px-1 text-[10px] font-bold text-white">
-                                    {heldTransactions.length}
-                                </span>
-                            )}
-                        </button>
-                    </div>
+                    <div
+                        className={`sticky ${impersonation ? 'top-[6.5rem]' : 'top-16'} z-10 -mx-4 bg-slate-50/95 px-4 pb-3 pt-1 backdrop-blur-xl sm:-mx-6 sm:px-6 lg:static lg:z-auto lg:mx-0 lg:bg-transparent lg:p-0 lg:backdrop-blur-none`}
+                    >
+                        <div className="relative">
+                            <span className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3.5 text-slate-400">
+                                <i className="fi fi-rr-search" />
+                            </span>
+                            <input
+                                type="search"
+                                value={search}
+                                onChange={(e) => setSearch(e.target.value)}
+                                placeholder="Cari nama produk..."
+                                aria-label="Cari produk"
+                                autoComplete="off"
+                                className="w-full rounded-xl border border-slate-200 bg-white py-3 pl-10 pr-3 text-sm text-slate-900 placeholder-slate-400 shadow-sm shadow-slate-200/40 focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-100"
+                            />
+                        </div>
 
-                    <div className="relative mt-6">
-                        <span className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3.5 text-slate-400">
-                            <i className="fi fi-rr-search" />
-                        </span>
-                        <input
-                            type="text"
-                            value={search}
-                            onChange={(e) => setSearch(e.target.value)}
-                            placeholder="Cari produk..."
-                            className="w-full rounded-xl border border-slate-200 bg-white py-3 pl-10 pr-3 text-sm text-slate-900 placeholder-slate-400 shadow-sm shadow-slate-200/40 focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-100"
-                        />
-                    </div>
-
-                    <div className="scrollbar-thin mt-4 flex gap-2 overflow-x-auto pb-1">
-                        <button
-                            type="button"
-                            onClick={() => setSelectedCategory('')}
-                            className={`shrink-0 rounded-full px-4 py-2 text-sm font-semibold transition active:scale-95 ${
-                                selectedCategory === ''
-                                    ? 'bg-indigo-600 text-white'
-                                    : 'border border-slate-200 bg-white text-slate-600 hover:bg-slate-50'
-                            }`}
-                        >
-                            Semua
-                        </button>
-                        {categories.map((category) => (
+                        <div className="scrollbar-thin mt-3 flex gap-2 overflow-x-auto pb-1">
                             <button
-                                key={category.id}
                                 type="button"
-                                onClick={() =>
-                                    setSelectedCategory(String(category.id))
-                                }
-                                className={`flex shrink-0 items-center gap-1.5 rounded-full px-4 py-2 text-sm font-semibold transition active:scale-95 ${
-                                    selectedCategory === String(category.id)
+                                onClick={() => setSelectedCategory('')}
+                                className={`shrink-0 rounded-full px-4 py-2 text-sm font-semibold transition active:scale-95 ${
+                                    selectedCategory === ''
                                         ? 'bg-indigo-600 text-white'
                                         : 'border border-slate-200 bg-white text-slate-600 hover:bg-slate-50'
                                 }`}
                             >
-                                <i className={`fi ${category.icon}`} />
-                                {category.name}
+                                Semua
                             </button>
-                        ))}
+                            {categories.map((category) => (
+                                <button
+                                    key={category.id}
+                                    type="button"
+                                    onClick={() =>
+                                        setSelectedCategory(String(category.id))
+                                    }
+                                    className={`flex shrink-0 items-center gap-1.5 rounded-full px-4 py-2 text-sm font-semibold transition active:scale-95 ${
+                                        selectedCategory === String(category.id)
+                                            ? 'bg-indigo-600 text-white'
+                                            : 'border border-slate-200 bg-white text-slate-600 hover:bg-slate-50'
+                                    }`}
+                                >
+                                    <i className={`fi ${category.icon}`} />
+                                    {category.name}
+                                </button>
+                            ))}
+                        </div>
                     </div>
 
-                    <div className="mt-4 grid grid-cols-2 gap-3 pb-28 sm:grid-cols-3 xl:grid-cols-4 lg:pb-0">
+                    <div className="mt-3 grid grid-cols-2 gap-3 pb-28 sm:grid-cols-3 xl:grid-cols-4 lg:pb-0">
                         {filteredProducts.map((product) => (
                             <ProductCard
                                 key={product.id}
