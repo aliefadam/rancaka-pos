@@ -415,49 +415,57 @@ export default function Index({ tenants, filters }) {
                                 </div>
                             </dl>
 
-                            <div className="mt-3 flex items-center justify-end gap-1.5">
-                                <Link
-                                    href={route(
-                                        'admin.tenants.show',
-                                        tenant.id,
-                                    )}
-                                    className="flex h-8 items-center gap-2 rounded-lg bg-indigo-50 px-3 text-xs font-semibold text-indigo-700 transition hover:bg-indigo-100"
-                                >
-                                    <i className="fi fi-rr-eye" />
-                                    Detail
-                                </Link>
-                                <button
-                                    type="button"
-                                    disabled={!tenant.can_impersonate}
-                                    onClick={() => setImpersonateTarget(tenant)}
-                                    className="flex h-8 items-center gap-2 rounded-lg bg-amber-50 px-3 text-xs font-semibold text-amber-700 transition hover:bg-amber-100 disabled:cursor-not-allowed disabled:opacity-40"
-                                >
-                                    <i className="fi fi-rr-sign-in-alt" />
-                                    Masuk sebagai tenant
-                                </button>
-                                <button
-                                    type="button"
-                                    disabled={!tenant.can_reset_password}
-                                    onClick={() => setResetPasswordTarget(tenant)}
-                                    className="flex h-8 items-center gap-2 rounded-lg bg-sky-50 px-3 text-xs font-semibold text-sky-700 transition hover:bg-sky-100 disabled:cursor-not-allowed disabled:opacity-40"
-                                >
-                                    <i className="fi fi-rr-key" />
-                                    Reset password
-                                </button>
-                                <button
-                                    type="button"
-                                    onClick={() => openEditModal(tenant)}
-                                    className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 transition hover:bg-slate-100 hover:text-indigo-600"
-                                >
-                                    <i className="fi fi-rr-pencil" />
-                                </button>
-                                <button
-                                    type="button"
-                                    onClick={() => requestDelete(tenant)}
-                                    className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 transition hover:bg-rose-50 hover:text-rose-600"
-                                >
-                                    <i className="fi fi-rr-trash" />
-                                </button>
+                            <div className="mt-4 space-y-2 border-t border-slate-100 pt-3">
+                                <div className="grid grid-cols-2 gap-2">
+                                    <Link
+                                        href={route(
+                                            'admin.tenants.show',
+                                            tenant.id,
+                                        )}
+                                        className="flex h-10 min-w-0 items-center justify-center gap-2 rounded-lg bg-indigo-50 px-3 text-xs font-semibold text-indigo-700 transition hover:bg-indigo-100"
+                                    >
+                                        <i className="fi fi-rr-eye shrink-0" />
+                                        <span className="truncate">Detail</span>
+                                    </Link>
+                                    <button
+                                        type="button"
+                                        disabled={!tenant.can_impersonate}
+                                        onClick={() => setImpersonateTarget(tenant)}
+                                        className="flex h-10 min-w-0 items-center justify-center gap-2 rounded-lg bg-amber-50 px-3 text-xs font-semibold text-amber-700 transition hover:bg-amber-100 disabled:cursor-not-allowed disabled:opacity-40"
+                                    >
+                                        <i className="fi fi-rr-sign-in-alt shrink-0" />
+                                        <span className="truncate">Masuk tenant</span>
+                                    </button>
+                                </div>
+                                <div className="flex gap-2">
+                                    <button
+                                        type="button"
+                                        disabled={!tenant.can_reset_password}
+                                        onClick={() => setResetPasswordTarget(tenant)}
+                                        className="flex h-10 min-w-0 flex-1 items-center justify-center gap-2 rounded-lg bg-sky-50 px-3 text-xs font-semibold text-sky-700 transition hover:bg-sky-100 disabled:cursor-not-allowed disabled:opacity-40"
+                                    >
+                                        <i className="fi fi-rr-key shrink-0" />
+                                        <span className="truncate">Reset password</span>
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => openEditModal(tenant)}
+                                        className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-slate-200 text-slate-400 transition hover:bg-slate-100 hover:text-indigo-600"
+                                        title={`Edit ${tenant.name}`}
+                                        aria-label={`Edit ${tenant.name}`}
+                                    >
+                                        <i className="fi fi-rr-pencil" />
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => requestDelete(tenant)}
+                                        className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-rose-100 text-rose-500 transition hover:bg-rose-50 hover:text-rose-600"
+                                        title={`Hapus ${tenant.name}`}
+                                        aria-label={`Hapus ${tenant.name}`}
+                                    >
+                                        <i className="fi fi-rr-trash" />
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     ))}
