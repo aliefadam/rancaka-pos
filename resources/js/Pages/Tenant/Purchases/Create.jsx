@@ -67,7 +67,8 @@ export default function Create({ suppliers, products, rawMaterials }) {
                     : data.payment_term === "credit"
                       ? 0
                       : data.initial_payment_amount,
-        })).post(route("tenant.purchases.store"), { forceFormData: true });
+        }));
+        form.post(route("tenant.purchases.store"), { forceFormData: true });
     };
     return (
         <AdminLayout header="Catat Pembelian">
