@@ -511,12 +511,6 @@
     background: #101b2d !important;
 }
 
-.dark .app-clock {
-    border-color: #2b3a52 !important;
-    background: #101a2a !important;
-    box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.025) !important;
-}
-
 .dark .app-theme-toggle {
     border: 1px solid transparent;
     color: #91a0b5 !important;

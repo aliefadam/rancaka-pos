@@ -735,23 +735,14 @@ export default function AdminLayout({ header, children }) {
                                 )}
                             </Link>
                         )}
-                        <div
-                            className="app-clock hidden h-10 items-center gap-2.5 rounded-xl border border-slate-200/80 bg-white px-2.5 shadow-sm shadow-slate-200/50 sm:flex"
+                        <time
+                            className="hidden min-w-[5.75rem] text-center text-xl font-light tabular-nums tracking-tight text-slate-700 sm:block"
+                            dateTime={`${hours}:${minutes}:${seconds}`}
                             aria-label={`Pukul ${hours}:${minutes}:${seconds}`}
                             title="Waktu lokal"
                         >
-                            <span className="flex h-6 w-6 items-center justify-center rounded-lg bg-indigo-50 text-[11px] text-indigo-600">
-                                <i className="fi fi-rr-clock-three" />
-                            </span>
-                            <span className="font-mono text-[15px] font-semibold tabular-nums tracking-[0.04em] text-slate-700">
-                                {hours}
-                                <span className="mx-0.5 text-slate-300">:</span>
-                                {minutes}
-                            </span>
-                            <span className="border-l border-slate-100 pl-2 font-mono text-xs font-medium tabular-nums text-slate-400">
-                                {seconds}
-                            </span>
-                        </div>
+                            {hours}:{minutes}:{seconds}
+                        </time>
 
                         <button
                             type="button"
