@@ -1,5 +1,6 @@
 import AdminLayout from '@/Layouts/AdminLayout';
 import ConfirmDialog from '@/Components/ConfirmDialog';
+import MoneyInput from '@/Components/MoneyInput';
 import { useToast } from '@/Contexts/ToastContext';
 import CartPanel from '@/Pages/Tenant/Pos/CartPanel';
 import CloseShiftModal from '@/Pages/Tenant/Pos/CloseShiftModal';
@@ -715,17 +716,11 @@ export default function Index({
                             >
                                 Modal Awal Kas (Rp)
                             </label>
-                            <input
+                            <MoneyInput
                                 id="opening_cash"
-                                type="number"
                                 min="0"
                                 value={openShiftForm.data.opening_cash}
-                                onChange={(e) =>
-                                    openShiftForm.setData(
-                                        'opening_cash',
-                                        e.target.value,
-                                    )
-                                }
+                                onValueChange={(value) => openShiftForm.setData('opening_cash', value)}
                                 placeholder="0"
                                 className="block w-full rounded-lg border border-slate-200 px-3 py-2.5 text-sm text-slate-900 placeholder-slate-400 focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-100"
                             />

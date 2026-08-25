@@ -1,4 +1,5 @@
 import Modal from '@/Components/Modal';
+import MoneyInput from '@/Components/MoneyInput';
 import Select from '@/Components/Select';
 import { useToast } from '@/Contexts/ToastContext';
 import { useForm } from '@inertiajs/react';
@@ -354,13 +355,11 @@ export default function ProductFormModal({
                                                 <label className="mb-1 block text-xs font-semibold text-slate-600">
                                                     Harga (Rp)
                                                 </label>
-                                                <input
-                                                    type="number"
+                                                <MoneyInput
                                                     min="0"
                                                     max="999999999999"
                                                     value={option.price}
-                                                    onKeyDown={preventNegativeInput}
-                                                    onChange={(event) => updatePriceOption(index, 'price', nonNegativeValue(event.target.value))}
+                                                    onValueChange={(value) => updatePriceOption(index, 'price', nonNegativeValue(value))}
                                                     className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-800 focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-100"
                                                 />
                                                 {errors[`price_options.${index}.price`] && (
@@ -484,16 +483,14 @@ export default function ProductFormModal({
                                     >
                                         HPP (Rp) <span className="text-rose-500">*</span>
                                     </label>
-                                    <input
+                                    <MoneyInput
                                         id="cost"
-                                        type="number"
                                         min="0"
                                         max="999999999999"
                                         value={data.cost}
-                                        onKeyDown={preventNegativeInput}
-                                        onChange={(e) => updateCost(e.target.value)}
+                                        onValueChange={updateCost}
                                         className="block w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-900 placeholder-slate-400 focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-100"
-                                        placeholder="10000"
+                                        placeholder="10.000"
                                     />
                                     {errors.cost && (
                                         <p className="mt-1.5 text-sm text-red-600">{errors.cost}</p>
@@ -507,16 +504,14 @@ export default function ProductFormModal({
                                 >
                                     Harga Jual (Rp) <span className="text-rose-500">*</span>
                                 </label>
-                                <input
+                                <MoneyInput
                                     id="price"
-                                    type="number"
                                     min="0"
                                     max="999999999999"
                                     value={data.price}
-                                    onKeyDown={preventNegativeInput}
-                                    onChange={(e) => updatePrice(e.target.value)}
+                                    onValueChange={updatePrice}
                                     className="block w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-900 placeholder-slate-400 focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-100"
-                                    placeholder="15000"
+                                    placeholder="15.000"
                                 />
                                 {errors.price && (
                                     <p className="mt-1.5 text-sm text-red-600">

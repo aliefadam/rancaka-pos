@@ -1,4 +1,5 @@
 import Modal from '@/Components/Modal';
+import MoneyInput from '@/Components/MoneyInput';
 import { useForm } from '@inertiajs/react';
 import { useEffect } from 'react';
 
@@ -163,14 +164,11 @@ export default function CloseShiftModal({ show, onClose, summary, heldCount = 0 
                                 Kas Aktual di Laci (Rp){' '}
                                 <span className="text-rose-500">*</span>
                             </label>
-                            <input
+                            <MoneyInput
                                 id="closing_cash"
-                                type="number"
                                 min="0"
                                 value={data.closing_cash}
-                                onChange={(e) =>
-                                    setData('closing_cash', e.target.value)
-                                }
+                                onValueChange={(value) => setData('closing_cash', value)}
                                 className="block w-full rounded-lg border border-slate-200 px-3 py-2.5 text-sm text-slate-900 placeholder-slate-400 focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-100"
                                 placeholder="0"
                             />

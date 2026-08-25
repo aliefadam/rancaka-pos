@@ -1,5 +1,6 @@
 import Modal from '@/Components/Modal';
 import LocalizedDateInput from '@/Components/LocalizedDateInput';
+import MoneyInput from '@/Components/MoneyInput';
 import Select from '@/Components/Select';
 import { useToast } from '@/Contexts/ToastContext';
 import { optimizeImageFile } from '@/utils/optimizeImageFile';
@@ -146,14 +147,11 @@ export default function ExpenseFormModal({
                             required
                             error={errors.amount}
                         >
-                            <input
-                                type="number"
+                            <MoneyInput
                                 min="1"
                                 value={data.amount}
-                                onChange={(event) =>
-                                    setData('amount', event.target.value)
-                                }
-                                placeholder="Contoh: 50000"
+                                onValueChange={(value) => setData('amount', value)}
+                                placeholder="Contoh: 50.000"
                                 className="block w-full rounded-lg border border-slate-200 px-3 py-2.5 text-sm text-slate-900 placeholder-slate-400 focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-100"
                             />
                         </Field>

@@ -1,3 +1,4 @@
+import MoneyInput from '@/Components/MoneyInput';
 import Select from '@/Components/Select';
 import { useEffect, useState } from 'react';
 
@@ -228,16 +229,28 @@ export default function CartPanel({
                                                     </button>
                                                 ))}
                                             </div>
-                                            <input
-                                                type="number"
-                                                min="0"
-                                                max={item.discount_type === 'percentage' ? 100 : lineGross}
-                                                value={item.discount_value}
-                                                onChange={(event) => onItemDiscountChange(item.cart_key, item.discount_type, event.target.value)}
-                                                placeholder="0"
-                                                aria-label={`Diskon ${item.name}`}
-                                                className="h-7 w-20 rounded-md border border-emerald-200 bg-white px-2 text-right text-xs font-semibold text-slate-700 outline-none focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100"
-                                            />
+                                            {item.discount_type === 'fixed' ? (
+                                                <MoneyInput
+                                                    min="0"
+                                                    max={lineGross}
+                                                    value={item.discount_value}
+                                                    onValueChange={(value) => onItemDiscountChange(item.cart_key, item.discount_type, value)}
+                                                    placeholder="0"
+                                                    aria-label={`Diskon ${item.name}`}
+                                                    className="h-7 w-20 rounded-md border border-emerald-200 bg-white px-2 text-right text-xs font-semibold text-slate-700 outline-none focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100"
+                                                />
+                                            ) : (
+                                                <input
+                                                    type="number"
+                                                    min="0"
+                                                    max="100"
+                                                    value={item.discount_value}
+                                                    onChange={(event) => onItemDiscountChange(item.cart_key, item.discount_type, event.target.value)}
+                                                    placeholder="0"
+                                                    aria-label={`Diskon ${item.name}`}
+                                                    className="h-7 w-20 rounded-md border border-emerald-200 bg-white px-2 text-right text-xs font-semibold text-slate-700 outline-none focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100"
+                                                />
+                                            )}
                                         </div>
 
                                         <div className="mt-2 flex items-center justify-between">
@@ -327,7 +340,7 @@ export default function CartPanel({
                                     <button type="button" onClick={() => { setCreditPaymentChoice('full-credit'); onCreditInitialPaymentChange('0'); }} className={`rounded-lg border px-2 py-2 text-xs font-semibold ${creditPaymentChoice === 'full-credit' ? 'border-amber-500 bg-amber-500 text-white' : 'border-amber-200 bg-white text-amber-800'}`}>Hutang penuh</button>
                                     <button type="button" onClick={() => { setCreditPaymentChoice('partial'); onCreditInitialPaymentChange(''); }} className={`rounded-lg border px-2 py-2 text-xs font-semibold ${creditPaymentChoice === 'partial' ? 'border-amber-500 bg-amber-500 text-white' : 'border-amber-200 bg-white text-amber-800'}`}>Bayar sebagian</button>
                                 </div>
-                                <input type="number" min="0" max={total} value={creditInitialPayment} onChange={(e) => { setCreditPaymentChoice(Number(e.target.value) > 0 ? 'partial' : 'full-credit'); onCreditInitialPaymentChange(e.target.value); }} placeholder={creditPaymentChoice === 'partial' ? 'Masukkan nominal yang dibayar' : '0'} className="w-full rounded-lg border border-amber-200 bg-white px-3 py-2.5 text-sm focus:border-amber-400 focus:outline-none focus:ring-2 focus:ring-amber-100" />
+                                <MoneyInput min="0" max={total} value={creditInitialPayment} onValueChange={(value) => { setCreditPaymentChoice(Number(value) > 0 ? 'partial' : 'full-credit'); onCreditInitialPaymentChange(value); }} placeholder={creditPaymentChoice === 'partial' ? 'Masukkan nominal yang dibayar' : '0'} className="w-full rounded-lg border border-amber-200 bg-white px-3 py-2.5 text-sm focus:border-amber-400 focus:outline-none focus:ring-2 focus:ring-amber-100" />
                                 <p className="mt-1.5 text-[11px] text-amber-700">Sisa hutang: {formatRupiah(Math.max(total - Number(creditInitialPayment || 0), 0))}</p>
                             </div>
                         </div>
@@ -370,9 +383,8 @@ export default function CartPanel({
                                     </button>
                                 ))}
                             </div>
-                            <input
+                            <MoneyInput
                                 id="transaction-discount"
-                                type="number"
                                 min="0"
                                 max={
                                     discountType === 'percentage'
@@ -381,9 +393,7 @@ export default function CartPanel({
                                 }
                                 step="1"
                                 value={discountValue}
-                                onChange={(e) =>
-                                    onDiscountValueChange(e.target.value)
-                                }
+                                onValueChange={onDiscountValueChange}
                                 placeholder={
                                     discountType === 'percentage'
                                         ? '0–100'
@@ -397,11 +407,10 @@ export default function CartPanel({
                         </p>
                     </div>
 
-                    <input
-                        type="number"
+                    <MoneyInput
                         min="0"
                         value={additionalFee}
-                        onChange={(e) => onAdditionalFeeChange(e.target.value)}
+                        onValueChange={onAdditionalFeeChange}
                         placeholder="Biaya tambahan"
                         className="w-full rounded-lg border border-slate-200 px-3 py-2.5 text-sm text-slate-900 placeholder-slate-400 focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-100"
                     />
@@ -411,13 +420,10 @@ export default function CartPanel({
 
                     {paymentMethod === 'cash' && (
                         <>
-                            <input
-                                type="number"
+                            <MoneyInput
                                 min="0"
                                 value={amountReceived}
-                                onChange={(e) =>
-                                    onAmountReceivedChange(e.target.value)
-                                }
+                                onValueChange={onAmountReceivedChange}
                                 placeholder="Jumlah uang diterima"
                                 className="w-full rounded-lg border border-slate-200 px-3 py-2.5 text-sm text-slate-900 placeholder-slate-400 focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-100"
                             />

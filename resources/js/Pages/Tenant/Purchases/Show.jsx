@@ -1,4 +1,5 @@
 import Breadcrumb from "@/Components/Breadcrumb";
+import MoneyInput from "@/Components/MoneyInput";
 import PasswordConfirmDialog from "@/Components/PasswordConfirmDialog";
 import AdminLayout from "@/Layouts/AdminLayout";
 import usePermission from "@/Hooks/usePermission";
@@ -249,14 +250,11 @@ export default function Show({ purchase }) {
                         <div className="mt-5 grid gap-4 sm:grid-cols-2">
                             <label className="text-sm">
                                 Nominal
-                                <input
-                                    type="number"
+                                <MoneyInput
                                     min="1"
                                     max={purchase.balance_amount}
                                     value={pay.data.amount}
-                                    onChange={(e) =>
-                                        pay.setData("amount", e.target.value)
-                                    }
+                                    onValueChange={(value) => pay.setData("amount", value)}
                                     className="mt-1 w-full rounded-xl border-slate-200"
                                 />
                             </label>

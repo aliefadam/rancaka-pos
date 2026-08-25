@@ -1,4 +1,5 @@
 import Breadcrumb from "@/Components/Breadcrumb";
+import MoneyInput from "@/Components/MoneyInput";
 import AdminLayout from "@/Layouts/AdminLayout";
 import { Head, Link, useForm } from "@inertiajs/react";
 const money = (v) =>
@@ -221,15 +222,14 @@ export default function Create({ suppliers, products, rawMaterials }) {
                                     className="rounded-lg border-slate-200 text-sm"
                                     placeholder="Jumlah"
                                 />
-                                <input
-                                    type="number"
+                                <MoneyInput
                                     min="0"
                                     value={item.unit_cost}
-                                    onChange={(e) =>
+                                    onValueChange={(value) =>
                                         setItem(
                                             idx,
                                             "unit_cost",
-                                            e.target.value,
+                                            value,
                                         )
                                     }
                                     className="rounded-lg border-slate-200 text-sm"
@@ -292,15 +292,14 @@ export default function Create({ suppliers, products, rawMaterials }) {
                         {form.data.payment_term === "installment" && (
                             <label className="block text-sm text-slate-600">
                                 Pembayaran awal *
-                                <input
-                                    type="number"
+                                <MoneyInput
                                     min="1"
                                     max={Math.max(1, total - 1)}
                                     value={form.data.initial_payment_amount}
-                                    onChange={(e) =>
+                                    onValueChange={(value) =>
                                         form.setData(
                                             "initial_payment_amount",
-                                            e.target.value,
+                                            value,
                                         )
                                     }
                                     className="mt-1 w-full rounded-xl border-slate-200"
@@ -328,7 +327,7 @@ export default function Create({ suppliers, products, rawMaterials }) {
                                         </label>
                                         <label className="text-xs font-medium text-slate-500">
                                             Nominal
-                                            <input type="number" min="1" value={row.amount} onChange={(e) => form.setData("installments", form.data.installments.map((item, itemIndex) => itemIndex === index ? { ...item, amount: e.target.value } : item))} className="mt-1 w-full rounded-lg border-slate-200 text-sm" />
+                                            <MoneyInput min="1" value={row.amount} onValueChange={(value) => form.setData("installments", form.data.installments.map((item, itemIndex) => itemIndex === index ? { ...item, amount: value } : item))} className="mt-1 w-full rounded-lg border-slate-200 text-sm" />
                                         </label>
                                         <button
                                             type="button"
@@ -393,14 +392,13 @@ export default function Create({ suppliers, products, rawMaterials }) {
                             </div>
                             <label className="flex items-center justify-between gap-3 text-slate-300">
                                 <span>Diskon</span>
-                                <input
-                                    type="number"
+                                <MoneyInput
                                     min="0"
                                     value={form.data.discount_amount}
-                                    onChange={(e) =>
+                                    onValueChange={(value) =>
                                         form.setData(
                                             "discount_amount",
-                                            e.target.value,
+                                            value,
                                         )
                                     }
                                     className="w-32 rounded-lg border-slate-700 bg-slate-800 text-right text-white"
@@ -408,14 +406,13 @@ export default function Create({ suppliers, products, rawMaterials }) {
                             </label>
                             <label className="flex items-center justify-between gap-3 text-slate-300">
                                 <span>Biaya tambahan</span>
-                                <input
-                                    type="number"
+                                <MoneyInput
                                     min="0"
                                     value={form.data.additional_cost_amount}
-                                    onChange={(e) =>
+                                    onValueChange={(value) =>
                                         form.setData(
                                             "additional_cost_amount",
-                                            e.target.value,
+                                            value,
                                         )
                                     }
                                     className="w-32 rounded-lg border-slate-700 bg-slate-800 text-right text-white"
