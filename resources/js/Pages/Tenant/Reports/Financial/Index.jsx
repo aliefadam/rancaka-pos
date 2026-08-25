@@ -325,7 +325,8 @@ export default function Index({
                     </div>
                 </div>
                 {priceOptionSales.length > 0 ? (
-                    <div className="overflow-x-auto">
+                    <>
+                    <div className="scrollbar-thin hidden overflow-x-auto md:block">
                         <table className="w-full min-w-[620px] text-left text-sm">
                             <thead className="bg-slate-50 text-xs font-bold uppercase tracking-wide text-slate-400">
                                 <tr>
@@ -351,6 +352,52 @@ export default function Index({
                             </tbody>
                         </table>
                     </div>
+                    <div className="divide-y divide-slate-100 md:hidden">
+                        {priceOptionSales.map((item, index) => (
+                            <article
+                                key={`${item.product_name}-${item.price_option_name}-${item.unit_price}-${index}`}
+                                className="p-4"
+                            >
+                                <div className="flex items-start justify-between gap-3">
+                                    <div className="min-w-0">
+                                        <p className="truncate font-semibold text-slate-800">
+                                            {item.product_name}
+                                        </p>
+                                        <span className="mt-1.5 inline-flex rounded-full bg-indigo-50 px-2.5 py-1 text-xs font-semibold text-indigo-600">
+                                            {item.price_option_name}
+                                        </span>
+                                    </div>
+                                    <div className="shrink-0 text-right">
+                                        <p className="text-[10px] font-semibold uppercase tracking-wider text-slate-400">
+                                            Omzet
+                                        </p>
+                                        <p className="mt-1 text-sm font-bold text-emerald-600">
+                                            Rp {Number(item.revenue).toLocaleString('id-ID')}
+                                        </p>
+                                    </div>
+                                </div>
+                                <dl className="mt-4 grid grid-cols-2 gap-3 rounded-xl bg-slate-50/70 p-3">
+                                    <div>
+                                        <dt className="text-[10px] font-semibold uppercase tracking-wider text-slate-400">
+                                            Harga satuan
+                                        </dt>
+                                        <dd className="mt-1 text-sm font-medium text-slate-700">
+                                            Rp {Number(item.unit_price).toLocaleString('id-ID')}
+                                        </dd>
+                                    </div>
+                                    <div className="text-right">
+                                        <dt className="text-[10px] font-semibold uppercase tracking-wider text-slate-400">
+                                            Terjual
+                                        </dt>
+                                        <dd className="mt-1 text-sm font-bold text-slate-900">
+                                            {item.sold}
+                                        </dd>
+                                    </div>
+                                </dl>
+                            </article>
+                        ))}
+                    </div>
+                    </>
                 ) : (
                     <p className="px-6 py-10 text-center text-sm text-slate-400">Belum ada pilihan harga yang terjual pada periode ini.</p>
                 )}
@@ -552,7 +599,7 @@ function BreakdownTable({ rows, granularityLabel }) {
                     Breakdown angka yang membentuk ringkasan periode terpilih.
                 </p>
             </div>
-            <div className="scrollbar-thin max-h-[32rem] overflow-auto">
+            <div className="scrollbar-thin hidden max-h-[32rem] overflow-auto md:block">
                 <table className="w-full min-w-[760px] text-left text-sm">
                     <thead className="sticky top-0 z-10 bg-slate-50/95 backdrop-blur">
                         <tr className="border-b border-slate-100 text-xs font-semibold uppercase tracking-wider text-slate-400">
@@ -590,6 +637,47 @@ function BreakdownTable({ rows, granularityLabel }) {
                         ))}
                     </tbody>
                 </table>
+            </div>
+            <div className="scrollbar-thin max-h-[32rem] divide-y divide-slate-100 overflow-y-auto md:hidden">
+                {rows.map((row) => (
+                    <article key={row.key} className="p-4">
+                        <div className="flex items-start justify-between gap-3">
+                            <div>
+                                <p className="font-semibold text-slate-800">{row.label}</p>
+                                <p className="mt-0.5 text-xs text-slate-400">{row.fullLabel}</p>
+                            </div>
+                            <span className="shrink-0 rounded-full bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-600">
+                                {row.transactions.toLocaleString('id-ID')} transaksi
+                            </span>
+                        </div>
+                        <dl className="mt-4 grid grid-cols-2 gap-x-3 gap-y-4 rounded-xl bg-slate-50/70 p-3">
+                            <div>
+                                <dt className="text-[10px] font-semibold uppercase tracking-wider text-slate-400">
+                                    Pendapatan
+                                </dt>
+                                <dd className="mt-1 text-sm font-semibold text-slate-700">
+                                    {formatRupiah(row.revenue)}
+                                </dd>
+                            </div>
+                            <div className="text-right">
+                                <dt className="text-[10px] font-semibold uppercase tracking-wider text-slate-400">
+                                    Pengeluaran
+                                </dt>
+                                <dd className="mt-1 text-sm font-semibold text-rose-600">
+                                    {formatRupiah(row.expenses)}
+                                </dd>
+                            </div>
+                            <div className="col-span-2 border-t border-slate-200/70 pt-3">
+                                <dt className="text-[10px] font-semibold uppercase tracking-wider text-slate-400">
+                                    Laba bersih
+                                </dt>
+                                <dd className={`mt-1 text-base font-bold ${row.netProfit < 0 ? 'text-rose-600' : 'text-emerald-700'}`}>
+                                    {formatRupiah(row.netProfit)}
+                                </dd>
+                            </div>
+                        </dl>
+                    </article>
+                ))}
             </div>
         </section>
     );

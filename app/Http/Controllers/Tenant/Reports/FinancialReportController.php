@@ -32,7 +32,8 @@ class FinancialReportController extends Controller
             ->where('status', TransactionStatus::Completed)
             ->where('created_at', '>=', $periodStart)
             ->where('created_at', '<', $periodEnd)
-            ->get(['total', 'created_at']);
+            ->withSum('items as cost_of_goods_sold', 'total_cost_snapshot')
+            ->get(['id', 'total', 'created_at']);
 
         $expenses = Expense::query()
             ->where('tenant_id', $tenantId)
@@ -50,13 +51,10 @@ class FinancialReportController extends Controller
         $operatingExpenseTotal = (int) $expenses->sum('amount');
         $supplierPaymentTotal = (int) $supplierPayments->sum('amount');
         $expenseTotal = $operatingExpenseTotal + $supplierPaymentTotal;
-        $netProfit = $revenue - $expenseTotal;
+        $costOfGoodsSold = (int) $transactions->sum('cost_of_goods_sold');
+        $netProfit = $revenue - $costOfGoodsSold - $operatingExpenseTotal;
         $previousSummary = $this->summaryForRange($tenantId, $previousStart, $previousEnd);
         $breakdown = $this->buildBreakdown($periodStart, $periodEnd, $granularity, $transactions, $expenses, $supplierPayments);
-        $costOfGoodsSold = (int) TransactionItem::query()->join('transactions', 'transactions.id', '=', 'transaction_items.transaction_id')
-            ->where('transactions.tenant_id', $tenantId)->where('transactions.status', TransactionStatus::Completed->value)
-            ->where('transactions.created_at', '>=', $periodStart)->where('transactions.created_at', '<', $periodEnd)
-            ->sum('transaction_items.total_cost_snapshot');
 
         $salesByProduct = TransactionItem::query()
             ->selectRaw('transaction_items.product_id, SUM(transaction_items.quantity) as sold, SUM(transaction_items.subtotal) as revenue')
@@ -255,10 +253,21 @@ class FinancialReportController extends Controller
             ->where('expense_date', '>=', $start->toDateString())
             ->where('expense_date', '<', $end->toDateString())
             ->sum('amount');
-        $expenses += (int) SupplierPayment::query()->where('tenant_id', $tenantId)->where('status', 'valid')
+        $supplierPayments = (int) SupplierPayment::query()->where('tenant_id', $tenantId)->where('status', 'valid')
             ->where('payment_date', '>=', $start->toDateString())->where('payment_date', '<', $end->toDateString())->sum('amount');
+        $costOfGoodsSold = (int) TransactionItem::query()
+            ->join('transactions', 'transactions.id', '=', 'transaction_items.transaction_id')
+            ->where('transactions.tenant_id', $tenantId)
+            ->where('transactions.status', TransactionStatus::Completed->value)
+            ->where('transactions.created_at', '>=', $start)
+            ->where('transactions.created_at', '<', $end)
+            ->sum('transaction_items.total_cost_snapshot');
 
-        return ['revenue' => $revenue, 'expenses' => $expenses, 'netProfit' => $revenue - $expenses];
+        return [
+            'revenue' => $revenue,
+            'expenses' => $expenses + $supplierPayments,
+            'netProfit' => $revenue - $costOfGoodsSold - $expenses,
+        ];
     }
 
     /**
@@ -281,6 +290,7 @@ class FinancialReportController extends Controller
 
             if (isset($buckets[$key])) {
                 $buckets[$key]['revenue'] += (int) $transaction->total;
+                $buckets[$key]['costOfGoodsSold'] += (int) $transaction->cost_of_goods_sold;
                 $buckets[$key]['transactions']++;
             }
         }
@@ -298,6 +308,7 @@ class FinancialReportController extends Controller
 
             if (isset($buckets[$key])) {
                 $buckets[$key]['expenses'] += (int) $expense->amount;
+                $buckets[$key]['operatingExpenses'] += (int) $expense->amount;
             }
         }
 
@@ -312,7 +323,9 @@ class FinancialReportController extends Controller
 
         return collect($buckets)
             ->map(function (array $bucket): array {
-                $bucket['netProfit'] = $bucket['revenue'] - $bucket['expenses'];
+                $bucket['netProfit'] = $bucket['revenue']
+                    - $bucket['costOfGoodsSold']
+                    - $bucket['operatingExpenses'];
 
                 return $bucket;
             })
@@ -368,6 +381,8 @@ class FinancialReportController extends Controller
             'fullLabel' => $fullLabel,
             'revenue' => 0,
             'expenses' => 0,
+            'operatingExpenses' => 0,
+            'costOfGoodsSold' => 0,
             'netProfit' => 0,
             'transactions' => 0,
         ];

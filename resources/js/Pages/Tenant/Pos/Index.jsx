@@ -124,8 +124,8 @@ function ProductCard({ product, quantityInCart, onAdd }) {
             disabled={outOfStock}
             className={`group relative overflow-hidden rounded-2xl border p-4 text-left transition active:scale-[0.98] ${
                 outOfStock
-                    ? 'cursor-not-allowed border-slate-200 bg-gradient-to-br from-slate-200 to-slate-300 grayscale'
-                    : 'border-indigo-100 bg-gradient-to-br from-indigo-100 via-indigo-50 to-blue-100 hover:shadow-md hover:shadow-indigo-100'
+                    ? 'cursor-not-allowed border-slate-200 bg-gradient-to-br from-slate-200 to-slate-300 grayscale dark:border-slate-600 dark:from-slate-800 dark:to-slate-700'
+                    : 'border-indigo-100 bg-gradient-to-br from-indigo-100 via-indigo-50 to-blue-100 hover:shadow-md hover:shadow-indigo-100 dark:border-indigo-400/30 dark:from-slate-800 dark:via-slate-800 dark:to-indigo-950 dark:hover:border-indigo-400/50 dark:hover:shadow-indigo-950/40'
             }`}
         >
             <span
@@ -145,7 +145,7 @@ function ProductCard({ product, quantityInCart, onAdd }) {
             </span>
 
             {quantityInCart > 0 && (
-                <span className="absolute right-3 top-3 flex h-5 min-w-[1.25rem] items-center justify-center rounded-full bg-indigo-600 px-1 text-[10px] font-bold text-white ring-2 ring-white">
+                <span className="absolute right-3 top-3 flex h-5 min-w-[1.25rem] items-center justify-center rounded-full bg-indigo-600 px-1 text-[10px] font-bold text-white ring-2 ring-white dark:ring-slate-800">
                     {quantityInCart}
                 </span>
             )}

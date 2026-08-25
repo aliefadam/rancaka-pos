@@ -123,7 +123,7 @@ export default function RoleFormModal({ show, onClose, role, menus }) {
                             <label className="mb-2 block text-sm font-medium text-slate-700">
                                 Hak Akses
                             </label>
-                            <div className="overflow-hidden rounded-xl border border-slate-200">
+                            <div className="hidden overflow-hidden rounded-xl border border-slate-200 md:block">
                                 <table className="w-full text-left text-sm">
                                     <thead className="bg-slate-50">
                                         <tr className="text-xs font-semibold uppercase tracking-wider text-slate-400">
@@ -197,6 +197,67 @@ export default function RoleFormModal({ show, onClose, role, menus }) {
                                         ))}
                                     </tbody>
                                 </table>
+                            </div>
+
+                            <div className="space-y-3 md:hidden">
+                                {menus.map((menu) => (
+                                    <section
+                                        key={menu.key}
+                                        className="overflow-hidden rounded-xl border border-slate-200 bg-white"
+                                    >
+                                        <div className="flex items-center justify-between gap-3 border-b border-slate-100 bg-slate-50/70 px-4 py-3">
+                                            <div>
+                                                <p className="text-sm font-semibold text-slate-800">
+                                                    {menu.label}
+                                                </p>
+                                                <p className="mt-0.5 text-[11px] text-slate-400">
+                                                    {menu.actions.length} hak akses
+                                                </p>
+                                            </div>
+                                            <label className="flex cursor-pointer items-center gap-2 text-xs font-semibold text-indigo-600">
+                                                <input
+                                                    type="checkbox"
+                                                    checked={isMenuFullyChecked(menu)}
+                                                    onChange={(e) =>
+                                                        toggleMenuAll(
+                                                            menu,
+                                                            e.target.checked,
+                                                        )
+                                                    }
+                                                    className="h-4 w-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
+                                                />
+                                                Semua
+                                            </label>
+                                        </div>
+                                        <div className="grid grid-cols-2 gap-2 p-3">
+                                            {menu.actions.map((action) => {
+                                                const permission = `${menu.key}.${action.key}`;
+                                                const checked = isChecked(permission);
+
+                                                return (
+                                                    <label
+                                                        key={permission}
+                                                        className={`flex min-h-11 cursor-pointer items-center gap-2 rounded-lg border px-3 py-2 text-xs font-medium transition ${
+                                                            checked
+                                                                ? 'border-indigo-200 bg-indigo-50 text-indigo-700'
+                                                                : 'border-slate-200 text-slate-600'
+                                                        }`}
+                                                    >
+                                                        <input
+                                                            type="checkbox"
+                                                            checked={checked}
+                                                            onChange={() =>
+                                                                togglePermission(permission)
+                                                            }
+                                                            className="h-4 w-4 shrink-0 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
+                                                        />
+                                                        <span>{action.label}</span>
+                                                    </label>
+                                                );
+                                            })}
+                                        </div>
+                                    </section>
+                                ))}
                             </div>
                             {errors.permissions && (
                                 <p className="mt-1.5 text-sm text-red-600">

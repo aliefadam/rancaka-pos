@@ -42,8 +42,10 @@ class DashboardController extends Controller
         $canViewProfit = $user->hasPermission('financial-reports.view');
         $expenses = $canViewProfit ? $this->expenses($tenantId, $start, $end) : 0;
         $previousExpenses = $canViewProfit ? $this->expenses($tenantId, $previousStart, $previousEnd) : 0;
-        $netProfit = $revenue - $expenses;
-        $previousNetProfit = $previousRevenue - $previousExpenses;
+        $costOfGoodsSold = $canViewProfit ? $this->costOfGoodsSold($tenantId, $start, $end) : 0;
+        $previousCostOfGoodsSold = $canViewProfit ? $this->costOfGoodsSold($tenantId, $previousStart, $previousEnd) : 0;
+        $netProfit = $revenue - $costOfGoodsSold - $expenses;
+        $previousNetProfit = $previousRevenue - $previousCostOfGoodsSold - $previousExpenses;
         $averageTransaction = $transactionCount > 0 ? (int) round($revenue / $transactionCount) : 0;
 
         $summary = [
@@ -54,7 +56,7 @@ class DashboardController extends Controller
             ],
             $canViewProfit ? [
                 'key' => 'profit', 'label' => 'Laba Bersih', 'value' => $this->formatRupiah($netProfit),
-                'raw_value' => $netProfit, 'subtitle' => 'Penjualan dikurangi pengeluaran',
+                'raw_value' => $netProfit, 'subtitle' => 'Penjualan dikurangi HPP dan pengeluaran',
                 'comparison' => $this->comparison($netProfit, $previousNetProfit, $comparisonLabel),
                 'tone' => $netProfit >= 0 ? 'emerald' : 'rose',
             ] : [
@@ -139,6 +141,17 @@ class DashboardController extends Controller
     {
         return (int) Expense::query()->where('tenant_id', $tenantId)
             ->where('expense_date', '>=', $start->toDateString())->where('expense_date', '<', $end->toDateString())->sum('amount');
+    }
+
+    private function costOfGoodsSold(int $tenantId, Carbon $start, Carbon $end): int
+    {
+        return (int) TransactionItem::query()
+            ->join('transactions', 'transactions.id', '=', 'transaction_items.transaction_id')
+            ->where('transactions.tenant_id', $tenantId)
+            ->where('transactions.status', TransactionStatus::Completed->value)
+            ->where('transactions.created_at', '>=', $start)
+            ->where('transactions.created_at', '<', $end)
+            ->sum('transaction_items.total_cost_snapshot');
     }
 
     /** @return array<int, array<string, mixed>> */

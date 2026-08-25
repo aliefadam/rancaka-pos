@@ -63,6 +63,8 @@ class FinancialReportTest extends TestCase
             'product_id' => $bestSeller->id,
             'product_name' => $bestSeller->name,
             'unit_price' => 20000,
+            'cost_snapshot' => 6000,
+            'total_cost_snapshot' => 30000,
             'quantity' => 5,
             'subtotal' => 100000,
         ]);
@@ -114,14 +116,17 @@ class FinancialReportTest extends TestCase
             ->where('filters.month', now()->format('Y-m'))
             ->where('summary.revenue', 'Rp 100.000')
             ->where('summary.expenses', 'Rp 30.000')
-            ->where('summary.netProfit', 'Rp 70.000')
-            ->where('summary.netProfitValue', 70000)
+            ->where('summary.costOfGoodsSold', 'Rp 30.000')
+            ->where('summary.grossProfit', 'Rp 70.000')
+            ->where('summary.netProfit', 'Rp 40.000')
+            ->where('summary.netProfitValue', 40000)
             ->where('summary.transactionCount', 1)
             ->where('comparison.revenue.previousValue', 50000)
             ->where('comparison.revenue.percentage', 100)
             ->where('chart.'.(now()->day - 1).'.revenue', 100000)
             ->where('chart.'.(now()->day - 1).'.expenses', 30000)
-            ->where('chart.'.(now()->day - 1).'.netProfit', 70000)
+            ->where('chart.'.(now()->day - 1).'.costOfGoodsSold', 30000)
+            ->where('chart.'.(now()->day - 1).'.netProfit', 40000)
             ->where('topProducts.0.name', 'Kopi Susu')
             ->where('topProducts.0.sold', 5)
             ->where('lowProducts.0.name', 'Produk Belum Laku')

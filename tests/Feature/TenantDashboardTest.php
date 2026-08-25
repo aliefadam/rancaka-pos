@@ -61,6 +61,8 @@ class TenantDashboardTest extends TestCase
             'product_id' => $product->id,
             'product_name' => $product->name,
             'unit_price' => 10000,
+            'cost_snapshot' => 4000,
+            'total_cost_snapshot' => 12000,
             'quantity' => 3,
             'subtotal' => 30000,
         ]);
@@ -108,7 +110,8 @@ class TenantDashboardTest extends TestCase
             ->where('summary.0.key', 'revenue')
             ->where('summary.0.value', 'Rp 30.000')
             ->where('summary.1.key', 'profit')
-            ->where('summary.1.value', 'Rp 18.000')
+            ->where('summary.1.value', 'Rp 6.000')
+            ->where('summary.1.subtitle', 'Penjualan dikurangi HPP dan pengeluaran')
             ->where('summary.2.value', '1')
             ->where('trendTotal', 'Rp 30.000')
             ->where('topProducts.0.name', 'Kopi Susu')

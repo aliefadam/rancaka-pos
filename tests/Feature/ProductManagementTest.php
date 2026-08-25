@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Enums\UserRole;
 use App\Models\Category;
+use App\Models\Product;
 use App\Models\Tenant;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -148,6 +149,53 @@ class ProductManagementTest extends TestCase
             'price' => 15000,
             'cost' => 10000,
             'margin_percentage' => 50,
+        ]);
+    }
+
+    public function test_product_cost_can_be_updated_from_the_edit_form(): void
+    {
+        $tenant = Tenant::factory()->create();
+        $owner = User::factory()->create([
+            'tenant_id' => $tenant->id,
+            'role' => UserRole::Owner,
+        ]);
+        $category = Category::factory()->create(['tenant_id' => $tenant->id]);
+        $product = Product::factory()->create([
+            'tenant_id' => $tenant->id,
+            'category_id' => $category->id,
+            'name' => 'Produk Lama',
+            'price' => 2_000_000,
+            'cost' => 1_500_000,
+            'margin_percentage' => 33.33,
+        ]);
+        $priceOption = $product->priceOptions()->where('is_default', true)->firstOrFail();
+
+        $this->actingAs($owner)
+            ->put(route('tenant.products.update', $product), [
+                'name' => $product->name,
+                'category_id' => $category->id,
+                'price' => 2_000_000,
+                'cost' => 1_200_000,
+                'margin_percentage' => 66.67,
+                'track_stock' => true,
+                'stock' => 70,
+                'is_active' => true,
+                'ingredients' => [],
+                'price_options' => [[
+                    'id' => $priceOption->id,
+                    'name' => $priceOption->name,
+                    'price' => 2_000_000,
+                    'is_default' => true,
+                    'is_active' => true,
+                ]],
+            ])
+            ->assertRedirect(route('tenant.products.index'))
+            ->assertSessionHasNoErrors();
+
+        $this->assertDatabaseHas('products', [
+            'id' => $product->id,
+            'cost' => 1_200_000,
+            'margin_percentage' => 66.67,
         ]);
     }
 

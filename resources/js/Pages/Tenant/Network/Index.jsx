@@ -9,6 +9,60 @@ const statusLabel = { pending_parent_approval: 'Menunggu pusat', pending_admin_a
 const statusTone = { pending_parent_approval: 'bg-amber-50 text-amber-700 ring-amber-200', pending_admin_approval: 'bg-sky-50 text-sky-700 ring-sky-200', approved_pending_billing: 'bg-indigo-50 text-indigo-700 ring-indigo-200', active: 'bg-emerald-50 text-emerald-700 ring-emerald-200', exit_requested: 'bg-orange-50 text-orange-700 ring-orange-200', detached_pending: 'bg-slate-100 text-slate-600 ring-slate-200' };
 const Badge = ({ status }) => <span className={`inline-flex rounded-full px-2.5 py-1 text-[10px] font-black uppercase tracking-wide ring-1 ring-inset ${statusTone[status] ?? 'bg-slate-100 text-slate-600 ring-slate-200'}`}>{statusLabel[status] ?? status}</span>;
 
+function BranchActions({ row, decide, mobile = false }) {
+    return (
+        <div className={`flex items-center gap-2 ${mobile ? 'w-full' : 'justify-end'}`}>
+            {row.status === 'pending_parent_approval' && (
+                <>
+                    <button
+                        type="button"
+                        onClick={() => decide(row.id, 'reject')}
+                        className={`${mobile ? 'flex-1' : ''} rounded-lg px-3 py-2 text-xs font-black text-rose-600 transition hover:bg-rose-50`}
+                    >
+                        Tolak
+                    </button>
+                    <button
+                        type="button"
+                        onClick={() => decide(row.id, 'approve')}
+                        className={`${mobile ? 'flex-1' : ''} rounded-lg bg-slate-950 px-3 py-2 text-xs font-black text-white`}
+                    >
+                        Terima
+                    </button>
+                </>
+            )}
+            {row.status === 'exit_requested' && (
+                <>
+                    <button
+                        type="button"
+                        onClick={() => decide(row.id, 'reject', 'exit.decision')}
+                        className={`${mobile ? 'flex-1' : ''} rounded-lg px-3 py-2 text-xs font-black text-slate-500 transition hover:bg-slate-50`}
+                    >
+                        Pertahankan
+                    </button>
+                    <button
+                        type="button"
+                        onClick={() => decide(row.id, 'approve', 'exit.decision')}
+                        className={`${mobile ? 'flex-1' : ''} rounded-lg bg-amber-500 px-3 py-2 text-xs font-black text-white`}
+                    >
+                        Jadwalkan lepas
+                    </button>
+                </>
+            )}
+            {['approved_pending_billing', 'active', 'exit_requested', 'detached_pending'].includes(row.status) && (
+                <button
+                    type="button"
+                    onClick={() => router.post(route('tenant.network.impersonate', row.branch_tenant.id))}
+                    className={`${mobile ? 'ml-auto px-3' : 'h-9 w-9'} flex items-center justify-center gap-2 rounded-lg bg-indigo-50 py-2 text-xs font-black text-indigo-600`}
+                    title="Masuk ke cabang"
+                >
+                    <i className="fi fi-rr-sign-in-alt" />
+                    {mobile && <span>Masuk</span>}
+                </button>
+            )}
+        </div>
+    );
+}
+
 export default function Index({ tenant, relationship, branches = [], summary, nextInvoice, branchPrice, notifications = [] }) {
     const [query, setQuery] = useState('');
     const codeForm = useForm({ branch_network_code: tenant.branch_network_code || '' });
@@ -33,7 +87,91 @@ export default function Index({ tenant, relationship, branches = [], summary, ne
             <section className="grid grid-cols-2 gap-3 lg:grid-cols-5">{[
                 ['Total cabang',summary.total,'fi-rr-building','text-slate-950'],['Perlu keputusan',summary.pending,'fi-rr-hourglass-end','text-amber-600'],['Aktif',summary.active,'fi-rr-check-circle','text-emerald-600'],['Omzet bulan ini',money(summary.month_revenue),'fi-rr-chart-histogram','text-indigo-600'],['Biaya berikutnya',money(summary.next_branch_cost),'fi-rr-receipt','text-slate-950'],
             ].map(([label,value,icon,tone]) => <article key={label} className="rounded-2xl border border-slate-200/70 bg-white p-4 shadow-sm shadow-slate-200/40"><div className="flex items-center justify-between"><p className="text-[10px] font-black uppercase tracking-[.12em] text-slate-400">{label}</p><i className={`fi ${icon} ${tone}`} /></div><p className={`mt-3 text-xl font-black tracking-tight ${tone}`}>{value}</p></article>)}</section>
-            <section className="overflow-hidden rounded-2xl border border-slate-200/70 bg-white shadow-sm shadow-slate-200/40"><div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 p-5"><div><h2 className="font-black text-slate-950">Cabang dalam jaringan</h2><p className="mt-1 text-xs text-slate-500">Ringkasan saja; detail operasional dibuka melalui impersonate.</p></div><input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Cari cabang..." className="w-full rounded-xl border-slate-200 text-sm sm:w-64" /></div><div className="overflow-x-auto"><table className="min-w-full text-left text-sm"><thead className="bg-slate-50 text-[10px] font-black uppercase tracking-wide text-slate-400"><tr><th className="px-5 py-3">Cabang</th><th className="px-5 py-3">Status</th><th className="px-5 py-3">Billing efektif</th><th className="px-5 py-3 text-right">Bulan ini</th><th className="px-5 py-3 text-right">Aksi</th></tr></thead><tbody className="divide-y divide-slate-100">{visibleBranches.map((row) => <tr key={row.id} className="hover:bg-slate-50/70"><td className="px-5 py-4"><p className="font-black text-slate-800">{row.branch_tenant.name}</p><p className="mt-1 text-xs text-slate-400">{row.branch_tenant.owner?.name || 'Owner belum tersedia'}</p></td><td className="px-5 py-4"><Badge status={row.status} /></td><td className="px-5 py-4 text-slate-500">{date(row.billing_effective_at)}</td><td className="px-5 py-4 text-right"><p className="font-black text-slate-800">{money(row.month_revenue)}</p><p className="text-xs text-slate-400">{row.month_transactions} transaksi</p></td><td className="px-5 py-4"><div className="flex justify-end gap-2">{row.status === 'pending_parent_approval' && <><button onClick={() => decide(row.id,'reject')} className="rounded-lg px-3 py-2 text-xs font-black text-rose-600 hover:bg-rose-50">Tolak</button><button onClick={() => decide(row.id,'approve')} className="rounded-lg bg-slate-950 px-3 py-2 text-xs font-black text-white">Terima</button></>}{row.status === 'exit_requested' && <><button onClick={() => decide(row.id,'reject','exit.decision')} className="rounded-lg px-3 py-2 text-xs font-black text-slate-500">Pertahankan</button><button onClick={() => decide(row.id,'approve','exit.decision')} className="rounded-lg bg-amber-500 px-3 py-2 text-xs font-black text-white">Jadwalkan lepas</button></>}{['approved_pending_billing','active','exit_requested','detached_pending'].includes(row.status) && <button onClick={() => router.post(route('tenant.network.impersonate', row.branch_tenant.id))} className="flex h-9 w-9 items-center justify-center rounded-lg bg-indigo-50 text-indigo-600" title="Masuk ke cabang"><i className="fi fi-rr-sign-in-alt" /></button>}</div></td></tr>)}{visibleBranches.length === 0 && <tr><td colSpan="5" className="px-5 py-16 text-center text-sm text-slate-400">Belum ada cabang untuk ditampilkan.</td></tr>}</tbody></table></div></section>
+            <section className="overflow-hidden rounded-2xl border border-slate-200/70 bg-white shadow-sm shadow-slate-200/40">
+                <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 p-5">
+                    <div>
+                        <h2 className="font-black text-slate-950">Cabang dalam jaringan</h2>
+                        <p className="mt-1 text-xs text-slate-500">Ringkasan saja; detail operasional dibuka melalui impersonate.</p>
+                    </div>
+                    <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Cari cabang..." className="w-full rounded-xl border-slate-200 text-sm sm:w-64" />
+                </div>
+
+                <div className="scrollbar-thin hidden overflow-x-auto md:block">
+                    <table className="min-w-full text-left text-sm">
+                        <thead className="bg-slate-50 text-[10px] font-black uppercase tracking-wide text-slate-400">
+                            <tr>
+                                <th className="px-5 py-3">Cabang</th>
+                                <th className="px-5 py-3">Status</th>
+                                <th className="px-5 py-3">Billing efektif</th>
+                                <th className="px-5 py-3 text-right">Bulan ini</th>
+                                <th className="px-5 py-3 text-right">Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody className="divide-y divide-slate-100">
+                            {visibleBranches.map((row) => (
+                                <tr key={row.id} className="hover:bg-slate-50/70">
+                                    <td className="px-5 py-4">
+                                        <p className="font-black text-slate-800">{row.branch_tenant.name}</p>
+                                        <p className="mt-1 text-xs text-slate-400">{row.branch_tenant.owner?.name || 'Owner belum tersedia'}</p>
+                                    </td>
+                                    <td className="px-5 py-4"><Badge status={row.status} /></td>
+                                    <td className="px-5 py-4 text-slate-500">{date(row.billing_effective_at)}</td>
+                                    <td className="px-5 py-4 text-right">
+                                        <p className="font-black text-slate-800">{money(row.month_revenue)}</p>
+                                        <p className="text-xs text-slate-400">{row.month_transactions} transaksi</p>
+                                    </td>
+                                    <td className="px-5 py-4"><BranchActions row={row} decide={decide} /></td>
+                                </tr>
+                            ))}
+                            {visibleBranches.length === 0 && (
+                                <tr><td colSpan="5" className="px-5 py-16 text-center text-sm text-slate-400">Belum ada cabang untuk ditampilkan.</td></tr>
+                            )}
+                        </tbody>
+                    </table>
+                </div>
+
+                <div className="divide-y divide-slate-100 md:hidden">
+                    {visibleBranches.map((row) => (
+                        <article key={row.id} className="p-4">
+                            <div className="flex items-start justify-between gap-3">
+                                <div className="min-w-0">
+                                    <p className="truncate font-black text-slate-800">{row.branch_tenant.name}</p>
+                                    <p className="mt-1 truncate text-xs text-slate-400">{row.branch_tenant.owner?.name || 'Owner belum tersedia'}</p>
+                                </div>
+                                <Badge status={row.status} />
+                            </div>
+                            <dl className="mt-4 grid grid-cols-2 gap-3 rounded-xl bg-slate-50/70 p-3">
+                                <div>
+                                    <dt className="text-[10px] font-black uppercase tracking-wide text-slate-400">Billing efektif</dt>
+                                    <dd className="mt-1 text-sm font-bold text-slate-700">{date(row.billing_effective_at)}</dd>
+                                </div>
+                                <div className="text-right">
+                                    <dt className="text-[10px] font-black uppercase tracking-wide text-slate-400">Bulan ini</dt>
+                                    <dd className="mt-1 text-sm font-black text-slate-800">{money(row.month_revenue)}</dd>
+                                    <dd className="text-xs text-slate-400">{row.month_transactions} transaksi</dd>
+                                </div>
+                            </dl>
+                            {[
+                                'pending_parent_approval',
+                                'approved_pending_billing',
+                                'active',
+                                'exit_requested',
+                                'detached_pending',
+                            ].includes(row.status) && (
+                                <div className="mt-3 border-t border-slate-100 pt-3">
+                                    <BranchActions row={row} decide={decide} mobile />
+                                </div>
+                            )}
+                        </article>
+                    ))}
+                    {visibleBranches.length === 0 && (
+                        <div className="px-5 py-14 text-center">
+                            <span className="mx-auto flex h-11 w-11 items-center justify-center rounded-full bg-slate-50 text-slate-400"><i className="fi fi-rr-building" /></span>
+                            <p className="mt-3 text-sm text-slate-400">Belum ada cabang untuk ditampilkan.</p>
+                        </div>
+                    )}
+                </div>
+            </section>
             <section className="grid gap-5 lg:grid-cols-2"><article className="rounded-2xl border border-slate-200/70 bg-white p-5 shadow-sm shadow-slate-200/40"><p className="text-xs font-black uppercase tracking-wide text-slate-400">Kode jaringan</p><form onSubmit={(e) => { e.preventDefault(); codeForm.patch(route('tenant.network.code.update')); }} className="mt-3 flex gap-2"><input value={codeForm.data.branch_network_code} onChange={(e) => codeForm.setData('branch_network_code',e.target.value.toUpperCase().replace(/[^A-Z0-9_-]/g,''))} className="min-w-0 flex-1 rounded-xl border-slate-200 font-mono font-black uppercase" /><button className="rounded-xl bg-slate-950 px-4 text-xs font-black text-white">Simpan</button></form></article><article className="rounded-2xl border border-slate-200/70 bg-white p-5 shadow-sm shadow-slate-200/40"><p className="text-xs font-black uppercase tracking-wide text-slate-400">Invoice berikutnya</p>{nextInvoice ? <><p className="mt-2 font-black text-slate-900">{nextInvoice.number}</p><p className="mt-1 text-sm text-slate-500">{money(nextInvoice.amount)} · jatuh tempo {date(nextInvoice.due_at)}</p></> : <p className="mt-2 text-sm text-slate-400">Belum ada invoice terbuka.</p>}</article></section>
         </>}
 
