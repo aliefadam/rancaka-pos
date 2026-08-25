@@ -438,7 +438,7 @@ const SidebarContent = ({ navigation, onClose }) => (
     </>
 );
 
-export default function AdminLayout({ header, children }) {
+export default function AdminLayout({ children }) {
     const page = usePage();
     const { auth, flash } = page.props;
     const user = auth.user;
@@ -649,13 +649,7 @@ export default function AdminLayout({ header, children }) {
                                 <i className="fi fi-rr-menu-burger text-lg" />
                             </button>
                         )}
-                        {header && (
-                            <h1 className="hidden text-lg font-semibold text-slate-900 sm:block">
-                                {header}
-                            </h1>
-                        )}
-
-                        <div className="relative hidden w-64 sm:block">
+                        <div className="relative hidden w-64 sm:block md:w-72 lg:w-80">
                             <div className="relative">
                                 <i className="fi fi-rr-search absolute left-3 top-1/2 -translate-y-1/2 text-sm text-slate-400" />
                                 <input
@@ -678,7 +672,7 @@ export default function AdminLayout({ header, children }) {
                             </div>
 
                             {searchOpen && searchQuery.trim() !== "" && (
-                                <div className="app-popover absolute left-0 top-full z-30 mt-2 w-72 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-lg">
+                                <div className="app-popover absolute left-0 top-full z-30 mt-2 w-full overflow-hidden rounded-xl border border-slate-200 bg-white shadow-lg">
                                     {searchResults.length === 0 ? (
                                         <p className="px-4 py-3 text-sm text-slate-400">
                                             Menu tidak ditemukan.
