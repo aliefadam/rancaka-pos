@@ -84,6 +84,10 @@ Route::middleware(['auth', 'role:superadmin'])->prefix('admin')->name('admin.')-
         return Inertia::render('Admin/Dashboard');
     })->name('dashboard');
 
+    Route::get('/version', function () {
+        return Inertia::render('Version/Index');
+    })->name('version.index');
+
     Route::resource('tenants', TenantController::class)
         ->only(['index', 'show', 'store', 'update', 'destroy'])
         ->names('tenants');
@@ -125,6 +129,10 @@ Route::middleware(['auth', 'role:superadmin,developer'])->prefix('admin')->name(
 });
 
 Route::middleware(['auth', 'role:owner,employee', 'tenant.onboarded'])->prefix('tenant')->name('tenant.')->group(function () {
+    Route::get('/version', function () {
+        return Inertia::render('Version/Index');
+    })->name('version.index');
+
     Route::get('/billing', [TenantBillingController::class, 'index'])->name('billing.index');
     Route::post('/billing/{invoice}/payment', [TenantBillingController::class, 'submit'])
         ->name('billing.submit')->middleware('role:owner');

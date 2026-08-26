@@ -21,6 +21,7 @@ function restoreCartDraft(activeShift, products) {
 
         if (!saved || !Array.isArray(saved.items)) return null;
 
+        const restoredQuantities = new Map();
         const items = saved.items.flatMap((item) => {
             const product = products.find(
                 (candidate) => candidate.id === item.product_id,
@@ -35,12 +36,15 @@ function restoreCartDraft(activeShift, products) {
             if (!priceOption) return [];
 
             const maxQty = product.available_quantity ?? Infinity;
+            const alreadyRestored = restoredQuantities.get(product.id) ?? 0;
             const quantity = Math.min(
                 Math.max(Number(item.quantity) || 1, 1),
-                maxQty,
+                Math.max(maxQty - alreadyRestored, 0),
             );
 
             if (quantity <= 0) return [];
+
+            restoredQuantities.set(product.id, alreadyRestored + quantity);
 
             return [
                 {
@@ -117,14 +121,17 @@ function itemDiscountAmount(item) {
 function ProductCard({ product, quantityInCart, onAdd }) {
     const tracksAvailability = product.available_quantity !== null;
     const outOfStock = tracksAvailability && product.available_quantity <= 0;
+    const limitReached = tracksAvailability
+        && quantityInCart >= product.available_quantity;
+    const unavailable = outOfStock || limitReached;
 
     return (
         <button
             type="button"
-            onClick={() => !outOfStock && onAdd(product)}
-            disabled={outOfStock}
+            onClick={() => !unavailable && onAdd(product)}
+            disabled={unavailable}
             className={`group relative overflow-hidden rounded-2xl border p-4 text-left transition active:scale-[0.98] ${
-                outOfStock
+                unavailable
                     ? 'cursor-not-allowed border-slate-200 bg-gradient-to-br from-slate-200 to-slate-300 grayscale dark:border-slate-600 dark:from-slate-800 dark:to-slate-700'
                     : 'border-indigo-100 bg-gradient-to-br from-indigo-100 via-indigo-50 to-blue-100 hover:shadow-md hover:shadow-indigo-100 dark:border-indigo-400/30 dark:from-slate-800 dark:via-slate-800 dark:to-indigo-950 dark:hover:border-indigo-400/50 dark:hover:shadow-indigo-950/40'
             }`}
@@ -617,28 +624,45 @@ export default function Index({
     };
 
     const resumeHeld = (held) => {
-        const items = held.items.map((item) => {
+        const resumedQuantities = new Map();
+        const items = held.items.flatMap((item) => {
             const product = products.find((p) => p.id === item.product_id);
-            const priceOption = product?.price_options.find(
+            if (!product) return [];
+
+            const priceOption = product.price_options.find(
                 (option) => option.id === item.product_price_option_id,
-            ) ?? product?.price_options.find((option) => option.is_default);
-            return {
+            ) ?? product.price_options.find((option) => option.is_default);
+
+            if (!priceOption) return [];
+
+            const maxQty = product.available_quantity ?? Infinity;
+            const alreadyResumed = resumedQuantities.get(product.id) ?? 0;
+            const quantity = Math.min(
+                Math.max(Number(item.quantity) || 1, 1),
+                Math.max(maxQty - alreadyResumed, 0),
+            );
+
+            if (quantity <= 0) return [];
+
+            resumedQuantities.set(product.id, alreadyResumed + quantity);
+
+            return [{
                 product_id: item.product_id,
-                price_option_id: priceOption?.id ?? item.product_price_option_id,
-                cart_key: `${item.product_id}:${priceOption?.id ?? item.product_price_option_id ?? 'default'}`,
+                price_option_id: priceOption.id,
+                cart_key: `${item.product_id}:${priceOption.id}`,
                 name: item.product_name,
-                price_option_name: priceOption?.name ?? item.price_option_name,
-                price: priceOption?.price ?? item.unit_price,
-                quantity: item.quantity,
+                price_option_name: priceOption.name ?? item.price_option_name,
+                price: priceOption.price ?? item.unit_price,
+                quantity,
                 note: item.note || '',
                 discount_type: item.discount_type ?? 'fixed',
                 discount_value: Number(item.discount_value || 0) > 0
                     ? String(item.discount_value)
                     : '',
-                track_stock: product ? product.track_stock : false,
-                stock: product ? product.stock : 0,
-                available_quantity: product?.available_quantity ?? null,
-            };
+                track_stock: product.track_stock,
+                stock: product.stock,
+                available_quantity: product.available_quantity ?? null,
+            }];
         });
 
         setCart(items);
@@ -978,9 +1002,9 @@ export default function Index({
                                 key={product.id}
                                 product={product}
                                 quantityInCart={
-                                    cart.find(
+                                    cart.filter(
                                         (i) => i.product_id === product.id,
-                                    )?.quantity ?? 0
+                                    ).reduce((sum, item) => sum + item.quantity, 0)
                                 }
                                 onAdd={addToCart}
                             />

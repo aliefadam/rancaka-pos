@@ -23,7 +23,7 @@ const paymentMethods = [
     { value: 'credit', label: 'Kredit', icon: 'fi-rr-hand-holding-usd' },
 ];
 
-function QuantityInput({ item, onQuantityChange }) {
+function QuantityInput({ item, maxQuantity, onQuantityChange }) {
     const [draft, setDraft] = useState(String(item.quantity));
 
     useEffect(() => {
@@ -38,7 +38,9 @@ function QuantityInput({ item, onQuantityChange }) {
             return;
         }
 
-        onQuantityChange(item.cart_key, quantity);
+        const normalized = Math.min(quantity, maxQuantity);
+        setDraft(String(normalized));
+        onQuantityChange(item.cart_key, normalized);
     };
 
     return (
@@ -50,13 +52,18 @@ function QuantityInput({ item, onQuantityChange }) {
             value={draft}
             onChange={(event) => {
                 const value = event.target.value.replace(/\D/g, '');
-                setDraft(value);
-
                 if (value !== '') {
+                    const normalized = Math.min(
+                        Number.parseInt(value, 10),
+                        maxQuantity,
+                    );
+                    setDraft(String(normalized));
                     onQuantityChange(
                         item.cart_key,
-                        Number.parseInt(value, 10),
+                        normalized,
                     );
+                } else {
+                    setDraft(value);
                 }
             }}
             onBlur={commit}
@@ -170,6 +177,15 @@ export default function CartPanel({
                                 lineGross,
                             );
                             const lineTotal = lineGross - itemDiscountAmount;
+                            const otherProductQuantity = items
+                                .filter((candidate) => candidate.product_id === item.product_id && candidate.cart_key !== item.cart_key)
+                                .reduce((sum, candidate) => sum + candidate.quantity, 0);
+                            const maxQuantity = item.available_quantity === null
+                                ? Infinity
+                                : Math.max(item.available_quantity - otherProductQuantity, 1);
+                            const productQuantity = otherProductQuantity + item.quantity;
+                            const stockLimitReached = item.available_quantity !== null
+                                && productQuantity >= item.available_quantity;
 
                             return (
                             <div
@@ -268,6 +284,7 @@ export default function CartPanel({
                                                 </button>
                                                 <QuantityInput
                                                     item={item}
+                                                    maxQuantity={maxQuantity}
                                                     onQuantityChange={
                                                         onQuantityChange
                                                     }
@@ -279,7 +296,8 @@ export default function CartPanel({
                                                             item.cart_key,
                                                         )
                                                     }
-                                                    className="flex h-7 w-7 items-center justify-center rounded-lg border border-slate-200 text-slate-500 transition hover:bg-slate-50 active:scale-95"
+                                                    disabled={stockLimitReached}
+                                                    className="flex h-7 w-7 items-center justify-center rounded-lg border border-slate-200 text-slate-500 transition hover:bg-slate-50 active:scale-95 disabled:cursor-not-allowed disabled:opacity-40"
                                                 >
                                                     <i className="fi fi-rr-plus text-[10px]" />
                                                 </button>

@@ -71,6 +71,16 @@ const navigationByRole = {
                 },
             ],
         },
+        {
+            group: "Sistem",
+            items: [
+                {
+                    name: "Versi Aplikasi",
+                    href: "admin.version.index",
+                    icon: "fi-rr-code-branch",
+                },
+            ],
+        },
     ],
     developer: [
         {
@@ -255,6 +265,16 @@ const navigationByRole = {
                 },
             ],
         },
+        {
+            group: "Sistem",
+            items: [
+                {
+                    name: "Versi Aplikasi",
+                    href: "tenant.version.index",
+                    icon: "fi-rr-code-branch",
+                },
+            ],
+        },
     ],
     employee: [
         {
@@ -369,6 +389,16 @@ const navigationByRole = {
                     href: "tenant.reports.shifts.index",
                     icon: "fi-rr-time-past",
                     permission: "shift-reports.view",
+                },
+            ],
+        },
+        {
+            group: "Sistem",
+            items: [
+                {
+                    name: "Versi Aplikasi",
+                    href: "tenant.version.index",
+                    icon: "fi-rr-code-branch",
                 },
             ],
         },
