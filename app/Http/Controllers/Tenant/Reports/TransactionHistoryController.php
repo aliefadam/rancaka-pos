@@ -6,6 +6,7 @@ use App\Enums\PaymentMethod;
 use App\Enums\TransactionStatus;
 use App\Http\Controllers\Controller;
 use App\Models\Transaction;
+use App\Services\ReportOutletScopeService;
 use App\Services\TransactionVoidService;
 use Carbon\Carbon;
 use Illuminate\Http\RedirectResponse;
@@ -15,9 +16,13 @@ use Inertia\Response;
 
 class TransactionHistoryController extends Controller
 {
-    public function index(Request $request): Response
+    public function index(Request $request, ReportOutletScopeService $outletScopes): Response
     {
         $limitedToOwnToday = $request->user()->hasRestrictedCashierAccess();
+        $outletScope = $outletScopes->resolve($request->user(), $request->string('scope')->toString());
+        if ($limitedToOwnToday) {
+            $outletScope = $outletScopes->resolve($request->user());
+        }
         $search = $request->string('search')->toString();
         $legacyDate = $request->string('date')->toString();
         $dateFrom = $limitedToOwnToday
@@ -36,7 +41,7 @@ class TransactionHistoryController extends Controller
         }
 
         $filteredTransactions = Transaction::query()
-            ->where('tenant_id', $request->user()->tenant_id)
+            ->whereIn('tenant_id', $outletScope['tenant_ids'])
             ->whereIn('status', [TransactionStatus::Completed, TransactionStatus::Voided])
             ->when($limitedToOwnToday, fn ($query) => $query
                 ->where('user_id', $request->user()->id)
@@ -71,7 +76,7 @@ class TransactionHistoryController extends Controller
         })->values();
 
         $transactions = (clone $filteredTransactions)
-            ->with(['user:id,name', 'shift.user:id,name', 'items', 'creditSale.customer:id,name', 'voider:id,name'])
+            ->with(['tenant:id,name', 'user:id,name', 'shift.user:id,name', 'items', 'creditSale.customer:id,name', 'voider:id,name'])
             ->latest()
             ->paginate(15)
             ->withQueryString();
@@ -79,10 +84,12 @@ class TransactionHistoryController extends Controller
         $isOwner = $request->user()->isOwner();
         $voidDeadline = now()->subDay();
 
-        $transactions->getCollection()->each(function (Transaction $transaction) use ($isOwner, $voidDeadline) {
+        $ownTenantId = $request->user()->tenant_id;
+        $transactions->getCollection()->each(function (Transaction $transaction) use ($isOwner, $voidDeadline, $ownTenantId) {
             $transaction->setAttribute(
                 'can_be_voided',
-                $transaction->status === TransactionStatus::Completed
+                $transaction->tenant_id === $ownTenantId
+                    && $transaction->status === TransactionStatus::Completed
                     && ($isOwner || $transaction->created_at->greaterThanOrEqualTo($voidDeadline)),
             );
         });
@@ -97,7 +104,9 @@ class TransactionHistoryController extends Controller
                 'date_to' => $dateTo,
                 'status' => $status,
                 'payment_method' => $paymentMethod,
+                'scope' => $outletScope['value'],
             ],
+            'outletScope' => $outletScope,
             'limitedToOwnToday' => $limitedToOwnToday,
         ]);
     }

@@ -1,4 +1,5 @@
 import AdminLayout from '@/Layouts/AdminLayout';
+import OutletScopeFilter from '@/Components/OutletScopeFilter';
 import { Head, Link, router } from '@inertiajs/react';
 import { useState } from 'react';
 import {
@@ -139,11 +140,20 @@ export default function Dashboard({
     attentionItems,
     activeShift,
     capabilities,
+    outletScope,
 }) {
     const [refreshing, setRefreshing] = useState(false);
 
     const changePeriod = (period) => {
-        router.get(route('tenant.dashboard'), { period }, {
+        router.get(route('tenant.dashboard'), { period, scope: filters.scope }, {
+            preserveState: true,
+            preserveScroll: true,
+            replace: true,
+        });
+    };
+
+    const changeScope = (scope) => {
+        router.get(route('tenant.dashboard'), { period: filters.period, scope }, {
             preserveState: true,
             preserveScroll: true,
             replace: true,
@@ -188,6 +198,8 @@ export default function Dashboard({
                         </Link>
                     </div>
                 </header>
+
+                <OutletScopeFilter scope={outletScope} onChange={changeScope} className="mt-6" />
 
                 <div className="mt-7 flex w-fit rounded-xl border border-slate-200 bg-white p-1 shadow-sm">
                     {periods.map((period) => (

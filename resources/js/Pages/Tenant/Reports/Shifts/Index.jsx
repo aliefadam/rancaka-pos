@@ -1,6 +1,7 @@
 import Breadcrumb from '@/Components/Breadcrumb';
 import Pagination from '@/Components/Pagination';
 import Select from '@/Components/Select';
+import OutletScopeFilter from '@/Components/OutletScopeFilter';
 import AdminLayout from '@/Layouts/AdminLayout';
 import { Head, router } from '@inertiajs/react';
 import { useEffect, useRef, useState } from 'react';
@@ -50,7 +51,7 @@ function StatusBadge({ open }) {
     );
 }
 
-export default function Index({ shifts, filters }) {
+export default function Index({ shifts, filters, outletScope }) {
     const [search, setSearch] = useState(filters.search ?? '');
     const [date, setDate] = useState(filters.date ?? '');
     const [status, setStatus] = useState(filters.status ?? '');
@@ -69,6 +70,7 @@ export default function Index({ shifts, filters }) {
                     ...(search ? { search } : {}),
                     ...(date ? { date } : {}),
                     ...(status ? { status } : {}),
+                    ...(filters.scope ? { scope: filters.scope } : {}),
                 },
                 {
                     preserveState: true,
@@ -82,6 +84,19 @@ export default function Index({ shifts, filters }) {
         return () => clearTimeout(timeout);
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [search, date, status]);
+
+    const changeScope = (scope) => {
+        router.get(route('tenant.reports.shifts.index'), {
+            ...(search ? { search } : {}),
+            ...(date ? { date } : {}),
+            ...(status ? { status } : {}),
+            scope,
+        }, {
+            preserveState: true,
+            preserveScroll: true,
+            replace: true,
+        });
+    };
 
     return (
         <AdminLayout header="Riwayat Shift">
@@ -97,6 +112,8 @@ export default function Index({ shifts, filters }) {
                     Pantau riwayat buka-tutup kas dan penjualan setiap shift.
                 </p>
             </div>
+
+            <OutletScopeFilter scope={outletScope} onChange={changeScope} className="mb-5" />
 
             <div className="rounded-2xl border border-slate-200/70 bg-white shadow-sm shadow-slate-200/40">
                 <div className="flex flex-col gap-3 border-b border-slate-100 p-5 sm:flex-row sm:items-center sm:p-6">
@@ -139,6 +156,7 @@ export default function Index({ shifts, filters }) {
                     <table className="w-full min-w-[1640px] text-left text-sm">
                         <thead>
                             <tr className="border-b border-slate-100 text-xs font-semibold uppercase tracking-wider text-slate-400">
+                                {outletScope?.can_filter && <th className="px-6 py-3.5 font-semibold">Toko</th>}
                                 <th className="px-6 py-3.5 font-semibold">
                                     Dibuka Oleh
                                 </th>
@@ -186,6 +204,7 @@ export default function Index({ shifts, filters }) {
                                     key={shift.id}
                                     className="transition hover:bg-slate-50/60"
                                 >
+                                    {outletScope?.can_filter && <td className="px-6 py-4"><span className="inline-flex rounded-full bg-slate-100 px-2.5 py-1 text-xs font-bold text-slate-600">{shift.tenant?.name ?? '-'}</span></td>}
                                     <td className="px-6 py-4 font-medium text-slate-800">
                                         {shift.user?.name ?? '-'}
                                     </td>
@@ -251,7 +270,7 @@ export default function Index({ shifts, filters }) {
                             {shifts.data.length === 0 && (
                                 <tr>
                                     <td
-                                        colSpan={15}
+                                        colSpan={15 + (outletScope?.can_filter ? 1 : 0)}
                                         className="px-6 py-20 text-center"
                                     >
                                         <span className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-slate-50 text-slate-400">
@@ -278,6 +297,7 @@ export default function Index({ shifts, filters }) {
                                     <p className="mt-0.5 text-xs text-slate-400">
                                         {formatDateTime(shift.opened_at)}
                                     </p>
+                                    {outletScope?.can_filter && <p className="mt-1 text-[11px] font-bold text-indigo-600">{shift.tenant?.name ?? '-'}</p>}
                                 </div>
                                 <StatusBadge open={shift.closed_at === null} />
                             </div>

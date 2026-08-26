@@ -9,6 +9,7 @@ use App\Models\Product;
 use App\Models\SupplierPayment;
 use App\Models\Transaction;
 use App\Models\TransactionItem;
+use App\Services\ReportOutletScopeService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
@@ -18,17 +19,19 @@ use Throwable;
 
 class FinancialReportController extends Controller
 {
-    public function index(Request $request): Response
+    public function index(Request $request, ReportOutletScopeService $outletScopes): Response
     {
         Carbon::setLocale('id');
 
-        $tenantId = $request->user()->tenant_id;
+        $outletScope = $outletScopes->resolve($request->user(), $request->string('scope')->toString());
+        $tenantIds = $outletScope['tenant_ids'];
         $filters = $this->resolveFilters($request);
+        $filters['scope'] = $outletScope['value'];
         [$periodStart, $periodEnd, $periodLabel, $granularity] = $this->periodRange($filters);
         [$previousStart, $previousEnd] = $this->previousPeriodRange($filters['period'], $periodStart, $periodEnd);
 
         $transactions = Transaction::query()
-            ->where('tenant_id', $tenantId)
+            ->whereIn('tenant_id', $tenantIds)
             ->where('status', TransactionStatus::Completed)
             ->where('created_at', '>=', $periodStart)
             ->where('created_at', '<', $periodEnd)
@@ -36,13 +39,13 @@ class FinancialReportController extends Controller
             ->get(['id', 'total', 'created_at']);
 
         $expenses = Expense::query()
-            ->where('tenant_id', $tenantId)
+            ->whereIn('tenant_id', $tenantIds)
             ->where('expense_date', '>=', $periodStart->toDateString())
             ->where('expense_date', '<', $periodEnd->toDateString())
             ->get(['amount', 'expense_date', 'created_at']);
 
         $supplierPayments = SupplierPayment::query()
-            ->where('tenant_id', $tenantId)->where('status', 'valid')
+            ->whereIn('tenant_id', $tenantIds)->where('status', 'valid')
             ->where('payment_date', '>=', $periodStart->toDateString())
             ->where('payment_date', '<', $periodEnd->toDateString())
             ->get(['amount', 'payment_date', 'created_at']);
@@ -52,13 +55,13 @@ class FinancialReportController extends Controller
         $supplierPaymentTotal = (int) $supplierPayments->sum('amount');
         $costOfGoodsSold = (int) $transactions->sum('cost_of_goods_sold');
         $netProfit = $revenue - $costOfGoodsSold - $operatingExpenseTotal;
-        $previousSummary = $this->summaryForRange($tenantId, $previousStart, $previousEnd);
+        $previousSummary = $this->summaryForRange($tenantIds, $previousStart, $previousEnd);
         $breakdown = $this->buildBreakdown($periodStart, $periodEnd, $granularity, $transactions, $expenses, $supplierPayments);
 
         $salesByProduct = TransactionItem::query()
             ->selectRaw('transaction_items.product_id, SUM(transaction_items.quantity) as sold, SUM(transaction_items.subtotal) as revenue')
             ->join('transactions', 'transactions.id', '=', 'transaction_items.transaction_id')
-            ->where('transactions.tenant_id', $tenantId)
+            ->whereIn('transactions.tenant_id', $tenantIds)
             ->where('transactions.status', TransactionStatus::Completed->value)
             ->where('transactions.created_at', '>=', $periodStart)
             ->where('transactions.created_at', '<', $periodEnd)
@@ -68,7 +71,7 @@ class FinancialReportController extends Controller
             ->keyBy('product_id');
 
         $productPerformance = Product::query()
-            ->where('tenant_id', $tenantId)
+            ->whereIn('tenant_id', $tenantIds)
             ->where('is_active', true)
             ->get(['id', 'name'])
             ->map(function (Product $product) use ($salesByProduct): array {
@@ -86,7 +89,7 @@ class FinancialReportController extends Controller
         $priceOptionSales = TransactionItem::query()
             ->selectRaw('transaction_items.product_name, transaction_items.price_option_name, transaction_items.unit_price, SUM(transaction_items.quantity) as sold, SUM(transaction_items.subtotal) as revenue')
             ->join('transactions', 'transactions.id', '=', 'transaction_items.transaction_id')
-            ->where('transactions.tenant_id', $tenantId)
+            ->whereIn('transactions.tenant_id', $tenantIds)
             ->where('transactions.status', TransactionStatus::Completed->value)
             ->where('transactions.created_at', '>=', $periodStart)
             ->where('transactions.created_at', '<', $periodEnd)
@@ -103,6 +106,7 @@ class FinancialReportController extends Controller
 
         return Inertia::render('Tenant/Reports/Financial/Index', [
             'filters' => $filters,
+            'outletScope' => $outletScope,
             'periodLabel' => $periodLabel,
             'summary' => [
                 'revenue' => $this->formatRupiah($revenue),
@@ -240,22 +244,23 @@ class FinancialReportController extends Controller
     }
 
     /** @return array{revenue: int, costOfGoodsSold: int, expenses: int, netProfit: int} */
-    private function summaryForRange(int $tenantId, Carbon $start, Carbon $end): array
+    /** @param array<int, int> $tenantIds */
+    private function summaryForRange(array $tenantIds, Carbon $start, Carbon $end): array
     {
         $revenue = (int) Transaction::query()
-            ->where('tenant_id', $tenantId)
+            ->whereIn('tenant_id', $tenantIds)
             ->where('status', TransactionStatus::Completed)
             ->where('created_at', '>=', $start)
             ->where('created_at', '<', $end)
             ->sum('total');
         $expenses = (int) Expense::query()
-            ->where('tenant_id', $tenantId)
+            ->whereIn('tenant_id', $tenantIds)
             ->where('expense_date', '>=', $start->toDateString())
             ->where('expense_date', '<', $end->toDateString())
             ->sum('amount');
         $costOfGoodsSold = (int) TransactionItem::query()
             ->join('transactions', 'transactions.id', '=', 'transaction_items.transaction_id')
-            ->where('transactions.tenant_id', $tenantId)
+            ->whereIn('transactions.tenant_id', $tenantIds)
             ->where('transactions.status', TransactionStatus::Completed->value)
             ->where('transactions.created_at', '>=', $start)
             ->where('transactions.created_at', '<', $end)

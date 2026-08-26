@@ -3,6 +3,7 @@ import BulkSelectionBar from '@/Components/BulkSelectionBar';
 import Pagination from '@/Components/Pagination';
 import PasswordConfirmDialog from '@/Components/PasswordConfirmDialog';
 import Select from '@/Components/Select';
+import OutletScopeFilter from '@/Components/OutletScopeFilter';
 import { useToast } from '@/Contexts/ToastContext';
 import usePermission from '@/Hooks/usePermission';
 import AdminLayout from '@/Layouts/AdminLayout';
@@ -71,7 +72,7 @@ function StatusBadge({ status }) {
     );
 }
 
-export default function Index({ transactions, paymentSummary, filters, limitedToOwnToday = false }) {
+export default function Index({ transactions, paymentSummary, filters, limitedToOwnToday = false, outletScope }) {
     const toast = useToast();
     const can = usePermission();
 
@@ -111,6 +112,7 @@ export default function Index({ transactions, paymentSummary, filters, limitedTo
                     ...(dateTo ? { date_to: dateTo } : {}),
                     ...(status ? { status } : {}),
                     ...(paymentMethod ? { payment_method: paymentMethod } : {}),
+                    ...(filters.scope ? { scope: filters.scope } : {}),
                 },
                 {
                     preserveState: true,
@@ -124,6 +126,21 @@ export default function Index({ transactions, paymentSummary, filters, limitedTo
         return () => clearTimeout(timeout);
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [search, dateFrom, dateTo, status, paymentMethod]);
+
+    const changeScope = (scope) => {
+        router.get(route('tenant.reports.transactions.index'), {
+            ...(search ? { search } : {}),
+            ...(dateFrom ? { date_from: dateFrom } : {}),
+            ...(dateTo ? { date_to: dateTo } : {}),
+            ...(status ? { status } : {}),
+            ...(paymentMethod ? { payment_method: paymentMethod } : {}),
+            scope,
+        }, {
+            preserveState: true,
+            preserveScroll: true,
+            replace: true,
+        });
+    };
 
     const refresh = () => {
         setRefreshing(true);
@@ -230,6 +247,8 @@ export default function Index({ transactions, paymentSummary, filters, limitedTo
                     </div>
                 </div>
             )}
+
+            <OutletScopeFilter scope={outletScope} onChange={changeScope} className="mb-5" />
 
             <div className="rounded-2xl border border-slate-200/70 bg-white shadow-sm shadow-slate-200/40">
                 <div className="flex flex-col gap-3 border-b border-slate-100 p-5 sm:flex-row sm:items-center sm:p-6">
@@ -340,6 +359,7 @@ export default function Index({ transactions, paymentSummary, filters, limitedTo
                                 <th className="px-6 py-3.5 font-semibold">
                                     No. Transaksi
                                 </th>
+                                {outletScope?.can_filter && <th className="px-6 py-3.5 font-semibold">Toko</th>}
                                 <th className="px-6 py-3.5 font-semibold">
                                     Tanggal
                                 </th>
@@ -370,6 +390,7 @@ export default function Index({ transactions, paymentSummary, filters, limitedTo
                                     <td className="px-6 py-4 font-medium text-slate-800">
                                         {transaction.invoice_number}
                                     </td>
+                                    {outletScope?.can_filter && <td className="px-6 py-4"><span className="inline-flex rounded-full bg-slate-100 px-2.5 py-1 text-xs font-bold text-slate-600">{transaction.tenant?.name ?? '-'}</span></td>}
                                     <td className="px-6 py-4 text-slate-500">
                                         {formatDateTime(transaction.created_at)}
                                     </td>
@@ -435,7 +456,7 @@ export default function Index({ transactions, paymentSummary, filters, limitedTo
                             {transactions.data.length === 0 && (
                                 <tr>
                                     <td
-                                        colSpan={can('transactions.delete') ? 8 : 7}
+                                        colSpan={(can('transactions.delete') ? 8 : 7) + (outletScope?.can_filter ? 1 : 0)}
                                         className="px-6 py-20 text-center"
                                     >
                                         <span className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-slate-50 text-slate-400">
@@ -466,6 +487,7 @@ export default function Index({ transactions, paymentSummary, filters, limitedTo
                                             transaction.created_at,
                                         )}
                                     </p>
+                                    {outletScope?.can_filter && <p className="mt-1 text-[11px] font-bold text-indigo-600">{transaction.tenant?.name ?? '-'}</p>}
                                     </div>
                                 </div>
                                 <StatusBadge status={transaction.status} />

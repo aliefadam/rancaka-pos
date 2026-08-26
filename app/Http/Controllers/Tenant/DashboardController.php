@@ -12,6 +12,7 @@ use App\Models\Shift;
 use App\Models\Transaction;
 use App\Models\TransactionItem;
 use App\Models\User;
+use App\Services\ReportOutletScopeService;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
@@ -21,29 +22,31 @@ use Inertia\Response;
 
 class DashboardController extends Controller
 {
-    public function index(Request $request): Response
+    public function index(Request $request, ReportOutletScopeService $outletScopes): Response
     {
         Carbon::setLocale('id');
 
         $user = $request->user();
         $tenantId = $user->tenant_id;
+        $outletScope = $outletScopes->resolve($user, $request->string('scope')->toString());
+        $tenantIds = $outletScope['tenant_ids'];
         $requestedPeriod = $request->string('period')->toString();
         $periodKey = in_array($requestedPeriod, ['today', '7days', 'month'], true) ? $requestedPeriod : 'today';
         [$start, $end, $previousStart, $previousEnd, $periodLabel, $comparisonLabel] = $this->periodRange($periodKey);
 
-        $transactions = $this->completedTransactions($tenantId, $start, $end);
-        $previousTransactions = $this->completedTransactions($tenantId, $previousStart, $previousEnd);
+        $transactions = $this->completedTransactions($tenantIds, $start, $end);
+        $previousTransactions = $this->completedTransactions($tenantIds, $previousStart, $previousEnd);
         $revenue = (int) (clone $transactions)->sum('total');
         $transactionCount = (clone $transactions)->count();
         $previousRevenue = (int) (clone $previousTransactions)->sum('total');
         $previousTransactionCount = (clone $previousTransactions)->count();
-        $productsSold = $this->productsSold($tenantId, $start, $end);
-        $previousProductsSold = $this->productsSold($tenantId, $previousStart, $previousEnd);
+        $productsSold = $this->productsSold($tenantIds, $start, $end);
+        $previousProductsSold = $this->productsSold($tenantIds, $previousStart, $previousEnd);
         $canViewProfit = $user->hasPermission('financial-reports.view');
-        $expenses = $canViewProfit ? $this->expenses($tenantId, $start, $end) : 0;
-        $previousExpenses = $canViewProfit ? $this->expenses($tenantId, $previousStart, $previousEnd) : 0;
-        $costOfGoodsSold = $canViewProfit ? $this->costOfGoodsSold($tenantId, $start, $end) : 0;
-        $previousCostOfGoodsSold = $canViewProfit ? $this->costOfGoodsSold($tenantId, $previousStart, $previousEnd) : 0;
+        $expenses = $canViewProfit ? $this->expenses($tenantIds, $start, $end) : 0;
+        $previousExpenses = $canViewProfit ? $this->expenses($tenantIds, $previousStart, $previousEnd) : 0;
+        $costOfGoodsSold = $canViewProfit ? $this->costOfGoodsSold($tenantIds, $start, $end) : 0;
+        $previousCostOfGoodsSold = $canViewProfit ? $this->costOfGoodsSold($tenantIds, $previousStart, $previousEnd) : 0;
         $netProfit = $revenue - $costOfGoodsSold - $expenses;
         $previousNetProfit = $previousRevenue - $previousCostOfGoodsSold - $previousExpenses;
         $averageTransaction = $transactionCount > 0 ? (int) round($revenue / $transactionCount) : 0;
@@ -71,19 +74,23 @@ class DashboardController extends Controller
             ],
         ];
 
-        $activeShift = Shift::query()->where('tenant_id', $tenantId)->whereNull('closed_at')->with('user:id,name')->first();
+        $isOwnOutletScope = $tenantIds === [$tenantId];
+        $activeShift = $isOwnOutletScope
+            ? Shift::query()->where('tenant_id', $tenantId)->whereNull('closed_at')->with('user:id,name')->first()
+            : null;
 
         return Inertia::render('Tenant/Dashboard', [
             'greetingName' => $user->name,
             'todayLabel' => Carbon::today()->translatedFormat('l, d F Y'),
-            'filters' => ['period' => $periodKey],
+            'filters' => ['period' => $periodKey, 'scope' => $outletScope['value']],
+            'outletScope' => $outletScope,
             'periodLabel' => $periodLabel,
             'summary' => $summary,
             'salesTrend' => $this->salesTrend($periodKey, $start, $end, (clone $transactions)->get(['total', 'created_at'])),
             'trendTotal' => $this->formatRupiah($revenue),
-            'topProducts' => $this->topProducts($tenantId, $start, $end),
+            'topProducts' => $this->topProducts($tenantIds, $start, $end),
             'paymentMethods' => $this->paymentMethods(clone $transactions, $revenue),
-            'attentionItems' => $this->attentionItems($user, $tenantId, $activeShift),
+            'attentionItems' => $isOwnOutletScope ? $this->attentionItems($user, $tenantId, $activeShift) : [],
             'activeShift' => $activeShift ? [
                 'id' => $activeShift->id,
                 'cashier' => $activeShift->user?->name,
@@ -99,9 +106,10 @@ class DashboardController extends Controller
         ]);
     }
 
-    private function completedTransactions(int $tenantId, Carbon $start, Carbon $end): Builder
+    /** @param array<int, int> $tenantIds */
+    private function completedTransactions(array $tenantIds, Carbon $start, Carbon $end): Builder
     {
-        return Transaction::query()->where('tenant_id', $tenantId)->where('status', TransactionStatus::Completed)
+        return Transaction::query()->whereIn('tenant_id', $tenantIds)->where('status', TransactionStatus::Completed)
             ->where('created_at', '>=', $start)->where('created_at', '<', $end);
     }
 
@@ -130,24 +138,27 @@ class DashboardController extends Controller
         };
     }
 
-    private function productsSold(int $tenantId, Carbon $start, Carbon $end): int
+    /** @param array<int, int> $tenantIds */
+    private function productsSold(array $tenantIds, Carbon $start, Carbon $end): int
     {
         return (int) TransactionItem::query()->whereHas('transaction', fn (Builder $query) => $query
-            ->where('tenant_id', $tenantId)->where('status', TransactionStatus::Completed)
+            ->whereIn('tenant_id', $tenantIds)->where('status', TransactionStatus::Completed)
             ->where('created_at', '>=', $start)->where('created_at', '<', $end))->sum('quantity');
     }
 
-    private function expenses(int $tenantId, Carbon $start, Carbon $end): int
+    /** @param array<int, int> $tenantIds */
+    private function expenses(array $tenantIds, Carbon $start, Carbon $end): int
     {
-        return (int) Expense::query()->where('tenant_id', $tenantId)
+        return (int) Expense::query()->whereIn('tenant_id', $tenantIds)
             ->where('expense_date', '>=', $start->toDateString())->where('expense_date', '<', $end->toDateString())->sum('amount');
     }
 
-    private function costOfGoodsSold(int $tenantId, Carbon $start, Carbon $end): int
+    /** @param array<int, int> $tenantIds */
+    private function costOfGoodsSold(array $tenantIds, Carbon $start, Carbon $end): int
     {
         return (int) TransactionItem::query()
             ->join('transactions', 'transactions.id', '=', 'transaction_items.transaction_id')
-            ->where('transactions.tenant_id', $tenantId)
+            ->whereIn('transactions.tenant_id', $tenantIds)
             ->where('transactions.status', TransactionStatus::Completed->value)
             ->where('transactions.created_at', '>=', $start)
             ->where('transactions.created_at', '<', $end)
@@ -184,12 +195,13 @@ class DashboardController extends Controller
     }
 
     /** @return Collection<int, array{name: string, sold: int, revenue: string}> */
-    private function topProducts(int $tenantId, Carbon $start, Carbon $end): Collection
+    /** @param array<int, int> $tenantIds */
+    private function topProducts(array $tenantIds, Carbon $start, Carbon $end): Collection
     {
         return TransactionItem::query()
             ->selectRaw('transaction_items.product_name, SUM(transaction_items.quantity) as sold, SUM(transaction_items.subtotal) as revenue')
             ->join('transactions', 'transactions.id', '=', 'transaction_items.transaction_id')
-            ->where('transactions.tenant_id', $tenantId)->where('transactions.status', TransactionStatus::Completed->value)
+            ->whereIn('transactions.tenant_id', $tenantIds)->where('transactions.status', TransactionStatus::Completed->value)
             ->where('transactions.created_at', '>=', $start)->where('transactions.created_at', '<', $end)
             ->groupBy('transaction_items.product_name')->orderByDesc('sold')->orderByDesc('revenue')->limit(3)->get()
             ->map(fn (TransactionItem $item) => ['name' => $item->product_name, 'sold' => (int) $item->sold, 'revenue' => $this->formatRupiah((int) $item->revenue)]);

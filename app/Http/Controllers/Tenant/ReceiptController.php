@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Tenant;
 use App\Enums\TransactionStatus;
 use App\Http\Controllers\Controller;
 use App\Models\Transaction;
+use App\Services\ReportOutletScopeService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\URL;
 use Inertia\Inertia;
@@ -12,9 +13,9 @@ use Inertia\Response;
 
 class ReceiptController extends Controller
 {
-    public function show(Request $request, Transaction $transaction): Response
+    public function show(Request $request, Transaction $transaction, ReportOutletScopeService $outletScopes): Response
     {
-        abort_unless($transaction->tenant_id === $request->user()->tenant_id, 403);
+        abort_unless($outletScopes->canAccessTenant($request->user(), $transaction->tenant_id), 403);
 
         if ($request->user()->isEmployee()
             && ($request->user()->hasRestrictedCashierAccess()
@@ -26,8 +27,8 @@ class ReceiptController extends Controller
             );
         }
 
-        $transaction->load(['items', 'user:id,name', 'creditSale.customer:id,name']);
-        $tenant = $request->user()->tenant;
+        $transaction->load(['tenant', 'items', 'user:id,name', 'creditSale.customer:id,name']);
+        $tenant = $transaction->tenant;
         $creditSale = $transaction->creditSale;
 
         return Inertia::render('Tenant/Receipts/Show', [

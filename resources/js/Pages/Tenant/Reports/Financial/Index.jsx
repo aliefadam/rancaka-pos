@@ -1,6 +1,7 @@
 import Breadcrumb from '@/Components/Breadcrumb';
 import Select from '@/Components/Select';
 import AdminLayout from '@/Layouts/AdminLayout';
+import OutletScopeFilter from '@/Components/OutletScopeFilter';
 import { Head, router } from '@inertiajs/react';
 import { useEffect, useState } from 'react';
 import {
@@ -57,6 +58,7 @@ export default function Index({
     topProducts,
     lowProducts,
     priceOptionSales,
+    outletScope,
 }) {
     const [customStart, setCustomStart] = useState(filters.start_date);
     const [customEnd, setCustomEnd] = useState(filters.end_date);
@@ -67,7 +69,7 @@ export default function Index({
     }, [filters.start_date, filters.end_date]);
 
     const visit = (params) => {
-        router.get(route('tenant.reports.financial.index'), params, {
+        router.get(route('tenant.reports.financial.index'), { scope: filters.scope, ...params }, {
             preserveState: true,
             preserveScroll: true,
             replace: true,
@@ -83,6 +85,7 @@ export default function Index({
             start_date: customStart,
             end_date: customEnd,
         });
+    const changeScope = (scope) => visit({ ...filters, scope });
 
     return (
         <AdminLayout header="Laporan Keuangan">
@@ -120,6 +123,8 @@ export default function Index({
                     ))}
                 </div>
             </div>
+
+            <OutletScopeFilter scope={outletScope} onChange={changeScope} className="mb-5" />
 
             <PeriodPicker
                 filters={filters}

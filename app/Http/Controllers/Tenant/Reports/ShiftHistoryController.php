@@ -6,21 +6,23 @@ use App\Enums\PaymentMethod;
 use App\Enums\TransactionStatus;
 use App\Http\Controllers\Controller;
 use App\Models\Shift;
+use App\Services\ReportOutletScopeService;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
 
 class ShiftHistoryController extends Controller
 {
-    public function index(Request $request): Response
+    public function index(Request $request, ReportOutletScopeService $outletScopes): Response
     {
+        $outletScope = $outletScopes->resolve($request->user(), $request->string('scope')->toString());
         $search = $request->string('search')->toString();
         $status = $request->string('status')->toString();
         $date = $request->string('date')->toString();
 
         $shifts = Shift::query()
-            ->where('tenant_id', $request->user()->tenant_id)
-            ->with('user:id,name')
+            ->whereIn('tenant_id', $outletScope['tenant_ids'])
+            ->with(['user:id,name', 'tenant:id,name'])
             ->withCount(['transactions as transaction_count' => function ($query) {
                 $query->where('status', TransactionStatus::Completed);
             }])
@@ -82,7 +84,8 @@ class ShiftHistoryController extends Controller
 
         return Inertia::render('Tenant/Reports/Shifts/Index', [
             'shifts' => $shifts,
-            'filters' => ['search' => $search, 'status' => $status, 'date' => $date],
+            'filters' => ['search' => $search, 'status' => $status, 'date' => $date, 'scope' => $outletScope['value']],
+            'outletScope' => $outletScope,
         ]);
     }
 }
