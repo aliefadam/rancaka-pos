@@ -10,23 +10,56 @@ class SupplierPayableReminderService
     public function send(): int
     {
         $sent = 0;
-        Purchase::query()->with(['tenant.owner', 'supplier'])->where('document_status', 'posted')->where('balance_amount', '>', 0)
-            ->whereNotNull('due_date')->whereDate('due_date', '<=', today()->addDays(3))->chunkById(100, function ($purchases) use (&$sent) {
+        $reminderThrough = today()->addDay();
+
+        Purchase::query()->with(['tenant.owner', 'supplier', 'installments'])
+            ->where('document_status', 'posted')
+            ->where('balance_amount', '>', 0)
+            ->whereHas('installments', fn ($query) => $query
+                ->whereIn('status', ['scheduled', 'partial', 'overdue'])
+                ->whereDate('due_date', '<=', $reminderThrough))
+            ->chunkById(100, function ($purchases) use (&$sent) {
                 foreach ($purchases as $purchase) {
-                    if ($purchase->due_date->isBefore(today()) && $purchase->payment_status !== 'overdue') {
-                        $purchase->update(['payment_status' => 'overdue']);
-                        $purchase->installments()->whereIn('status', ['scheduled', 'partial'])->whereDate('due_date', '<', today())->update(['status' => 'overdue']);
-                    }
-                    $owner = $purchase->tenant?->owner;
-                    if (! $owner || $owner->notifications()->whereDate('created_at', today())->where('data->purchase_id', $purchase->id)->exists()) {
+                    $installment = $purchase->installments
+                        ->whereIn('status', ['scheduled', 'partial', 'overdue'])
+                        ->sortBy('due_date')
+                        ->first();
+
+                    if (! $installment) {
                         continue;
                     }
-                    $overdue = $purchase->due_date->isBefore(today());
+
+                    $dueDate = $installment->due_date;
+                    $overdue = $dueDate->isBefore(today());
+
+                    if ($overdue && $purchase->payment_status !== 'overdue') {
+                        $purchase->update(['payment_status' => 'overdue']);
+                        $purchase->installments()
+                            ->whereIn('status', ['scheduled', 'partial'])
+                            ->whereDate('due_date', '<', today())
+                            ->update(['status' => 'overdue']);
+                    }
+
+                    $owner = $purchase->tenant?->owner;
+                    if (! $owner || $owner->notifications()
+                        ->whereDate('created_at', today())
+                        ->where('data->purchase_id', $purchase->id)
+                        ->exists()) {
+                        continue;
+                    }
+
+                    $title = match (true) {
+                        $overdue => 'Hutang supplier terlambat',
+                        $dueDate->isToday() => 'Hutang supplier jatuh tempo hari ini',
+                        default => 'Hutang supplier jatuh tempo besok',
+                    };
+
                     $owner->notify(new SupplierPayableNotification([
                         'type' => $overdue ? 'supplier_payable_overdue' : 'supplier_payable_due',
-                        'title' => $overdue ? 'Hutang supplier terlambat' : 'Hutang supplier segera jatuh tempo',
+                        'title' => $title,
                         'message' => "{$purchase->number} · {$purchase->supplier->name} · Rp ".number_format($purchase->balance_amount, 0, ',', '.'),
-                        'purchase_id' => $purchase->id, 'url' => route('tenant.purchases.show', $purchase),
+                        'purchase_id' => $purchase->id,
+                        'url' => route('tenant.purchases.show', $purchase),
                     ]));
                     $sent++;
                 }
