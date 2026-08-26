@@ -7,6 +7,7 @@ use App\Models\BillingInvoice;
 use App\Models\Tenant;
 use App\Models\TenantBranchRelationship;
 use App\Models\Transaction;
+use App\Services\BranchCatalogMigrationService;
 use App\Services\BranchNetworkService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -71,7 +72,30 @@ class BranchNetworkController extends Controller
             'nextInvoice' => $nextInvoice,
             'branchPrice' => (int) config('billing.branch_monthly_price'),
             'notifications' => $request->user()->notifications()->latest()->limit(10)->get(),
+            'catalogMigration' => $relationship ? [
+                'run_count' => $relationship->catalogMigrations()->count(),
+                'last_run' => $relationship->catalogMigrations()
+                    ->latest('completed_at')
+                    ->first()?->only([
+                        'categories_created', 'categories_matched', 'products_created',
+                        'products_matched', 'products_unchanged', 'completed_at',
+                    ]),
+            ] : null,
         ]);
+    }
+
+    public function migrateCatalog(
+        Request $request,
+        TenantBranchRelationship $relationship,
+        BranchCatalogMigrationService $migration,
+    ): RedirectResponse {
+        $result = $migration->migrate($relationship, $request->user());
+
+        $message = $result->products_created > 0
+            ? "Migrasi selesai. {$result->products_created} produk baru ditambahkan dengan stok 0."
+            : 'Migrasi selesai. Tidak ada produk baru; data cabang yang sudah ada tetap dipertahankan.';
+
+        return back()->with('success', $message);
     }
 
     public function enable(Request $request, BranchNetworkService $network): RedirectResponse

@@ -147,6 +147,7 @@ Route::middleware(['auth', 'role:owner', 'tenant.onboarded'])->prefix('tenant/ne
     Route::post('/{relationship}/exit-request', [TenantBranchNetworkController::class, 'requestExit'])->name('exit.request');
     Route::patch('/{relationship}/exit-decision', [TenantBranchNetworkController::class, 'decideExit'])->name('exit.decision');
     Route::post('/{relationship}/detach', [TenantBranchNetworkController::class, 'detach'])->name('detach');
+    Route::post('/{relationship}/migrate-catalog', [TenantBranchNetworkController::class, 'migrateCatalog'])->name('catalog.migrate');
     Route::post('/{tenant}/impersonate', [ImpersonationController::class, 'start'])->name('impersonate');
 });
 

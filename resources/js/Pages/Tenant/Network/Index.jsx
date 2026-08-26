@@ -1,4 +1,5 @@
 import Breadcrumb from '@/Components/Breadcrumb';
+import Modal from '@/Components/Modal';
 import AdminLayout from '@/Layouts/AdminLayout';
 import { Head, router, useForm } from '@inertiajs/react';
 import { useMemo, useState } from 'react';
@@ -63,7 +64,97 @@ function BranchActions({ row, decide, mobile = false }) {
     );
 }
 
-export default function Index({ tenant, relationship, branches = [], summary, nextInvoice, branchPrice, notifications = [] }) {
+function CatalogMigrationCard({ relationship, migration }) {
+    const [showDialog, setShowDialog] = useState(false);
+    const form = useForm({});
+    const hasMigrated = (migration?.run_count || 0) > 0;
+    const canMigrate = ['approved_pending_billing', 'active'].includes(relationship.status);
+    const lastRun = migration?.last_run;
+
+    const submit = () => {
+        form.post(route('tenant.network.catalog.migrate', relationship.id), {
+            preserveScroll: true,
+            onSuccess: () => setShowDialog(false),
+        });
+    };
+
+    if (!canMigrate) return null;
+
+    return (
+        <>
+            <section className="relative overflow-hidden rounded-2xl border border-emerald-200/70 bg-slate-950 p-6 text-white shadow-lg shadow-slate-300/30 sm:p-7">
+                <div className="pointer-events-none absolute -right-16 -top-20 h-52 w-52 rounded-full border-[28px] border-emerald-400/10" />
+                <div className="relative grid items-center gap-6 lg:grid-cols-[1fr_auto]">
+                    <div className="flex items-start gap-4">
+                        <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-emerald-400 text-slate-950 shadow-lg shadow-emerald-950/30">
+                            <i className="fi fi-rr-box-open-full text-lg" />
+                        </span>
+                        <div>
+                            <div className="flex flex-wrap items-center gap-2">
+                                <p className="text-[10px] font-black uppercase tracking-[.18em] text-emerald-300">Persiapan toko</p>
+                                {hasMigrated && <span className="rounded-full bg-amber-300/15 px-2 py-1 text-[10px] font-black text-amber-200 ring-1 ring-amber-300/30">Sudah {migration.run_count}× migrasi</span>}
+                            </div>
+                            <h2 className="mt-2 text-xl font-black tracking-tight">Bawa katalog pusat ke cabang</h2>
+                            <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-300">
+                                Kategori, produk, pilihan harga, harga jual, dan HPP disalin sebagai data awal. Stok selalu dimulai dari 0 dan setelahnya seluruh data bebas disesuaikan cabang.
+                            </p>
+                            {lastRun && <p className="mt-3 text-xs font-bold text-slate-400">Terakhir {date(lastRun.completed_at)} · {lastRun.products_created} produk baru ditambahkan</p>}
+                        </div>
+                    </div>
+                    <button
+                        type="button"
+                        onClick={() => setShowDialog(true)}
+                        className="group flex w-full items-center justify-center gap-3 rounded-xl bg-emerald-400 px-5 py-3.5 text-sm font-black text-slate-950 shadow-lg shadow-emerald-950/30 transition hover:-translate-y-0.5 hover:bg-emerald-300 lg:w-auto"
+                    >
+                        <i className="fi fi-rr-arrow-right group-hover:translate-x-0.5 transition" />
+                        {hasMigrated ? 'Cek data baru lagi' : 'Migrasi data pusat'}
+                    </button>
+                </div>
+            </section>
+
+            <Modal show={showDialog} onClose={() => !form.processing && setShowDialog(false)} closeable={!form.processing} maxWidth="lg">
+                <Modal.Header>
+                    <h3 className="font-black text-slate-950">{hasMigrated ? 'Migrasi ini pernah dijalankan' : 'Siapkan katalog cabang'}</h3>
+                </Modal.Header>
+                <Modal.Body>
+                    <div className={`rounded-2xl p-4 ring-1 ${hasMigrated ? 'bg-amber-50 text-amber-950 ring-amber-200' : 'bg-emerald-50 text-emerald-950 ring-emerald-200'}`}>
+                        <div className="flex gap-3">
+                            <span className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${hasMigrated ? 'bg-amber-400' : 'bg-emerald-400'}`}>
+                                <i className={`fi ${hasMigrated ? 'fi-rr-triangle-warning' : 'fi-rr-shield-check'}`} />
+                            </span>
+                            <div>
+                                <p className="text-sm font-black">{hasMigrated ? `Cabang sudah migrasi ${migration.run_count} kali` : 'Aman untuk penyiapan pertama'}</p>
+                                <p className="mt-1 text-sm leading-6 opacity-80">
+                                    {hasMigrated
+                                        ? 'Sistem hanya memasukkan produk pusat yang belum pernah ada. Produk cabang yang sudah diedit tidak ditimpa dan tidak dibuat ganda.'
+                                        : 'Data pusat hanya menjadi salinan awal. Perubahan berikutnya di cabang tidak akan mengubah data pusat.'}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    <ul className="mt-5 space-y-3 text-sm text-slate-600">
+                        {[
+                            'Stok seluruh produk baru dibuat 0.',
+                            'Harga jual dan HPP awal mengikuti pusat.',
+                            'Kategori dan pilihan harga ikut disalin.',
+                            'Produk yang sudah dikenali tetap memakai versi cabang.',
+                        ].map((item) => <li key={item} className="flex items-start gap-3"><i className="fi fi-rr-check-circle mt-0.5 text-emerald-500" /><span>{item}</span></li>)}
+                    </ul>
+                    {form.errors?.relationship && <p className="mt-4 text-sm font-bold text-rose-600">{form.errors.relationship}</p>}
+                </Modal.Body>
+                <Modal.Footer>
+                    <button type="button" disabled={form.processing} onClick={() => setShowDialog(false)} className="rounded-xl px-4 py-2.5 text-sm font-bold text-slate-500 hover:bg-slate-50 disabled:opacity-50">Batal</button>
+                    <button type="button" disabled={form.processing} onClick={submit} className="flex items-center gap-2 rounded-xl bg-slate-950 px-5 py-2.5 text-sm font-black text-white hover:bg-slate-800 disabled:opacity-60">
+                        {form.processing && <i className="fi fi-rr-spinner animate-spin" />}
+                        {hasMigrated ? 'Ya, cek produk baru' : 'Mulai migrasi'}
+                    </button>
+                </Modal.Footer>
+            </Modal>
+        </>
+    );
+}
+
+export default function Index({ tenant, relationship, branches = [], summary, nextInvoice, branchPrice, notifications = [], catalogMigration = null }) {
     const [query, setQuery] = useState('');
     const codeForm = useForm({ branch_network_code: tenant.branch_network_code || '' });
     const joinForm = useForm({ network_code: '', reason: '' });
@@ -175,7 +266,7 @@ export default function Index({ tenant, relationship, branches = [], summary, ne
             <section className="grid gap-5 lg:grid-cols-2"><article className="rounded-2xl border border-slate-200/70 bg-white p-5 shadow-sm shadow-slate-200/40"><p className="text-xs font-black uppercase tracking-wide text-slate-400">Kode jaringan</p><form onSubmit={(e) => { e.preventDefault(); codeForm.patch(route('tenant.network.code.update')); }} className="mt-3 flex gap-2"><input value={codeForm.data.branch_network_code} onChange={(e) => codeForm.setData('branch_network_code',e.target.value.toUpperCase().replace(/[^A-Z0-9_-]/g,''))} className="min-w-0 flex-1 rounded-xl border-slate-200 font-mono font-black uppercase" /><button className="rounded-xl bg-slate-950 px-4 text-xs font-black text-white">Simpan</button></form></article><article className="rounded-2xl border border-slate-200/70 bg-white p-5 shadow-sm shadow-slate-200/40"><p className="text-xs font-black uppercase tracking-wide text-slate-400">Invoice berikutnya</p>{nextInvoice ? <><p className="mt-2 font-black text-slate-900">{nextInvoice.number}</p><p className="mt-1 text-sm text-slate-500">{money(nextInvoice.amount)} · jatuh tempo {date(nextInvoice.due_at)}</p></> : <p className="mt-2 text-sm text-slate-400">Belum ada invoice terbuka.</p>}</article></section>
         </>}
 
-        {relationship && tenant.tenant_type !== 'central' && <section className="grid gap-5 lg:grid-cols-[1.2fr_.8fr]"><article className="rounded-2xl border border-slate-200/70 bg-white p-6 shadow-sm shadow-slate-200/40"><div className="flex items-start justify-between gap-4"><div><p className="text-xs font-black uppercase tracking-wide text-slate-400">Terhubung ke</p><h2 className="mt-2 text-2xl font-black text-slate-950">{relationship.parent_tenant.name}</h2><p className="mt-1 text-sm text-slate-500">{relationship.parent_tenant.email}</p></div><Badge status={relationship.status} /></div><dl className="mt-7 grid gap-4 border-t border-slate-100 pt-5 sm:grid-cols-3"><div><dt className="text-[10px] font-black uppercase text-slate-400">Diajukan</dt><dd className="mt-1 text-sm font-bold text-slate-700">{date(relationship.requested_at)}</dd></div><div><dt className="text-[10px] font-black uppercase text-slate-400">Trial berakhir</dt><dd className="mt-1 text-sm font-bold text-slate-700">{date(relationship.trial_ends_at)}</dd></div><div><dt className="text-[10px] font-black uppercase text-slate-400">Billing jaringan</dt><dd className="mt-1 text-sm font-bold text-slate-700">{date(relationship.billing_effective_at)}</dd></div></dl>{['approved_pending_billing','active'].includes(relationship.status) && <form onSubmit={(e) => { e.preventDefault(); exitForm.post(route('tenant.network.exit.request',relationship.id)); }} className="mt-6 border-t border-slate-100 pt-5"><textarea value={exitForm.data.reason} onChange={(e) => exitForm.setData('reason',e.target.value)} placeholder="Alasan keluar dari jaringan" className="w-full rounded-xl border-slate-200 text-sm" /><button className="mt-2 rounded-xl border border-rose-200 px-4 py-2.5 text-xs font-black text-rose-600">Ajukan keluar jaringan</button></form>}</article><article className="rounded-2xl border border-slate-200/70 bg-slate-50 p-6 shadow-sm shadow-slate-200/40"><p className="text-xs font-black uppercase tracking-wide text-slate-400">Alur persetujuan</p><div className="mt-5 space-y-4">{[['Pengajuan diterima sistem',true],['Persetujuan owner pusat',Boolean(relationship.parent_approved_at)],['Persetujuan superadmin',Boolean(relationship.admin_approved_at)],['Billing pusat berlaku',['active','exit_requested','detached_pending'].includes(relationship.status)]].map(([label,done]) => <div key={label} className="flex items-center gap-3"><span className={`flex h-7 w-7 items-center justify-center rounded-full ${done ? 'bg-emerald-500 text-white' : 'bg-white text-slate-300 ring-1 ring-slate-200'}`}><i className={`fi ${done ? 'fi-rr-check' : 'fi-rr-time-past'} text-[10px]`} /></span><p className={`text-sm font-bold ${done ? 'text-slate-700' : 'text-slate-400'}`}>{label}</p></div>)}</div></article></section>}
+        {relationship && tenant.tenant_type !== 'central' && <><CatalogMigrationCard relationship={relationship} migration={catalogMigration} /><section className="grid gap-5 lg:grid-cols-[1.2fr_.8fr]"><article className="rounded-2xl border border-slate-200/70 bg-white p-6 shadow-sm shadow-slate-200/40"><div className="flex items-start justify-between gap-4"><div><p className="text-xs font-black uppercase tracking-wide text-slate-400">Terhubung ke</p><h2 className="mt-2 text-2xl font-black text-slate-950">{relationship.parent_tenant.name}</h2><p className="mt-1 text-sm text-slate-500">{relationship.parent_tenant.email}</p></div><Badge status={relationship.status} /></div><dl className="mt-7 grid gap-4 border-t border-slate-100 pt-5 sm:grid-cols-3"><div><dt className="text-[10px] font-black uppercase text-slate-400">Diajukan</dt><dd className="mt-1 text-sm font-bold text-slate-700">{date(relationship.requested_at)}</dd></div><div><dt className="text-[10px] font-black uppercase text-slate-400">Trial berakhir</dt><dd className="mt-1 text-sm font-bold text-slate-700">{date(relationship.trial_ends_at)}</dd></div><div><dt className="text-[10px] font-black uppercase text-slate-400">Billing jaringan</dt><dd className="mt-1 text-sm font-bold text-slate-700">{date(relationship.billing_effective_at)}</dd></div></dl>{['approved_pending_billing','active'].includes(relationship.status) && <form onSubmit={(e) => { e.preventDefault(); exitForm.post(route('tenant.network.exit.request',relationship.id)); }} className="mt-6 border-t border-slate-100 pt-5"><textarea value={exitForm.data.reason} onChange={(e) => exitForm.setData('reason',e.target.value)} placeholder="Alasan keluar dari jaringan" className="w-full rounded-xl border-slate-200 text-sm" /><button className="mt-2 rounded-xl border border-rose-200 px-4 py-2.5 text-xs font-black text-rose-600">Ajukan keluar jaringan</button></form>}</article><article className="rounded-2xl border border-slate-200/70 bg-slate-50 p-6 shadow-sm shadow-slate-200/40"><p className="text-xs font-black uppercase tracking-wide text-slate-400">Alur persetujuan</p><div className="mt-5 space-y-4">{[['Pengajuan diterima sistem',true],['Persetujuan owner pusat',Boolean(relationship.parent_approved_at)],['Persetujuan superadmin',Boolean(relationship.admin_approved_at)],['Billing pusat berlaku',['active','exit_requested','detached_pending'].includes(relationship.status)]].map(([label,done]) => <div key={label} className="flex items-center gap-3"><span className={`flex h-7 w-7 items-center justify-center rounded-full ${done ? 'bg-emerald-500 text-white' : 'bg-white text-slate-300 ring-1 ring-slate-200'}`}><i className={`fi ${done ? 'fi-rr-check' : 'fi-rr-time-past'} text-[10px]`} /></span><p className={`text-sm font-bold ${done ? 'text-slate-700' : 'text-slate-400'}`}>{label}</p></div>)}</div></article></section></>}
 
         {notifications.length > 0 && <section className="rounded-2xl border border-slate-200/70 bg-white p-5 shadow-sm shadow-slate-200/40"><h2 className="font-black text-slate-950">Aktivitas jaringan</h2><div className="mt-3 divide-y divide-slate-100">{notifications.map((note) => <div key={note.id} className="py-3"><p className="text-sm font-bold text-slate-700">{note.data.title}</p><p className="mt-1 text-xs text-slate-500">{note.data.message}</p></div>)}</div></section>}
     </div></AdminLayout>;

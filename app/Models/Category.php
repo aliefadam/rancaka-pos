@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-#[Fillable(['name', 'icon', 'is_active', 'tenant_id'])]
+#[Fillable(['name', 'icon', 'is_active', 'tenant_id', 'source_category_id'])]
 class Category extends Model
 {
     /** @use HasFactory<CategoryFactory> */
@@ -30,5 +30,10 @@ class Category extends Model
     public function products(): HasMany
     {
         return $this->hasMany(Product::class);
+    }
+
+    public function sourceCategory(): BelongsTo
+    {
+        return $this->belongsTo(self::class, 'source_category_id');
     }
 }

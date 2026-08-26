@@ -44,4 +44,9 @@ class TenantBranchRelationship extends Model
     {
         return $this->hasMany(TenantBranchStatusHistory::class);
     }
+
+    public function catalogMigrations(): HasMany
+    {
+        return $this->hasMany(BranchCatalogMigration::class);
+    }
 }
