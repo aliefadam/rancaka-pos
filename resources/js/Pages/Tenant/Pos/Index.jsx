@@ -407,6 +407,7 @@ export default function Index({
         }
 
         setCart([]);
+        setPaymentMethod('cash');
         setDiscountType('fixed');
         setDiscountValue('');
         setAdditionalFee('');
