@@ -6,10 +6,10 @@ export default function OutletScopeFilter({ scope, onChange, className = '' }) {
     const isCombined = scope.value === 'combined';
     const isBranches = scope.value === 'branches';
     const tone = isCombined
-        ? 'border-indigo-200 bg-indigo-50/70 text-indigo-950'
+        ? 'border-indigo-200 bg-indigo-50/70 text-indigo-950 dark:border-indigo-400/40 dark:bg-indigo-500/10 dark:text-indigo-100'
         : isBranches || scope.value.startsWith('branch:')
-            ? 'border-emerald-200 bg-emerald-50/70 text-emerald-950'
-            : 'border-slate-200 bg-white text-slate-950';
+            ? 'border-emerald-200 bg-emerald-50/70 text-emerald-950 dark:border-emerald-400/40 dark:bg-emerald-500/10 dark:text-emerald-100'
+            : 'border-slate-200 bg-white text-slate-950 dark:border-slate-700 dark:bg-slate-900/70 dark:text-slate-100';
 
     return (
         <section className={`flex flex-col gap-3 rounded-2xl border p-3 shadow-sm sm:flex-row sm:items-center ${tone} ${className}`} aria-label="Cakupan laporan toko">
@@ -17,7 +17,7 @@ export default function OutletScopeFilter({ scope, onChange, className = '' }) {
                 <i className={`fi ${isCombined ? 'fi-rr-chart-tree-map' : 'fi-rr-shop'}`} />
             </span>
             <div className="min-w-0 flex-1">
-                <p className="text-[10px] font-black uppercase tracking-[.16em] opacity-55">Cakupan laporan</p>
+                <p className="text-[10px] font-black uppercase tracking-[.16em] opacity-60 dark:opacity-75">Cakupan laporan</p>
                 <p className="mt-0.5 truncate text-sm font-black">{scope.label}</p>
             </div>
             <Select
