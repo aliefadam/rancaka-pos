@@ -228,6 +228,11 @@ export default function Index({ shifts, filters }) {
                                         {formatDifference(
                                             shift.cash_difference,
                                         )}
+                                        {shift.is_cash_rounding && (
+                                            <span className="ml-2 inline-flex rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-amber-700">
+                                                Pembulatan
+                                            </span>
+                                        )}
                                     </td>
                                     <td className="px-6 py-4 font-semibold text-slate-900">
                                         {formatRupiah(shift.total_sales)}
@@ -354,6 +359,11 @@ export default function Index({ shifts, filters }) {
                                     >
                                         {formatDifference(
                                             shift.cash_difference,
+                                        )}
+                                        {shift.is_cash_rounding && (
+                                            <span className="ml-2 inline-flex rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-amber-700">
+                                                Pembulatan
+                                            </span>
                                         )}
                                     </dd>
                                 </div>

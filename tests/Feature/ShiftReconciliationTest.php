@@ -136,6 +136,38 @@ class ShiftReconciliationTest extends TestCase
                 ->where('shifts.data.0.id', $yesterdayShift->id));
     }
 
+    public function test_shift_can_be_closed_with_cash_rounded_down_to_one_hundred(): void
+    {
+        [$owner, $shift] = $this->openShift(openingCash: 12_417_360);
+
+        $this->actingAs($owner)
+            ->post(route('tenant.shift.close'), ['closing_cash' => 12_417_300])
+            ->assertRedirect(route('tenant.pos.index'))
+            ->assertSessionHasNoErrors();
+
+        $this->assertSame(12_417_300, $shift->fresh()->closing_cash);
+        $this->assertNotNull($shift->fresh()->closed_at);
+
+        $this->actingAs($owner)
+            ->get(route('tenant.reports.shifts.index'))
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('shifts.data.0.expected_closing_cash', 12_417_360)
+                ->where('shifts.data.0.closing_cash', 12_417_300)
+                ->where('shifts.data.0.cash_difference', -60)
+                ->where('shifts.data.0.is_cash_rounding', true));
+    }
+
+    public function test_shift_still_rejects_cash_shortage_outside_the_rounding_amount(): void
+    {
+        [$owner, $shift] = $this->openShift(openingCash: 12_417_360);
+
+        $this->actingAs($owner)
+            ->post(route('tenant.shift.close'), ['closing_cash' => 12_417_200])
+            ->assertSessionHasErrors('closing_cash');
+
+        $this->assertNull($shift->fresh()->closed_at);
+    }
+
     /**
      * @return array{User, Shift}
      */

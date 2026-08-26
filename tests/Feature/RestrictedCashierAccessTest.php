@@ -116,7 +116,7 @@ class RestrictedCashierAccessTest extends TestCase
         $this->actingAs($employee)
             ->post(route('tenant.shift.close'), ['closing_cash' => 1])
             ->assertSessionHasErrors([
-                'closing_cash' => 'Kas aktual belum sesuai. Hitung kembali uang tunai fisik di laci.',
+                'closing_cash' => 'Kas aktual belum sesuai dengan saldo sistem atau nominal pembulatan Rp100. Hitung kembali uang tunai fisik di laci.',
             ]);
     }
 

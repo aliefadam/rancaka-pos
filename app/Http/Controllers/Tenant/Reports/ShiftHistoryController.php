@@ -72,6 +72,12 @@ class ShiftHistoryController extends Controller
                     ? (int) $shift->closing_cash - $expectedClosingCash
                     : null,
             );
+            $shift->setAttribute(
+                'is_cash_rounding',
+                $shift->closing_cash !== null
+                    && (int) $shift->closing_cash !== $expectedClosingCash
+                    && (int) $shift->closing_cash === intdiv($expectedClosingCash, 100) * 100,
+            );
         });
 
         return Inertia::render('Tenant/Reports/Shifts/Index', [

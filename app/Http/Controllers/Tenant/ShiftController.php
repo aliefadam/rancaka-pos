@@ -14,6 +14,8 @@ use Illuminate\Validation\ValidationException;
 
 class ShiftController extends Controller
 {
+    private const CASH_ROUNDING_UNIT = 100;
+
     public function open(Request $request): RedirectResponse
     {
         $validated = $request->validate([
@@ -75,22 +77,25 @@ class ShiftController extends Controller
                 ->get()
                 ->sum('amount');
             $expectedCash = $shift->opening_cash + $cashSales + $debtPayments;
+            $roundedCash = intdiv($expectedCash, self::CASH_ROUNDING_UNIT) * self::CASH_ROUNDING_UNIT;
+            $closingCash = (int) $validated['closing_cash'];
 
-            if ((int) $validated['closing_cash'] !== $expectedCash) {
+            if (! in_array($closingCash, [$expectedCash, $roundedCash], true)) {
                 if ($request->user()->hasRestrictedCashierAccess()) {
                     throw ValidationException::withMessages([
-                        'closing_cash' => 'Kas aktual belum sesuai. Hitung kembali uang tunai fisik di laci.',
+                        'closing_cash' => 'Kas aktual belum sesuai dengan saldo sistem atau nominal pembulatan Rp100. Hitung kembali uang tunai fisik di laci.',
                     ]);
                 }
 
                 $formattedExpectedCash = number_format($expectedCash, 0, ',', '.');
+                $formattedRoundedCash = number_format($roundedCash, 0, ',', '.');
 
                 throw ValidationException::withMessages([
-                    'closing_cash' => "Modal akhir harus sama dengan saldo awal + penjualan tunai + pembayaran utang, yaitu Rp {$formattedExpectedCash}.",
+                    'closing_cash' => "Kas aktual harus Rp {$formattedExpectedCash} atau hasil pembulatan turun ke pecahan Rp100, yaitu Rp {$formattedRoundedCash}.",
                 ]);
             }
             $shift->update([
-                'closing_cash' => $validated['closing_cash'],
+                'closing_cash' => $closingCash,
                 'closed_at' => now(),
             ]);
         });

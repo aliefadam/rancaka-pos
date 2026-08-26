@@ -37,12 +37,19 @@ export default function CloseShiftModal({ show, onClose, summary, heldCount = 0 
 
     const hasFinancialSummary = Boolean(summary);
     const expectedCash = Number(summary?.expected_cash ?? 0);
+    const roundedCash = Math.floor(expectedCash / 100) * 100;
+    const roundingDifference = roundedCash - expectedCash;
+    const hasRoundingOption = hasFinancialSummary && roundingDifference !== 0;
     const closingCash = data.closing_cash === '' ? null : Number(data.closing_cash);
     const difference =
         closingCash === null || !hasFinancialSummary
             ? null
             : closingCash - expectedCash;
-    const isCashMatched = !hasFinancialSummary || difference === 0;
+    const isExactCash = hasFinancialSummary && closingCash === expectedCash;
+    const isRoundedCash =
+        hasRoundingOption && closingCash === roundedCash;
+    const isCashMatched =
+        !hasFinancialSummary || isExactCash || isRoundedCash;
 
     return (
         <Modal show={show} onClose={onClose} maxWidth="lg">
@@ -142,6 +149,56 @@ export default function CloseShiftModal({ show, onClose, summary, heldCount = 0 
                             </div>
                         )}
 
+                        {hasRoundingOption && (
+                            <div className="overflow-hidden rounded-xl border border-amber-200 bg-amber-50/60">
+                                <div className="flex items-start gap-3 border-b border-amber-200/70 px-4 py-3">
+                                    <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-amber-100 text-amber-700">
+                                        <i className="fi fi-rr-coins" />
+                                    </span>
+                                    <div>
+                                        <p className="text-sm font-bold text-amber-950">
+                                            Pembulatan Uang Laci
+                                        </p>
+                                        <p className="mt-0.5 text-xs leading-5 text-amber-800">
+                                            Gunakan nominal pecahan Rp100 terdekat ke bawah jika uang receh tidak tersedia.
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <div className="divide-y divide-amber-200/60 text-sm">
+                                    <div className="grid grid-cols-[1fr_auto] gap-4 px-4 py-2.5">
+                                        <span className="text-amber-800">Kas sistem</span>
+                                        <span className="font-semibold tabular-nums text-amber-950">
+                                            {formatRupiah(expectedCash)}
+                                        </span>
+                                    </div>
+                                    <div className="grid grid-cols-[1fr_auto] gap-4 px-4 py-2.5">
+                                        <span className="text-amber-800">Kas setelah pembulatan</span>
+                                        <span className="font-bold tabular-nums text-amber-950">
+                                            {formatRupiah(roundedCash)}
+                                        </span>
+                                    </div>
+                                    <div className="grid grid-cols-[1fr_auto] gap-4 px-4 py-2.5">
+                                        <span className="text-amber-800">Selisih pembulatan</span>
+                                        <span className="font-semibold tabular-nums text-amber-700">
+                                            -{formatRupiah(Math.abs(roundingDifference))}
+                                        </span>
+                                    </div>
+                                </div>
+
+                                <div className="border-t border-amber-200/70 p-3">
+                                    <button
+                                        type="button"
+                                        onClick={() => setData('closing_cash', String(roundedCash))}
+                                        className="flex w-full items-center justify-center gap-2 rounded-lg border border-amber-300 bg-white px-3 py-2 text-xs font-bold text-amber-800 shadow-sm transition hover:border-amber-400 hover:bg-amber-100 focus:outline-none focus:ring-2 focus:ring-amber-300"
+                                    >
+                                        <i className="fi fi-rr-arrow-small-down" />
+                                        Gunakan {formatRupiah(roundedCash)}
+                                    </button>
+                                </div>
+                            </div>
+                        )}
+
                         {!hasFinancialSummary && (
                             <div className="rounded-xl border border-sky-200 bg-sky-50 p-4 text-sm text-sky-900">
                                 <div className="flex items-start gap-3">
@@ -181,10 +238,16 @@ export default function CloseShiftModal({ show, onClose, summary, heldCount = 0 
                                         : `Kas kurang ${formatRupiah(Math.abs(difference))}`}
                                 </div>
                             )}
-                            {isCashMatched && (
+                            {isExactCash && (
                                 <div className="mt-2 flex items-center gap-2 rounded-lg bg-emerald-50 px-3 py-2 text-xs font-semibold text-emerald-700">
                                     <i className="fi fi-sr-check-circle" />
                                     Kas sesuai dengan saldo sistem
+                                </div>
+                            )}
+                            {isRoundedCash && (
+                                <div className="mt-2 flex items-center gap-2 rounded-lg bg-amber-50 px-3 py-2 text-xs font-semibold text-amber-700">
+                                    <i className="fi fi-sr-check-circle" />
+                                    Kas sesuai dengan nominal pembulatan Rp100
                                 </div>
                             )}
                             <p className="mt-1.5 text-xs text-slate-400">
@@ -203,7 +266,9 @@ export default function CloseShiftModal({ show, onClose, summary, heldCount = 0 
                                 className={`flex items-center justify-between rounded-xl px-4 py-3 text-sm font-semibold ${
                                     cashDifference === 0
                                         ? 'bg-emerald-50 text-emerald-700'
-                                        : 'bg-amber-50 text-amber-700'
+                                        : isRoundedCash
+                                          ? 'bg-amber-50 text-amber-700'
+                                          : 'bg-rose-50 text-rose-700'
                                 }`}
                             >
                                 <span>Selisih Kas</span>
@@ -240,7 +305,7 @@ export default function CloseShiftModal({ show, onClose, summary, heldCount = 0 
                         {heldCount > 0
                             ? 'Selesaikan Transaksi Ditahan'
                             : hasFinancialSummary && !isCashMatched
-                              ? 'Cocokkan Saldo Kas'
+                              ? 'Cocokkan atau Bulatkan Kas'
                               : 'Tutup Shift'}
                     </button>
                 </Modal.Footer>
