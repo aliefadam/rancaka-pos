@@ -1,5 +1,7 @@
 <?php
 
+use App\Support\ApplicationVersion;
+
 return [
 
     /*
@@ -14,6 +16,18 @@ return [
     */
 
     'name' => env('APP_NAME', 'Rancaka'),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Application Version
+    |--------------------------------------------------------------------------
+    |
+    | Versi produk mengikuti Semantic Versioning: MAJOR.MINOR.PATCH. Nilainya
+    | disimpan pada file VERSION dan dapat dinaikkan melalui Artisan.
+    |
+    */
+
+    'version' => ApplicationVersion::read(base_path('VERSION')),
 
     /*
     |--------------------------------------------------------------------------

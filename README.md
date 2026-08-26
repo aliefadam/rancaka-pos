@@ -24,3 +24,20 @@ php artisan serve
 ```
 
 Untuk pengembangan frontend, jalankan `npm run dev`.
+
+## Versioning aplikasi
+
+Versi aplikasi disimpan di file `VERSION` dengan format Semantic Versioning
+`MAJOR.MINOR.PATCH` dan ditampilkan di bagian bawah sidebar.
+
+```bash
+php artisan app:version          # melihat versi saat ini
+php artisan app:version major    # 1.4.3 menjadi 2.0.0
+php artisan app:version minor    # 2.0.1 menjadi 2.1.0
+php artisan app:version patch    # 2.0.0 menjadi 2.0.1
+php artisan app:version --set=3.0.0
+```
+
+- `major`: perubahan besar atau perubahan yang tidak kompatibel.
+- `minor`: fitur baru atau peningkatan yang tetap kompatibel.
+- `patch`: perbaikan bug tanpa fitur baru.

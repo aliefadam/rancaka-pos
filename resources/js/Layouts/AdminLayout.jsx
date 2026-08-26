@@ -375,7 +375,7 @@ const navigationByRole = {
     ],
 };
 
-const SidebarContent = ({ navigation, onClose }) => (
+const SidebarContent = ({ navigation, onClose, version }) => (
     <>
         <div className="app-sidebar-brand flex h-[72px] shrink-0 items-center justify-between gap-3 border-b border-slate-100 px-5">
             <div className="flex min-w-0 items-center gap-3">
@@ -435,12 +435,21 @@ const SidebarContent = ({ navigation, onClose }) => (
                 </div>
             ))}
         </nav>
+
+        <div className="shrink-0 border-t border-slate-100 px-5 py-3">
+            <p
+                className="text-[10px] font-medium tracking-wide text-slate-400"
+                title="Versi aplikasi (MAJOR.MINOR.PATCH)"
+            >
+                Rancaka v{version}
+            </p>
+        </div>
     </>
 );
 
 export default function AdminLayout({ children }) {
     const page = usePage();
-    const { auth, flash } = page.props;
+    const { app: appInfo, auth, flash } = page.props;
     const user = auth.user;
     const impersonation = auth.impersonation;
     const supplierPayableNotifications = Number(
@@ -549,6 +558,7 @@ export default function AdminLayout({ children }) {
                 <SidebarContent
                     navigation={navigation}
                     onClose={() => setDesktopSidebarOpen(false)}
+                    version={appInfo.version}
                 />
             </aside>
 
@@ -582,6 +592,7 @@ export default function AdminLayout({ children }) {
                             <SidebarContent
                                 navigation={navigation}
                                 onClose={() => setSidebarOpen(false)}
+                                version={appInfo.version}
                             />
                         </aside>
                     </Transition.Child>
