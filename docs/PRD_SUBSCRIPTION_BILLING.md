@@ -1,5 +1,10 @@
 # PRD — Registrasi Tenant, Google OAuth & Billing Manual
 
+## Status Dokumen
+
+- Status: Implementasi aplikasi selesai; aktivasi dan verifikasi environment produksi perlu dilakukan saat deployment
+- Audit implementasi terakhir: 27 Agustus 2026
+
 ## Tujuan
 
 Tenant dapat mendaftar mandiri, mencoba aplikasi selama 7 hari, membayar paket bulanan dengan unggah bukti, dan mendapat perpanjangan akses setelah diverifikasi superadmin.
@@ -83,11 +88,22 @@ Gambar QRIS tidak diatur melalui `.env`. Superadmin mengunggah dan mengaktifkann
 
 ## Persiapan Produksi
 
-- Gunakan HTTPS untuk aplikasi dan callback Google.
-- Pastikan `APP_URL` sama dengan domain yang didaftarkan di Google Cloud.
-- Jalankan `php artisan storage:link` agar gambar QRIS dan bukti pembayaran dapat ditampilkan.
-- Jalankan seluruh migrasi dengan `php artisan migrate --force` saat deployment.
-- Periksa rekening, harga paket, lama trial, QRIS, dan redirect URI sebelum membuka registrasi publik.
+Checklist ini merupakan pekerjaan deployment dan tidak dapat dinyatakan selesai hanya dari pemeriksaan repository.
+
+### Step 1 — Konfigurasi Produksi
+
+- [ ] Gunakan HTTPS untuk aplikasi dan callback Google.
+- [ ] Pastikan `APP_URL` sama dengan domain yang didaftarkan di Google Cloud.
+- [ ] Isi Google Client ID dan Client Secret produksi tanpa menyimpannya di repository.
+- [ ] Periksa rekening, harga paket, lama trial, QRIS, dan redirect URI sebelum membuka registrasi publik.
+
+### Step 2 — Deployment dan Smoke Test
+
+- [ ] Jalankan `php artisan storage:link` agar gambar QRIS dan bukti pembayaran dapat ditampilkan.
+- [ ] Jalankan seluruh migrasi dengan `php artisan migrate --force` saat deployment.
+- [ ] Uji registrasi manual, Google OAuth, onboarding, trial, upload pembayaran, approval, rejection, dan perpanjangan.
+- [ ] Uji tenant kedaluwarsa hanya dapat membuka Billing dan logout.
+- [ ] Catat hasil smoke test serta tanggal aktivasi produksi pada PRD ini.
 
 ## Di luar cakupan tahap ini
 

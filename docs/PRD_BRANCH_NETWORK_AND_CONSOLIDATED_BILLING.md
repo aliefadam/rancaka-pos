@@ -2,9 +2,10 @@
 
 ## Status Dokumen
 
-- Status: MVP end-to-end telah diimplementasikan
+- Status: MVP end-to-end telah diimplementasikan; penyempurnaan dashboard, constraint, dan audit aktor masih berjalan
 - Verifikasi: 29 test fokus lulus (251 assertions) dan production frontend build lulus pada 22 Agustus 2026
 - Tanggal: 21 Agustus 2026
+- Audit implementasi terakhir: 27 Agustus 2026
 - Cakupan: relasi tenant pusat–cabang, kode jaringan, persetujuan cabang, trial 7 hari, invoice gabungan, dashboard cabang, impersonation, pelepasan cabang, dan migrasi tenant mandiri menjadi cabang
 
 ## Latar Belakang
@@ -518,3 +519,35 @@ Fase teknis boleh dikerjakan dan diuji secara bertahap, tetapi Fase 1–5 tidak 
 7. Tenant mandiri boleh mengajukan menjadi cabang dengan persetujuan pusat dan superadmin.
 8. Owner cabang boleh meminta keluar; pelepasan dikonfirmasi pusat atau superadmin dan efektif akhir periode.
 9. Cabang tidak menggunakan referral sales dan tidak menghasilkan komisi sales; dealing tetap berada di tenant pusat.
+
+## Status Implementasi dan Pekerjaan Tersisa
+
+Relasi pusat–cabang, approval ganda, trial, billing gabungan, lock/recovery, impersonation, detach, migrasi katalog, dan cakupan laporan lintas outlet telah tersedia. Daftar berikut merupakan penyempurnaan terhadap butir PRD yang belum sepenuhnya terpenuhi.
+
+### Step 1 — Kelengkapan Dashboard Jaringan Pusat
+
+- [ ] Menampilkan jumlah cabang trial, proses pelepasan, omzet hari ini, dan transaksi hari ini pada kartu ringkasan.
+- [ ] Menambahkan filter status hubungan dan rentang tanggal pada daftar cabang.
+- [ ] Menampilkan tanggal bergabung, trial/masa aktif, billing, omzet, dan transaksi hari ini serta bulan berjalan.
+- [ ] Menambahkan detail cabang jaringan tanpa membuka data operasional yang berada di luar cakupan akses.
+
+### Step 2 — Kelengkapan Control Room Superadmin
+
+- [ ] Menambahkan filter tenant pusat, tenant cabang, dan rentang tanggal.
+- [ ] Menambahkan tampilan histori status hubungan, billing terkait, dan audit impersonation per relasi.
+- [ ] Memastikan pencarian, filter, dan pagination dapat digunakan bersama.
+
+### Step 3 — Audit Pelaku Asli dan Constraint Relasi
+
+- [ ] Menyediakan konteks aktor asli selama impersonation untuk seluruh mutasi operasional.
+- [ ] Menyimpan atau menghubungkan aktor asli pada audit perubahan tanpa menghilangkan identitas akun cabang yang sedang diimpersonate.
+- [ ] Menambahkan test bahwa mutasi selama impersonation dapat ditelusuri ke owner pusat atau superadmin asli.
+- [ ] Menambahkan database constraint yang mencegah satu cabang mempunyai lebih dari satu relasi terbuka, dengan validasi service tetap dipertahankan.
+- [ ] Menambahkan test konkurensi untuk pengajuan relasi ganda.
+
+### Step 4 — Verifikasi Produksi
+
+- [ ] Menyusun deployment checklist dan rollback checklist jaringan cabang.
+- [ ] Menguji migrasi menggunakan salinan data produksi yang sudah dianonimkan.
+- [ ] Menjalankan regression test penuh dan production frontend build.
+- [ ] Memperbarui angka verifikasi serta status PRD setelah seluruh pekerjaan tersisa selesai.

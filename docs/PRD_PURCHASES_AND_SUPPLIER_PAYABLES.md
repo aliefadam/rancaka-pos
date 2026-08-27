@@ -2,8 +2,9 @@
 
 ## Status Dokumen
 
-- Status: Keputusan bisnis MVP lengkap, siap diimplementasikan
+- Status: Implementasi inti tersedia; penyempurnaan dashboard, laporan, dan verifikasi E2E masih berjalan
 - Tanggal: 22 Agustus 2026
+- Audit implementasi terakhir: 27 Agustus 2026
 - Cakupan: supplier, pembelian produk dan bahan baku, stok masuk, moving average cost, diskon/biaya tambahan, pembayaran lunas/tempo/cicilan, jadwal termin fleksibel, hutang supplier, bukti pembayaran, dan pelaporan
 
 ## Ringkasan
@@ -885,3 +886,41 @@ Hasil akhir:
 19. Pembelian cicilan menawarkan satu jatuh tempo akhir atau jadwal termin manual yang bebas ditentukan pengguna.
 20. Jadwal termin tidak membayar otomatis dan tidak menggantikan saldo hutang aktual.
 21. FIFO ditunda ke fase lanjutan dan tidak termasuk implementasi MVP ini.
+
+## Status Implementasi dan Pekerjaan Tersisa
+
+Fondasi supplier, dokumen pembelian, stok masuk, moving average cost, pembayaran lunas/tempo/cicilan, hutang, bukti pembayaran, pembatalan, notifikasi jatuh tempo, dan integrasi arus kas telah tersedia. Pekerjaan berikut diselesaikan bertahap tanpa mengubah keputusan bisnis final MVP.
+
+### Step 1 — Detail Supplier dan Penyaringan Operasional
+
+Status: **Selesai pada 27 Agustus 2026.** Terverifikasi melalui 8 test fokus dengan 108 assertions dan production frontend build.
+
+- [x] Menambahkan halaman detail supplier.
+- [x] Menampilkan riwayat pembelian dan pembayaran pada detail supplier.
+- [x] Menambahkan filter daftar pembelian berdasarkan supplier, status pembayaran, tanggal pembelian, dan tanggal jatuh tempo.
+- [x] Menambahkan filter hutang berdasarkan supplier, status jatuh tempo, dan rentang tanggal.
+- [x] Memastikan seluruh filter tetap terisolasi berdasarkan tenant dan dapat dipertahankan saat pagination.
+
+### Step 2 — Aging dan Laporan Pembelian
+
+- [ ] Menambahkan aging hutang dengan kelompok belum jatuh tempo, 1–7 hari, 8–30 hari, dan lebih dari 30 hari.
+- [ ] Menambahkan laporan total pembelian dan pembayaran supplier per periode.
+- [ ] Menambahkan laporan pembelian per supplier dan per barang.
+- [ ] Menambahkan histori harga beli per barang.
+- [ ] Menambahkan laporan valuasi persediaan dan HPP aktual berdasarkan moving average cost.
+- [ ] Menyediakan filter, empty state, serta export/print yang konsisten dengan laporan lain.
+
+### Step 3 — Penyempurnaan Cicilan dan Dokumen Pembayaran
+
+- [ ] Menambahkan revisi jadwal termin setelah posting dengan larangan mengubah nominal yang sudah dibayar.
+- [ ] Mencatat histori perubahan jadwal termin sebagai audit.
+- [ ] Menambahkan tampilan bukti pembayaran internal yang dapat dilihat dan dicetak.
+- [ ] Memastikan pembatalan pembayaran mengembalikan alokasi jadwal dan saldo secara konsisten.
+
+### Step 4 — Verifikasi E2E dan Aktivasi
+
+- [ ] Menambah test untuk pembelian lunas, tempo, cicilan, produk, bahan baku, dan dokumen campuran.
+- [ ] Menambah test alokasi diskon/biaya, pembatalan, bukti pembayaran, overdue, dan tenant isolation.
+- [ ] Menambah test idempotensi/double posting serta konsistensi stok dan saldo hutang.
+- [ ] Menjalankan seluruh test backend dan production frontend build.
+- [ ] Memperbarui status PRD menjadi selesai setelah seluruh acceptance criteria terverifikasi.

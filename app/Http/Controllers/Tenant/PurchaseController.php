@@ -22,13 +22,42 @@ class PurchaseController extends Controller
     public function index(Request $request): Response
     {
         $tenantId = $request->user()->tenant_id;
-        $search = $request->string('search')->trim()->toString();
+        $filters = $request->validate([
+            'search' => ['nullable', 'string', 'max:100'],
+            'supplier_id' => ['nullable', 'integer', Rule::exists('suppliers', 'id')->where('tenant_id', $tenantId)],
+            'payment_status' => ['nullable', Rule::in(['paid', 'unpaid', 'partial', 'overdue', 'void'])],
+            'purchase_from' => ['nullable', 'date'],
+            'purchase_to' => ['nullable', 'date'],
+            'due_from' => ['nullable', 'date'],
+            'due_to' => ['nullable', 'date'],
+        ]);
+        $filters = [
+            'search' => trim($filters['search'] ?? ''),
+            'supplier_id' => isset($filters['supplier_id']) ? (string) $filters['supplier_id'] : '',
+            'payment_status' => $filters['payment_status'] ?? '',
+            'purchase_from' => $filters['purchase_from'] ?? '',
+            'purchase_to' => $filters['purchase_to'] ?? '',
+            'due_from' => $filters['due_from'] ?? '',
+            'due_to' => $filters['due_to'] ?? '',
+        ];
+
         $purchases = Purchase::query()->where('tenant_id', $tenantId)->with('supplier:id,name')
-            ->when($search, fn ($query) => $query->where(fn ($query) => $query->where('number', 'like', "%{$search}%")->orWhereHas('supplier', fn ($query) => $query->where('name', 'like', "%{$search}%"))))
+            ->when($filters['search'], fn ($query, $search) => $query->where(fn ($query) => $query
+                ->where('number', 'like', "%{$search}%")
+                ->orWhere('supplier_invoice_number', 'like', "%{$search}%")
+                ->orWhereHas('supplier', fn ($query) => $query->where('name', 'like', "%{$search}%"))))
+            ->when($filters['supplier_id'], fn ($query, $supplierId) => $query->where('supplier_id', $supplierId))
+            ->when($filters['payment_status'], fn ($query, $status) => $query->where('payment_status', $status))
+            ->when($filters['purchase_from'], fn ($query, $date) => $query->whereDate('purchase_date', '>=', $date))
+            ->when($filters['purchase_to'], fn ($query, $date) => $query->whereDate('purchase_date', '<=', $date))
+            ->when($filters['due_from'], fn ($query, $date) => $query->whereDate('due_date', '>=', $date))
+            ->when($filters['due_to'], fn ($query, $date) => $query->whereDate('due_date', '<=', $date))
             ->latest('purchase_date')->latest('id')->paginate(15)->withQueryString();
 
         return Inertia::render('Tenant/Purchases/Index', [
-            'purchases' => $purchases, 'filters' => ['search' => $search],
+            'purchases' => $purchases,
+            'filters' => $filters,
+            'suppliers' => Supplier::where('tenant_id', $tenantId)->orderBy('name')->get(['id', 'name']),
             'summary' => ['month_total' => Purchase::where('tenant_id', $tenantId)->where('document_status', 'posted')->whereBetween('purchase_date', [now()->startOfMonth(), now()->endOfMonth()])->sum('total_amount'), 'payable' => Purchase::where('tenant_id', $tenantId)->where('document_status', 'posted')->sum('balance_amount')],
             'openingCostCount' => $request->user()->isOwner()
                 ? RawMaterial::where('tenant_id', $tenantId)->where('stock', '>', 0)->whereNull('opening_cost_confirmed_at')->count()

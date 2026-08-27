@@ -2,8 +2,9 @@
 
 ## Status Dokumen
 
-- Status: Siap implementasi
+- Status: Implementasi inti tersedia; penyempurnaan dashboard dan laporan masih berjalan
 - Tanggal: 20 Agustus 2026
+- Audit implementasi terakhir: 27 Agustus 2026
 - Cakupan: akun dan dashboard sales, referral registrasi tenant, komisi subscription, payout manual, dan manajemen sales oleh superadmin
 
 ## Latar Belakang
@@ -285,3 +286,28 @@ Relasi payout ke komisi menggunakan pivot agar satu payout dapat mencakup bebera
 3. Setiap sales mempunyai kode referral unik dan akun login username/password. Kode referral bukan kredensial login.
 4. Superadmin hanya boleh mengoreksi referral tenant sebelum pembayaran subscription pertama disetujui.
 5. Tidak ada refund atau pembatalan pembayaran yang sudah disetujui pada MVP, sehingga tidak ada pengurangan/cancellation komisi setelah pembayaran tersebut.
+
+## Status Implementasi dan Pekerjaan Tersisa
+
+Akun sales, referral registrasi manual/Google, komisi pembayaran pertama, snapshot persentase, koreksi referral, payout manual, isolasi dashboard, dan manajemen sales oleh superadmin telah tersedia.
+
+### Step 1 — Filter dan Ringkasan Dashboard Sales
+
+- [ ] Menambahkan filter rentang tanggal registrasi referral.
+- [ ] Menambahkan filter status referral/subscription dan status komisi.
+- [ ] Menambahkan metrik total invoice yang sudah dibayar dari referral.
+- [ ] Memastikan metrik dan tabel memakai filter yang sama serta hanya mengambil sales yang sedang login.
+
+### Step 2 — Detail Performa Sales untuk Superadmin
+
+- [ ] Menambahkan halaman detail performa per sales.
+- [ ] Menampilkan ringkasan downline, invoice dibayar, komisi proyeksi, accrued, paid, dan riwayat payout.
+- [ ] Menambahkan filter tanggal dan status pada detail performa.
+- [ ] Menyediakan navigasi dari daftar sales dan laporan komisi ke halaman detail.
+
+### Step 3 — Verifikasi E2E
+
+- [ ] Menambah test filter dashboard dan perhitungan total invoice dibayar.
+- [ ] Menambah test otorisasi dan isolasi halaman detail performa.
+- [ ] Menjalankan seluruh test backend dan production frontend build.
+- [ ] Memperbarui status PRD menjadi selesai setelah seluruh acceptance criteria terverifikasi.

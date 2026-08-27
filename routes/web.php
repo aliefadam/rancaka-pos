@@ -199,8 +199,9 @@ Route::middleware(['auth', 'role:owner,employee', 'tenant.onboarded', 'subscript
         ->middlewareFor('update', 'permission:expenses.edit')
         ->middlewareFor('destroy', 'permission:expenses.delete');
 
-    Route::resource('suppliers', TenantSupplierController::class)->only(['index', 'store', 'update'])
+    Route::resource('suppliers', TenantSupplierController::class)->only(['index', 'show', 'store', 'update'])
         ->middlewareFor('index', 'permission:suppliers.view')
+        ->middlewareFor('show', 'permission:suppliers.view')
         ->middlewareFor('store', 'permission:suppliers.create')
         ->middlewareFor('update', 'permission:suppliers.edit');
     Route::get('/purchases/opening-costs', [TenantOpeningCostController::class, 'index'])->name('purchases.opening-costs.index')->middleware(['role:owner', 'permission:purchases.create']);

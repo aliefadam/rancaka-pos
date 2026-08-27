@@ -31,6 +31,36 @@ class SupplierController extends Controller
         return back()->with('success', 'Supplier berhasil ditambahkan.');
     }
 
+    public function show(Request $request, Supplier $supplier): Response
+    {
+        abort_unless($supplier->tenant_id === $request->user()->tenant_id, 403);
+
+        $purchases = $supplier->purchases()
+            ->with('creator:id,name')
+            ->latest('purchase_date')->latest('id')
+            ->paginate(10, ['*'], 'purchases_page')
+            ->withQueryString();
+        $payments = $supplier->payments()
+            ->with(['purchase:id,number', 'creator:id,name'])
+            ->latest('payment_date')->latest('id')
+            ->paginate(10, ['*'], 'payments_page')
+            ->withQueryString();
+
+        $postedPurchases = $supplier->purchases()->where('document_status', 'posted');
+
+        return Inertia::render('Tenant/Suppliers/Show', [
+            'supplier' => $supplier,
+            'purchases' => $purchases,
+            'payments' => $payments,
+            'summary' => [
+                'purchase_count' => (clone $postedPurchases)->count(),
+                'purchase_total' => (clone $postedPurchases)->sum('total_amount'),
+                'payable_total' => (clone $postedPurchases)->sum('balance_amount'),
+                'paid_total' => $supplier->payments()->where('status', 'valid')->sum('amount'),
+            ],
+        ]);
+    }
+
     public function update(Request $request, Supplier $supplier): RedirectResponse
     {
         abort_unless($supplier->tenant_id === $request->user()->tenant_id, 403);

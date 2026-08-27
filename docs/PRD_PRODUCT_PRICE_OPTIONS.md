@@ -1,5 +1,10 @@
 # PRD — Pilihan Harga Produk dengan Satu Sumber Stok
 
+## Status Dokumen
+
+- Status: Implementasi utama selesai; perubahan pilihan harga dari keranjang masih berjalan
+- Audit implementasi terakhir: 27 Agustus 2026
+
 ## Ringkasan
 
 Satu produk fisik dapat dijual dengan harga berbeda berdasarkan cara penjualan atau layanan yang dipilih. Seluruh pilihan harga tetap menggunakan stok produk utama yang sama dan tidak memiliki stok sendiri.
@@ -185,3 +190,20 @@ Laporan stok hanya menampilkan saldo produk utama dan tidak menggandakan stok be
 **Ketika** kasir memilih Aqua.  
 **Maka** seluruh pilihan harga Aqua tidak dapat diselesaikan sebagai penjualan, kecuali toko mengizinkan stok negatif.
 
+## Status Implementasi dan Pekerjaan Tersisa
+
+Master pilihan harga, satu sumber stok, pemilihan harga saat memasukkan produk, snapshot transaksi, struk, laporan, serta validasi pilihan aktif telah tersedia.
+
+### Step 1 — Mengganti Pilihan Harga dari Keranjang
+
+- [ ] Menambahkan aksi ganti pilihan harga pada item keranjang untuk pengguna yang berwenang.
+- [ ] Memperbarui harga, nama pilihan, subtotal, diskon, dan key penggabungan item secara konsisten.
+- [ ] Menggabungkan kuantitas ketika pilihan baru sudah ada di keranjang dan tetap memvalidasi stok gabungan produk utama.
+- [ ] Menjaga catatan/diskon item sesuai keputusan UX ketika pilihan harga diganti.
+
+### Step 2 — Verifikasi E2E
+
+- [ ] Menambah test perubahan pilihan harga dari keranjang.
+- [ ] Menambah test penggabungan item dan penolakan stok berlebih setelah pilihan diganti.
+- [ ] Menjalankan regression test POS, struk, laporan, void/retur, dan production frontend build.
+- [ ] Memperbarui status PRD menjadi selesai setelah seluruh kriteria penerimaan terverifikasi.
