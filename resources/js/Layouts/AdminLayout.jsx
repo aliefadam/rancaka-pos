@@ -204,6 +204,13 @@ const navigationByRole = {
             group: "Laporan",
             items: [
                 {
+                    name: "Pembelian",
+                    href: "tenant.reports.purchases.index",
+                    activePattern: "tenant.reports.purchases.*",
+                    icon: "fi-rr-chart-histogram",
+                    permission: "purchases.view",
+                },
+                {
                     name: "Keuangan",
                     href: "tenant.reports.financial.index",
                     icon: "fi-rr-chart-pie-alt",
@@ -372,6 +379,13 @@ const navigationByRole = {
         {
             group: "Laporan",
             items: [
+                {
+                    name: "Pembelian",
+                    href: "tenant.reports.purchases.index",
+                    activePattern: "tenant.reports.purchases.*",
+                    icon: "fi-rr-chart-histogram",
+                    permission: "purchases.view",
+                },
                 {
                     name: "Keuangan",
                     href: "tenant.reports.financial.index",

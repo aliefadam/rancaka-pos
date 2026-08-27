@@ -24,9 +24,11 @@ use App\Http\Controllers\Tenant\OpeningCostController as TenantOpeningCostContro
 use App\Http\Controllers\Tenant\PosController as TenantPosController;
 use App\Http\Controllers\Tenant\ProductController as TenantProductController;
 use App\Http\Controllers\Tenant\PurchaseController as TenantPurchaseController;
+use App\Http\Controllers\Tenant\PurchaseInstallmentController as TenantPurchaseInstallmentController;
 use App\Http\Controllers\Tenant\RawMaterialController as TenantRawMaterialController;
 use App\Http\Controllers\Tenant\ReceiptController as TenantReceiptController;
 use App\Http\Controllers\Tenant\Reports\FinancialReportController as TenantFinancialReportController;
+use App\Http\Controllers\Tenant\Reports\PurchaseReportController as TenantPurchaseReportController;
 use App\Http\Controllers\Tenant\Reports\ShiftHistoryController as TenantShiftHistoryController;
 use App\Http\Controllers\Tenant\Reports\TransactionHistoryController as TenantTransactionHistoryController;
 use App\Http\Controllers\Tenant\RoleController as TenantRoleController;
@@ -211,8 +213,10 @@ Route::middleware(['auth', 'role:owner,employee', 'tenant.onboarded', 'subscript
     Route::post('/purchases', [TenantPurchaseController::class, 'store'])->name('purchases.store')->middleware('permission:purchases.create');
     Route::get('/purchases/{purchase}', [TenantPurchaseController::class, 'show'])->name('purchases.show')->middleware('permission:purchases.view');
     Route::get('/purchases/{purchase}/invoice', [TenantPurchaseController::class, 'invoice'])->name('purchases.invoice')->middleware('permission:purchases.view');
+    Route::put('/purchases/{purchase}/installments', [TenantPurchaseInstallmentController::class, 'update'])->name('purchases.installments.update')->middleware('permission:purchases.pay');
     Route::patch('/purchases/{purchase}/void', [TenantPurchaseController::class, 'void'])->name('purchases.void')->middleware(['role:owner', 'permission:purchases.void']);
     Route::post('/purchases/{purchase}/payments', [TenantSupplierPaymentController::class, 'store'])->name('purchases.payments.store')->middleware('permission:purchases.pay');
+    Route::get('/supplier-payments/{payment}/receipt', [TenantSupplierPaymentController::class, 'receipt'])->name('supplier-payments.receipt')->middleware('permission:purchases.view');
     Route::patch('/supplier-payments/{payment}/void', [TenantSupplierPaymentController::class, 'void'])->name('supplier-payments.void')->middleware(['role:owner', 'permission:purchases.void']);
     Route::get('/supplier-payments/{payment}/proof', [TenantSupplierPaymentController::class, 'proof'])->name('supplier-payments.proof')->middleware('permission:purchases.view');
     Route::get('/supplier-payables', [TenantSupplierPayableController::class, 'index'])->name('supplier-payables.index')->middleware('permission:supplier-payables.view');
@@ -260,6 +264,13 @@ Route::middleware(['auth', 'role:owner,employee', 'tenant.onboarded', 'subscript
     })->name('printer.download');
 
     Route::prefix('reports')->name('reports.')->group(function () {
+        Route::get('/purchases', [TenantPurchaseReportController::class, 'index'])
+            ->name('purchases.index')
+            ->middleware('permission:purchases.view');
+        Route::get('/purchases/export', [TenantPurchaseReportController::class, 'export'])
+            ->name('purchases.export')
+            ->middleware('permission:purchases.view');
+
         Route::get('/financial', [TenantFinancialReportController::class, 'index'])
             ->name('financial.index')
             ->middleware('permission:financial-reports.view');

@@ -23,15 +23,21 @@ export default function Index({ payables, summary, filters, suppliers }) {
         event.preventDefault();
         router.get(route('tenant.supplier-payables.index'), clean(form), { preserveState: true, replace: true });
     };
-    const cards = [['Total hutang', summary.total, 'fi-rr-wallet', 'bg-slate-950 text-white'], ['Belum jatuh tempo', summary.upcoming, 'fi-rr-calendar-clock', 'bg-indigo-50 text-indigo-800'], ['Jatuh tempo hari ini', summary.today, 'fi-rr-calendar-exclamation', 'bg-amber-50 text-amber-900'], ['Terlambat', summary.overdue, 'fi-rr-triangle-warning', 'bg-rose-50 text-rose-800']];
+    const cards = [
+        ['Total hutang', summary.aging.total, 'fi-rr-wallet', 'bg-slate-950 text-white'],
+        ['Belum jatuh tempo', summary.aging.not_due, 'fi-rr-calendar-clock', 'bg-emerald-50 text-emerald-900'],
+        ['Terlambat 1–7 hari', summary.aging.overdue_1_7, 'fi-rr-calendar-exclamation', 'bg-amber-50 text-amber-900'],
+        ['Terlambat 8–30 hari', summary.aging.overdue_8_30, 'fi-rr-triangle-warning', 'bg-orange-50 text-orange-900'],
+        ['Terlambat >30 hari', summary.aging.overdue_over_30, 'fi-rr-siren-on', 'bg-rose-50 text-rose-900'],
+    ];
 
     return (
         <AdminLayout header="Hutang Supplier">
             <Head title="Hutang Supplier" />
             <Breadcrumb items={[{ label: 'Transaksi' }, { label: 'Hutang Supplier' }]} />
             <div className="space-y-5">
-                <header><p className="text-xs font-semibold uppercase tracking-[.2em] text-indigo-600">Kewajiban usaha</p><h1 className="mt-1 text-2xl font-bold text-slate-950">Hutang supplier</h1><p className="mt-1 text-sm text-slate-600">Pembayaran bulan ini <b className="text-slate-800">{money(summary.paid_this_month)}</b></p></header>
-                <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">{cards.map(([label, value, icon, tone]) => <article key={label} className={`relative overflow-hidden rounded-2xl p-4 ring-1 ring-slate-200/70 ${tone}`}><div className="flex items-start justify-between gap-3"><div><p className="text-xs font-semibold opacity-70">{label}</p><p className="mt-2 text-xl font-black tracking-tight">{money(value)}</p></div><span className="flex h-9 w-9 items-center justify-center rounded-xl bg-white/15"><i className={`fi ${icon}`} /></span></div></article>)}</div>
+                <header className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between"><div><p className="text-xs font-semibold uppercase tracking-[.2em] text-indigo-600">Kewajiban usaha</p><h1 className="mt-1 text-2xl font-bold text-slate-950">Hutang supplier</h1><p className="mt-1 text-sm text-slate-600">Pembayaran bulan ini <b className="text-slate-800">{money(summary.paid_this_month)}</b></p></div><Link href={route('tenant.reports.purchases.index')} className="inline-flex items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-bold text-slate-700 shadow-sm transition hover:border-indigo-200 hover:text-indigo-700"><i className="fi fi-rr-chart-histogram" /> Laporan lengkap</Link></header>
+                <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-5">{cards.map(([label, bucket, icon, tone]) => <article key={label} className={`relative overflow-hidden rounded-2xl p-4 ring-1 ring-slate-200/70 ${tone}`}><div className="flex items-start justify-between gap-3"><div><p className="text-xs font-semibold opacity-70">{label}</p><p className="mt-2 text-xl font-black tracking-tight">{money(bucket.amount)}</p><p className="mt-1 text-[10px] font-bold opacity-60">{bucket.count} dokumen</p></div><span className="flex h-9 w-9 items-center justify-center rounded-xl bg-white/15"><i className={`fi ${icon}`} /></span></div></article>)}</div>
 
                 <form onSubmit={apply} className="rounded-2xl border border-slate-200/80 bg-white p-4 shadow-sm shadow-slate-200/40 sm:p-5">
                     <div className="flex items-center justify-between gap-3"><div><h2 className="text-sm font-bold text-slate-900">Saring hutang</h2><p className="mt-0.5 text-xs text-slate-500">Ringkasan mengikuti supplier dan rentang tanggal yang dipilih.</p></div>{activeFilters > 0 && <span className="rounded-full bg-indigo-50 px-2.5 py-1 text-[10px] font-bold uppercase text-indigo-700">{activeFilters} aktif</span>}</div>

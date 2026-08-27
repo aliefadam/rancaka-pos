@@ -7,6 +7,7 @@ use App\Models\Purchase;
 use App\Models\Supplier;
 use App\Models\SupplierPayment;
 use App\Notifications\SupplierPayableNotification;
+use App\Services\SupplierPayableAgingService;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 use Inertia\Inertia;
@@ -14,7 +15,7 @@ use Inertia\Response;
 
 class SupplierPayableController extends Controller
 {
-    public function index(Request $request): Response
+    public function index(Request $request, SupplierPayableAgingService $aging): Response
     {
         $request->user()->unreadNotifications()->where('type', SupplierPayableNotification::class)->update(['read_at' => now()]);
         $tenantId = $request->user()->tenant_id;
@@ -64,6 +65,7 @@ class SupplierPayableController extends Controller
                 'today' => (clone $scoped)->whereDate('due_date', $today)->sum('balance_amount'),
                 'overdue' => (clone $scoped)->whereDate('due_date', '<', $today)->sum('balance_amount'),
                 'paid_this_month' => SupplierPayment::where('tenant_id', $tenantId)->where('status', 'valid')->whereBetween('payment_date', [now()->startOfMonth(), now()->endOfMonth()])->sum('amount'),
+                'aging' => $aging->summarize($scoped),
             ],
         ]);
     }

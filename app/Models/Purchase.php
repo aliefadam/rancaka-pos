@@ -55,6 +55,11 @@ class Purchase extends Model
         return $this->hasMany(SupplierPayment::class);
     }
 
+    public function installmentScheduleHistories(): HasMany
+    {
+        return $this->hasMany(PurchaseInstallmentScheduleHistory::class)->latest();
+    }
+
     public function isOverdue(): bool
     {
         return $this->document_status === 'posted' && $this->balance_amount > 0 && $this->due_date?->isBefore(today());

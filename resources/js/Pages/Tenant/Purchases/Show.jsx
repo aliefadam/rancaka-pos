@@ -31,6 +31,7 @@ export default function Show({ purchase }) {
     const [voidErrors, setVoidErrors] = useState({});
     const [paymentVoid, setPaymentVoid] = useState(null);
     const [paymentVoidErrors, setPaymentVoidErrors] = useState({});
+    const [scheduleOpen, setScheduleOpen] = useState(false);
     const pay = useForm({
         amount: purchase.balance_amount,
         payment_date: new Date().toISOString().slice(0, 10),
@@ -40,6 +41,23 @@ export default function Show({ purchase }) {
         note: "",
         proof: null,
     });
+    const schedule = useForm({
+        reason: "",
+        installments: purchase.installments.map((item) => ({
+            id: item.id,
+            due_date: item.due_date.slice(0, 10),
+            planned_amount: item.planned_amount,
+            paid_amount: item.paid_amount,
+        })),
+    });
+    const scheduleTotal = schedule.data.installments.reduce(
+        (sum, item) => sum + Number(item.planned_amount || 0),
+        0,
+    );
+    const requiredScheduleTotal = purchase.installments.reduce(
+        (sum, item) => sum + Number(item.planned_amount || 0),
+        0,
+    );
     const submit = (e) => {
         e.preventDefault();
         pay.post(route("tenant.purchases.payments.store", purchase.id), {
@@ -47,6 +65,29 @@ export default function Show({ purchase }) {
             preserveScroll: true,
             onSuccess: () => setPayOpen(false),
         });
+    };
+    const openSchedule = () => {
+        schedule.clearErrors();
+        schedule.setData({
+            reason: "",
+            installments: purchase.installments.map((item) => ({
+                id: item.id,
+                due_date: item.due_date.slice(0, 10),
+                planned_amount: item.planned_amount,
+                paid_amount: item.paid_amount,
+            })),
+        });
+        setScheduleOpen(true);
+    };
+    const submitSchedule = (event) => {
+        event.preventDefault();
+        schedule.put(
+            route("tenant.purchases.installments.update", purchase.id),
+            {
+                preserveScroll: true,
+                onSuccess: () => setScheduleOpen(false),
+            },
+        );
     };
     return (
         <AdminLayout header={purchase.number}>
@@ -129,6 +170,59 @@ export default function Show({ purchase }) {
                             </div>
                         ))}
                     </section>
+                    {purchase.payment_term === "installment" && (
+                        <section className="overflow-hidden rounded-2xl border border-slate-200/70 bg-white shadow-sm shadow-slate-200/40">
+                            <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 px-5 py-4">
+                                <div>
+                                    <h3 className="font-bold text-slate-900">Jadwal termin</h3>
+                                    <p className="mt-0.5 text-xs text-slate-500">Nominal yang sudah terbayar tetap terkunci saat jadwal direvisi.</p>
+                                </div>
+                                {purchase.document_status === "posted" && can("purchases.pay") && (
+                                    <button type="button" onClick={openSchedule} className="rounded-xl border border-indigo-200 bg-indigo-50 px-3.5 py-2 text-xs font-bold text-indigo-700 transition hover:bg-indigo-100">
+                                        Revisi jadwal
+                                    </button>
+                                )}
+                            </div>
+                            <div className="divide-y divide-slate-100">
+                                {purchase.installments.map((item) => (
+                                    <div key={item.id} className="grid gap-3 px-5 py-4 sm:grid-cols-[auto_1fr_auto] sm:items-center">
+                                        <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-slate-900 text-xs font-black text-white">{item.sequence}</div>
+                                        <div>
+                                            <div className="font-semibold text-slate-800">{new Date(item.due_date).toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" })}</div>
+                                            <div className="mt-0.5 text-xs text-slate-500">Terbayar {money(item.paid_amount)}</div>
+                                        </div>
+                                        <div className="sm:text-right">
+                                            <div className="font-bold text-slate-900">{money(item.planned_amount)}</div>
+                                            <span className={`mt-1 inline-block rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide ${item.status === "paid" ? "bg-emerald-50 text-emerald-700" : item.status === "overdue" ? "bg-rose-50 text-rose-700" : item.status === "partial" ? "bg-amber-50 text-amber-700" : "bg-slate-100 text-slate-600"}`}>{item.status}</span>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                            {purchase.installment_schedule_histories?.length > 0 && (
+                                <div className="border-t border-slate-200 bg-slate-50/70 px-5 py-4">
+                                    <h4 className="text-xs font-black uppercase tracking-[0.16em] text-slate-500">Histori revisi</h4>
+                                    <div className="mt-3 space-y-2">
+                                        {purchase.installment_schedule_histories.map((history) => (
+                                            <details key={history.id} className="group rounded-xl border border-slate-200 bg-white p-3">
+                                                <summary className="cursor-pointer list-none text-sm font-semibold text-slate-700">
+                                                    {history.actor?.name || "Pengguna terhapus"} · {new Date(history.created_at).toLocaleString("id-ID")}
+                                                    <span className="ml-2 text-xs font-normal text-slate-500">{history.reason}</span>
+                                                </summary>
+                                                <div className="mt-3 grid gap-3 text-xs sm:grid-cols-2">
+                                                    {[['Sebelum', history.before_schedule], ['Sesudah', history.after_schedule]].map(([label, rows]) => (
+                                                        <div key={label} className="rounded-lg bg-slate-50 p-3">
+                                                            <b className="text-slate-700">{label}</b>
+                                                            {rows.map((row) => <div key={`${label}-${row.id}-${row.sequence}`} className="mt-1 flex justify-between gap-3 text-slate-600"><span>Termin {row.sequence} · {new Date(row.due_date).toLocaleDateString("id-ID")}</span><span>{money(row.planned_amount)}</span></div>)}
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            </details>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+                        </section>
+                    )}
                     <section className="rounded-2xl border border-slate-200/70 bg-white p-5 shadow-sm shadow-slate-200/40">
                         <h3 className="font-bold">Jejak pembayaran</h3>
                         <div className="mt-4 space-y-3">
@@ -156,6 +250,7 @@ export default function Show({ purchase }) {
                                             <b className="break-all sm:break-normal">{money(p.amount)}</b>
                                         </div>
                                     </div>
+                                        <Link href={route("tenant.supplier-payments.receipt", p.id)} className="mt-2 inline-block text-xs font-semibold text-indigo-600">Kuitansi internal</Link>
                                         {p.proof_path && (
                                         <a
                                             href={route(
@@ -163,7 +258,7 @@ export default function Show({ purchase }) {
                                                 p.id,
                                             )}
                                             target="_blank"
-                                            className="mt-2 inline-block text-xs font-semibold text-indigo-600"
+                                            className="ml-3 mt-2 inline-block text-xs font-semibold text-indigo-600"
                                         >
                                             Lihat bukti ↗
                                             </a>
@@ -330,6 +425,49 @@ export default function Show({ purchase }) {
                         >
                             Simpan pembayaran
                         </button>
+                        </form>
+                    </div>
+                </div>
+            )}
+            {scheduleOpen && (
+                <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-950/70 p-4 backdrop-blur-sm">
+                    <div className="flex min-h-full items-center justify-center">
+                        <form onSubmit={submitSchedule} className="w-full max-w-2xl overflow-hidden rounded-3xl bg-white shadow-2xl">
+                            <div className="flex items-start justify-between border-b border-slate-200 px-5 py-5 sm:px-6">
+                                <div>
+                                    <p className="text-[11px] font-black uppercase tracking-[0.2em] text-indigo-600">Kontrol hutang</p>
+                                    <h3 className="mt-1 text-xl font-bold text-slate-900">Revisi jadwal termin</h3>
+                                    <p className="mt-1 text-sm text-slate-500">Total jadwal wajib tetap {money(requiredScheduleTotal)}.</p>
+                                </div>
+                                <button type="button" onClick={() => setScheduleOpen(false)} className="rounded-full p-2 text-slate-500 hover:bg-slate-100">×</button>
+                            </div>
+                            <div className="scrollbar-thin max-h-[65vh] space-y-3 overflow-y-auto px-5 py-5 sm:px-6">
+                                {Object.values(schedule.errors)[0] && <p className="rounded-xl bg-rose-50 px-3 py-2 text-sm font-medium text-rose-700">{Object.values(schedule.errors)[0]}</p>}
+                                {schedule.data.installments.map((item, index) => (
+                                    <div key={item.id || `new-${index}`} className="grid gap-3 rounded-2xl border border-slate-200 p-4 sm:grid-cols-[44px_1fr_1fr_auto] sm:items-end">
+                                        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-900 text-sm font-black text-white">{index + 1}</div>
+                                        <label className="text-xs font-semibold text-slate-600">Jatuh tempo
+                                            <input type="date" min={purchase.purchase_date.slice(0, 10)} value={item.due_date} onChange={(event) => schedule.setData("installments", schedule.data.installments.map((row, rowIndex) => rowIndex === index ? { ...row, due_date: event.target.value } : row))} className="mt-1 block w-full rounded-xl border-slate-200 text-sm" />
+                                        </label>
+                                        <label className="text-xs font-semibold text-slate-600">Nominal
+                                            <MoneyInput min={Math.max(1, Number(item.paid_amount || 0))} value={item.planned_amount} onValueChange={(value) => schedule.setData("installments", schedule.data.installments.map((row, rowIndex) => rowIndex === index ? { ...row, planned_amount: value } : row))} className="mt-1 w-full rounded-xl border-slate-200 text-sm" />
+                                            {Number(item.paid_amount) > 0 && <span className="mt-1 block text-[10px] text-emerald-700">Terkunci min. {money(item.paid_amount)}</span>}
+                                        </label>
+                                        <button type="button" disabled={Number(item.paid_amount) > 0 || schedule.data.installments.length === 1} onClick={() => schedule.setData("installments", schedule.data.installments.filter((_, rowIndex) => rowIndex !== index))} className="h-10 rounded-xl border border-rose-200 px-3 text-xs font-bold text-rose-600 disabled:cursor-not-allowed disabled:opacity-30">Hapus</button>
+                                    </div>
+                                ))}
+                                <button type="button" onClick={() => schedule.setData("installments", [...schedule.data.installments, { id: null, due_date: purchase.due_date.slice(0, 10), planned_amount: 1, paid_amount: 0 }])} className="w-full rounded-xl border border-dashed border-indigo-300 py-2.5 text-sm font-bold text-indigo-700 hover:bg-indigo-50">+ Tambah termin</button>
+                                <label className="block text-sm font-semibold text-slate-700">Alasan revisi
+                                    <textarea rows="3" value={schedule.data.reason} onChange={(event) => schedule.setData("reason", event.target.value)} placeholder="Contoh: kesepakatan ulang jatuh tempo dengan supplier" className="mt-1 block w-full rounded-xl border-slate-200 text-sm" />
+                                </label>
+                            </div>
+                            <div className="flex flex-col gap-3 border-t border-slate-200 bg-slate-50 px-5 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6">
+                                <div className={`text-sm font-bold ${scheduleTotal === requiredScheduleTotal ? "text-emerald-700" : "text-rose-700"}`}>Total jadwal: {money(scheduleTotal)}</div>
+                                <div className="flex gap-2">
+                                    <button type="button" onClick={() => setScheduleOpen(false)} className="rounded-xl border border-slate-300 px-4 py-2.5 text-sm font-bold text-slate-700">Batal</button>
+                                    <button disabled={schedule.processing || scheduleTotal !== requiredScheduleTotal} className="rounded-xl bg-indigo-600 px-5 py-2.5 text-sm font-bold text-white disabled:opacity-40">Simpan revisi</button>
+                                </div>
+                            </div>
                         </form>
                     </div>
                 </div>

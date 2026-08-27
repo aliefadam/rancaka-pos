@@ -111,7 +111,14 @@ class PurchaseController extends Controller
     public function show(Request $request, Purchase $purchase): Response
     {
         $this->authorizeTenant($request, $purchase);
-        $purchase->load(['supplier', 'items', 'installments', 'payments' => fn ($query) => $query->with('creator')->latest('payment_date')->latest('id'), 'creator']);
+        $purchase->load([
+            'supplier',
+            'items',
+            'installments',
+            'payments' => fn ($query) => $query->with(['creator', 'voider'])->latest('payment_date')->latest('id'),
+            'installmentScheduleHistories.actor:id,name',
+            'creator',
+        ]);
 
         return Inertia::render('Tenant/Purchases/Show', ['purchase' => $purchase]);
     }

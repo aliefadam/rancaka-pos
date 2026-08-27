@@ -903,19 +903,23 @@ Status: **Selesai pada 27 Agustus 2026.** Terverifikasi melalui 8 test fokus den
 
 ### Step 2 — Aging dan Laporan Pembelian
 
-- [ ] Menambahkan aging hutang dengan kelompok belum jatuh tempo, 1–7 hari, 8–30 hari, dan lebih dari 30 hari.
-- [ ] Menambahkan laporan total pembelian dan pembayaran supplier per periode.
-- [ ] Menambahkan laporan pembelian per supplier dan per barang.
-- [ ] Menambahkan histori harga beli per barang.
-- [ ] Menambahkan laporan valuasi persediaan dan HPP aktual berdasarkan moving average cost.
-- [ ] Menyediakan filter, empty state, serta export/print yang konsisten dengan laporan lain.
+Status: **Selesai pada 27 Agustus 2026.** Terverifikasi melalui 4 test laporan dengan 128 assertions dan production frontend build.
+
+- [x] Menambahkan aging hutang dengan kelompok belum jatuh tempo, 1–7 hari, 8–30 hari, dan lebih dari 30 hari.
+- [x] Menambahkan laporan total pembelian dan pembayaran supplier per periode.
+- [x] Menambahkan laporan pembelian per supplier dan per barang.
+- [x] Menambahkan histori harga beli per barang.
+- [x] Menambahkan laporan valuasi persediaan dan HPP aktual berdasarkan moving average cost.
+- [x] Menyediakan filter, empty state, serta export/print yang konsisten dengan laporan lain.
 
 ### Step 3 — Penyempurnaan Cicilan dan Dokumen Pembayaran
 
-- [ ] Menambahkan revisi jadwal termin setelah posting dengan larangan mengubah nominal yang sudah dibayar.
-- [ ] Mencatat histori perubahan jadwal termin sebagai audit.
-- [ ] Menambahkan tampilan bukti pembayaran internal yang dapat dilihat dan dicetak.
-- [ ] Memastikan pembatalan pembayaran mengembalikan alokasi jadwal dan saldo secara konsisten.
+Status: **Selesai pada 27 Agustus 2026.** Terverifikasi melalui 4 test fokus dengan 51 assertions, 17 test regresi pembelian/pembayaran dengan 275 assertions, dan production frontend build.
+
+- [x] Menambahkan revisi jadwal termin setelah posting dengan larangan mengubah nominal yang sudah dibayar.
+- [x] Mencatat histori perubahan jadwal termin sebagai audit.
+- [x] Menambahkan tampilan bukti pembayaran internal yang dapat dilihat dan dicetak.
+- [x] Memastikan pembatalan pembayaran mengembalikan alokasi jadwal dan saldo secara konsisten.
 
 ### Step 4 — Verifikasi E2E dan Aktivasi
 

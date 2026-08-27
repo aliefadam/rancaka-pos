@@ -72,7 +72,8 @@ class SupplierPaymentService
                 throw ValidationException::withMessages(['payment' => 'Pembayaran ini sudah dibatalkan.']);
             }
             $payment->update(['status' => 'void', 'voided_by' => $actor->id, 'voided_at' => now(), 'void_reason' => $reason]);
-            $this->recalculate($payment->purchase()->firstOrFail());
+            $purchase = Purchase::query()->lockForUpdate()->findOrFail($payment->purchase_id);
+            $this->recalculate($purchase);
         });
     }
 
