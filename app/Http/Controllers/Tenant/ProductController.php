@@ -338,7 +338,7 @@ class ProductController extends Controller
                 Rule::exists('categories', 'id')->where('tenant_id', $tenantId),
             ],
             'price' => ['required', 'integer', 'min:0', 'max:999999999999'],
-            'cost' => ['required', 'integer', 'min:0', 'max:999999999999', 'lte:price'],
+            'cost' => ['required', 'numeric', 'decimal:0,4', 'min:0', 'max:999999999999', 'lte:price'],
             'margin_percentage' => ['required', 'numeric', 'min:0', 'max:999999.99'],
             'track_stock' => ['boolean'],
             'stock' => ['nullable', 'integer', 'min:0'],
@@ -402,8 +402,8 @@ class ProductController extends Controller
             }
         }
 
-        $validated['margin_percentage'] = (int) $validated['cost'] > 0
-            ? round((((int) $validated['price'] - (int) $validated['cost']) / (int) $validated['cost']) * 100, 2)
+        $validated['margin_percentage'] = (float) $validated['cost'] > 0
+            ? round((((float) $validated['price'] - (float) $validated['cost']) / (float) $validated['cost']) * 100, 2)
             : 0;
 
         return ['product' => $validated, 'price_options' => $priceOptions];

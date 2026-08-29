@@ -199,6 +199,54 @@ class ProductManagementTest extends TestCase
         ]);
     }
 
+    public function test_product_with_fractional_moving_average_cost_can_be_saved_from_edit_form(): void
+    {
+        $tenant = Tenant::factory()->create();
+        $owner = User::factory()->create([
+            'tenant_id' => $tenant->id,
+            'role' => UserRole::Owner,
+        ]);
+        $category = Category::factory()->create(['tenant_id' => $tenant->id]);
+        $product = Product::factory()->create([
+            'tenant_id' => $tenant->id,
+            'category_id' => $category->id,
+            'name' => 'Americano',
+            'price' => 15_000,
+            'cost' => 6_117.6471,
+            'margin_percentage' => 145.19,
+            'stock' => 12,
+        ]);
+        $priceOption = $product->priceOptions()->where('is_default', true)->firstOrFail();
+
+        $this->actingAs($owner)
+            ->put(route('tenant.products.update', $product), [
+                'name' => 'Americano Hot',
+                'category_id' => $category->id,
+                'price' => 15_000,
+                'cost' => '6117.6471',
+                'margin_percentage' => 145.19,
+                'track_stock' => true,
+                'stock' => 12,
+                'is_active' => true,
+                'ingredients' => [],
+                'price_options' => [[
+                    'id' => $priceOption->id,
+                    'name' => $priceOption->name,
+                    'price' => 15_000,
+                    'is_default' => true,
+                    'is_active' => true,
+                ]],
+            ])
+            ->assertRedirect(route('tenant.products.index'))
+            ->assertSessionHasNoErrors();
+
+        $product->refresh();
+
+        $this->assertSame('6117.6471', $product->cost);
+        $this->assertSame('145.19', $product->margin_percentage);
+        $this->assertSame('Americano Hot', $product->name);
+    }
+
     public function test_product_cost_cannot_exceed_selling_price(): void
     {
         $tenant = Tenant::factory()->create();

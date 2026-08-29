@@ -280,6 +280,13 @@ Perubahan yang belum masuk produksi boleh digabungkan ke draft versi yang sama. 
 
 Versi awal yang menjadi contoh penerapan PRD ini:
 
+### v1.1.1 — Perbaikan validasi HPP produk
+
+- **Perbaikan — Edit produk:** Produk dengan HPP moving average pecahan kini dapat disimpan tanpa pesan keliru “HPP harus berupa bilangan bulat”.
+- **Peningkatan — Presisi HPP:** Sistem mempertahankan presisi HPP hingga empat angka desimal untuk perhitungan margin, sementara nominal estimasi pada UI tetap ditampilkan sebagai rupiah bulat.
+
+Klasifikasi: `PATCH`, karena perubahan memperbaiki ketidaksesuaian validasi pada fitur edit produk tanpa mengubah alur bisnis.
+
 ### v1.1.0 — Stock Opname Terpadu
 
 - **Baru — Stock Opname:** Produk dan bahan baku kini dapat dihitung dalam satu sesi per outlet dengan alur draft, penghitungan, persetujuan owner, dan posting.

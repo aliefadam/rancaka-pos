@@ -552,7 +552,7 @@ export default function ProductFormModal({
                                 <p className="mt-3 text-xs text-slate-500">
                                     Estimasi laba kotor:{' '}
                                     <span className="font-semibold text-emerald-600">
-                                        Rp {(Number(data.price) - Number(data.cost)).toLocaleString('id-ID')}
+                                        Rp {Math.round(Number(data.price) - Number(data.cost)).toLocaleString('id-ID')}
                                     </span>{' '}
                                     per produk
                                 </p>
