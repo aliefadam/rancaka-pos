@@ -586,6 +586,20 @@ html:not(.dark) textarea::placeholder {
     background: rgb(1 4 10 / 0.72) !important;
 }
 
+/* Keep modal headers/actions reachable while long forms scroll on small screens. */
+.app-modal-content > form {
+    display: flex;
+    min-height: 0;
+    flex: 1 1 0%;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.app-modal-body {
+    -webkit-overflow-scrolling: touch;
+    touch-action: pan-y;
+}
+
 .dark .receipt-page,
 .dark .receipt-page .bg-white {
     background-color: #fff !important;

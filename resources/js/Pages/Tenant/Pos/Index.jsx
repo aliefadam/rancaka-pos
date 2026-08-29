@@ -1065,17 +1065,18 @@ export default function Index({
                         <div className="fixed inset-0 bg-slate-950/45 backdrop-blur-[2px]" />
                     </Transition.Child>
 
-                    <div className="fixed inset-0 flex items-center justify-center p-4">
-                        <Transition.Child
-                            as={Fragment}
-                            enter="ease-out duration-200"
-                            enterFrom="translate-y-3 scale-95 opacity-0"
-                            enterTo="translate-y-0 scale-100 opacity-100"
-                            leave="ease-in duration-150"
-                            leaveFrom="translate-y-0 scale-100 opacity-100"
-                            leaveTo="translate-y-3 scale-95 opacity-0"
-                        >
-                            <Dialog.Panel className="w-full max-w-md overflow-hidden rounded-3xl border border-white/70 bg-white shadow-2xl shadow-slate-950/20">
+                    <div className="fixed inset-0 overflow-y-auto overscroll-contain">
+                        <div className="flex min-h-full items-center justify-center p-4">
+                            <Transition.Child
+                                as={Fragment}
+                                enter="ease-out duration-200"
+                                enterFrom="translate-y-3 scale-95 opacity-0"
+                                enterTo="translate-y-0 scale-100 opacity-100"
+                                leave="ease-in duration-150"
+                                leaveFrom="translate-y-0 scale-100 opacity-100"
+                                leaveTo="translate-y-3 scale-95 opacity-0"
+                            >
+                                <Dialog.Panel className="flex max-h-[calc(100vh-2rem)] max-h-[calc(100dvh-2rem)] w-full max-w-md flex-col overflow-hidden rounded-3xl border border-white/70 bg-white shadow-2xl shadow-slate-950/20">
                                 {pricePickerProduct && (
                                     <>
                                         <div className="relative overflow-hidden bg-gradient-to-br from-indigo-600 to-blue-700 px-6 pb-6 pt-5 text-white">
@@ -1098,7 +1099,7 @@ export default function Index({
                                             </p>
                                         </div>
 
-                                        <div className="space-y-2 p-4">
+                                        <div className="scrollbar-thin min-h-0 flex-1 space-y-2 overflow-y-auto overscroll-contain p-4">
                                             {pricePickerProduct.price_options.map((option, index) => (
                                                 <button
                                                     key={option.id}
@@ -1128,8 +1129,9 @@ export default function Index({
                                         </div>
                                     </>
                                 )}
-                            </Dialog.Panel>
-                        </Transition.Child>
+                                </Dialog.Panel>
+                            </Transition.Child>
+                        </div>
                     </div>
                 </Dialog>
             </Transition>

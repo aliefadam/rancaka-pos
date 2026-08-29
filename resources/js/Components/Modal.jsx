@@ -36,7 +36,7 @@ export default function Modal({
                     <div className="app-modal-backdrop fixed inset-0 bg-slate-900/30 backdrop-blur-sm" />
                 </Transition.Child>
 
-                <div className="fixed inset-0 z-50 overflow-y-auto">
+                <div className="fixed inset-0 z-50 overflow-y-auto overscroll-contain">
                     <div className="flex min-h-full items-center justify-center p-4">
                         <Transition.Child
                             as={Fragment}
@@ -48,7 +48,7 @@ export default function Modal({
                             leaveTo="opacity-0 translate-y-4 scale-95"
                         >
                             <Dialog.Panel
-                                className={`app-modal-panel relative flex max-h-[85vh] w-full ${maxWidthClasses[maxWidth]} flex-col overflow-hidden rounded-2xl border border-transparent bg-white text-left shadow-xl`}
+                                className={`app-modal-panel relative flex max-h-[calc(100vh-2rem)] max-h-[calc(100dvh-2rem)] w-full ${maxWidthClasses[maxWidth]} flex-col overflow-hidden rounded-2xl border border-transparent bg-white text-left shadow-xl sm:max-h-[85vh] sm:max-h-[85dvh]`}
                             >
                                 {closeable && (
                                     <button
@@ -59,7 +59,9 @@ export default function Modal({
                                         <i className="fi fi-rr-cross-small" />
                                     </button>
                                 )}
-                                {children}
+                                <div className="app-modal-content flex min-h-0 flex-1 flex-col overflow-hidden">
+                                    {children}
+                                </div>
                             </Dialog.Panel>
                         </Transition.Child>
                     </div>
@@ -79,7 +81,7 @@ Modal.Header = function ModalHeader({ children }) {
 
 Modal.Body = function ModalBody({ children }) {
     return (
-        <div className="scrollbar-thin min-h-0 flex-1 overflow-y-auto px-6 py-5">
+        <div className="app-modal-body scrollbar-thin min-h-0 flex-1 overflow-y-auto overscroll-contain px-6 py-5">
             {children}
         </div>
     );
