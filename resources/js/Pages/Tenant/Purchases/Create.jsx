@@ -14,7 +14,13 @@ const today = new Date().toISOString().slice(0, 10);
 const proofAccept = "image/jpeg,image/png,image/webp,application/pdf,.jpg,.jpeg,.png,.webp,.pdf";
 const maxProofSize = 12 * 1024 * 1024;
 const maxProofSizeByType = { "application/pdf": 2 * 1024 * 1024 };
-export default function Create({ suppliers, products, rawMaterials }) {
+export default function Create({
+    suppliers,
+    products,
+    rawMaterials,
+    openingCostCount = 0,
+    canSetOpeningCosts = false,
+}) {
     const form = useForm({
         supplier_id: "",
         purchase_date: today,
@@ -103,6 +109,33 @@ export default function Create({ suppliers, products, rawMaterials }) {
                 {Object.keys(form.errors).length > 0 && (
                     <div className="rounded-xl border border-rose-200 bg-rose-50 p-4 text-sm text-rose-700">
                         {Object.values(form.errors)[0]}
+                    </div>
+                )}
+                {openingCostCount > 0 && (
+                    <div className="flex items-start justify-between gap-4 rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-950">
+                        <div className="flex min-w-0 items-start gap-3">
+                            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-amber-100 text-amber-700">
+                                <i className="fi fi-rr-triangle-warning" />
+                            </span>
+                            <div>
+                                <p className="font-bold">
+                                    {openingCostCount} bahan baku belum memiliki HPP awal
+                                </p>
+                                <p className="mt-1 leading-5 text-amber-800">
+                                    {canSetOpeningCosts
+                                        ? 'Tetapkan HPP terlebih dahulu agar bahan baku tersebut dapat diterima dalam pembelian.'
+                                        : 'Hubungi owner untuk menetapkan HPP sebelum bahan baku tersebut diterima.'}
+                                </p>
+                            </div>
+                        </div>
+                        {canSetOpeningCosts && (
+                            <Link
+                                href={route('tenant.purchases.opening-costs.index')}
+                                className="shrink-0 rounded-lg bg-amber-600 px-3 py-2 text-xs font-bold text-white transition hover:bg-amber-700"
+                            >
+                                Atur HPP
+                            </Link>
+                        )}
                     </div>
                 )}
                 <section className="grid gap-4 rounded-2xl border border-slate-200/70 bg-white p-5 shadow-sm shadow-slate-200/40 md:grid-cols-3">
@@ -213,7 +246,7 @@ export default function Create({ suppliers, products, rawMaterials }) {
                                     }
                                     options={options(item.item_type).map((entry) => ({
                                         value: String(entry.id),
-                                        label: `${entry.name} · stok ${entry.stock} ${entry.unit || "pcs"}`,
+                                        label: `${entry.name} · stok ${entry.stock} ${entry.unit || "pcs"}${item.item_type === "raw_material" && Number(entry.stock) > 0 && !entry.opening_cost_confirmed_at ? " · HPP belum siap" : ""}`,
                                     }))}
                                     placeholder="Pilih barang"
                                     searchPlaceholder="Cari barang..."

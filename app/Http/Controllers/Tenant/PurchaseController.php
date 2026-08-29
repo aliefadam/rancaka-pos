@@ -68,11 +68,17 @@ class PurchaseController extends Controller
     public function create(Request $request): Response
     {
         $tenantId = $request->user()->tenant_id;
+        $openingCostCount = RawMaterial::where('tenant_id', $tenantId)
+            ->where('stock', '>', 0)
+            ->whereNull('opening_cost_confirmed_at')
+            ->count();
 
         return Inertia::render('Tenant/Purchases/Create', [
             'suppliers' => Supplier::where('tenant_id', $tenantId)->where('is_active', true)->orderBy('name')->get(['id', 'name']),
             'products' => Product::where('tenant_id', $tenantId)->where('is_active', true)->where('track_stock', true)->orderBy('name')->get(['id', 'name', 'stock', 'cost']),
             'rawMaterials' => RawMaterial::where('tenant_id', $tenantId)->where('is_active', true)->orderBy('name')->get(['id', 'name', 'unit', 'stock', 'average_cost', 'opening_cost_confirmed_at']),
+            'openingCostCount' => $openingCostCount,
+            'canSetOpeningCosts' => $request->user()->isOwner(),
         ]);
     }
 

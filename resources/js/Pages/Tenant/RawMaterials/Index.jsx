@@ -14,6 +14,8 @@ const statusFilterOptions = [
     { value: 'inactive', label: 'Nonaktif' },
 ];
 
+const money = (value) => `Rp ${Number(value || 0).toLocaleString('id-ID')}`;
+
 function StatusBadge({ active }) {
     return (
         <span
@@ -197,7 +199,7 @@ export default function Index({ rawMaterials, filters }) {
                 </div>
 
                 <div className="scrollbar-thin hidden overflow-x-auto md:block">
-                    <table className="w-full min-w-[760px] text-left text-sm">
+                    <table className="w-full min-w-[880px] text-left text-sm">
                         <thead>
                             <tr className="border-b border-slate-100 text-xs font-semibold uppercase tracking-wider text-slate-400">
                                 <th className="px-6 py-3.5 font-semibold">
@@ -208,6 +210,9 @@ export default function Index({ rawMaterials, filters }) {
                                 </th>
                                 <th className="px-6 py-3.5 font-semibold">
                                     Stok
+                                </th>
+                                <th className="px-6 py-3.5 font-semibold">
+                                    HPP / Satuan
                                 </th>
                                 <th className="px-6 py-3.5 font-semibold">
                                     Status
@@ -235,6 +240,17 @@ export default function Index({ rawMaterials, filters }) {
                                             unit={rawMaterial.unit}
                                             lowStock={rawMaterial.is_low_stock}
                                         />
+                                    </td>
+                                    <td className="px-6 py-4">
+                                        <p className="font-semibold text-slate-700">
+                                            {money(rawMaterial.average_cost)}
+                                        </p>
+                                        {Number(rawMaterial.stock) > 0 &&
+                                            !rawMaterial.opening_cost_confirmed_at && (
+                                                <p className="mt-1 text-[10px] font-bold uppercase tracking-wide text-amber-600">
+                                                    Belum ditetapkan
+                                                </p>
+                                            )}
                                     </td>
                                     <td className="px-6 py-4">
                                         <StatusBadge
@@ -273,7 +289,7 @@ export default function Index({ rawMaterials, filters }) {
                             {rawMaterials.length === 0 && (
                                 <tr>
                                     <td
-                                        colSpan={5}
+                                        colSpan={6}
                                         className="px-6 py-20 text-center"
                                     >
                                         <span className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-slate-50 text-slate-400">
@@ -317,6 +333,23 @@ export default function Index({ rawMaterials, filters }) {
                                     unit={rawMaterial.unit}
                                     lowStock={rawMaterial.is_low_stock}
                                 />
+                            </div>
+
+                            <div className="mt-2 flex items-center justify-between gap-3">
+                                <span className="text-sm text-slate-400">
+                                    HPP / satuan
+                                </span>
+                                <div className="text-right">
+                                    <span className="text-sm font-semibold text-slate-700">
+                                        {money(rawMaterial.average_cost)}
+                                    </span>
+                                    {Number(rawMaterial.stock) > 0 &&
+                                        !rawMaterial.opening_cost_confirmed_at && (
+                                            <p className="mt-0.5 text-[10px] font-bold uppercase text-amber-600">
+                                                Belum ditetapkan
+                                            </p>
+                                        )}
+                                </div>
                             </div>
 
                             <div className="mt-3 flex items-center justify-end gap-1.5">

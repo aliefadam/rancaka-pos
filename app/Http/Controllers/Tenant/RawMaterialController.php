@@ -34,6 +34,12 @@ class RawMaterialController extends Controller
     {
         $validated = $this->validated($request);
 
+        $validated['average_cost'] = (float) ($validated['average_cost'] ?? 0);
+        if ((float) ($validated['stock'] ?? 0) > 0) {
+            $validated['opening_cost_confirmed_at'] = now();
+            $validated['opening_cost_confirmed_by'] = $request->user()->id;
+        }
+
         $request->user()->tenant->rawMaterials()->create($validated);
 
         return redirect()->route('tenant.raw-materials.index')->with('success', 'Bahan baku berhasil ditambahkan.');
@@ -44,6 +50,16 @@ class RawMaterialController extends Controller
         $this->authorizeTenant($request, $rawMaterial);
 
         $validated = $this->validated($request, $rawMaterial);
+
+        if ($rawMaterial->opening_cost_confirmed_at) {
+            unset($validated['average_cost']);
+        } else {
+            $validated['average_cost'] = (float) ($validated['average_cost'] ?? 0);
+            if ((float) ($validated['stock'] ?? 0) > 0) {
+                $validated['opening_cost_confirmed_at'] = now();
+                $validated['opening_cost_confirmed_by'] = $request->user()->id;
+            }
+        }
 
         $rawMaterial->update($validated);
 
@@ -78,7 +94,21 @@ class RawMaterialController extends Controller
             ],
             'unit' => ['required', 'string', 'max:50'],
             'stock' => ['nullable', 'numeric', 'min:0'],
+            'average_cost' => [
+                Rule::requiredIf(
+                    ! $rawMaterial?->opening_cost_confirmed_at
+                    && (float) $request->input('stock', 0) > 0
+                ),
+                'nullable',
+                'numeric',
+                'min:0',
+                'max:999999999999',
+            ],
             'is_active' => ['boolean'],
+        ], [
+            'average_cost.required' => 'HPP awal wajib diisi jika stok bahan baku lebih dari 0.',
+        ], [
+            'average_cost' => 'HPP awal',
         ]);
     }
 }

@@ -1,4 +1,5 @@
 import Modal from '@/Components/Modal';
+import MoneyInput from '@/Components/MoneyInput';
 import Select from '@/Components/Select';
 import { useToast } from '@/Contexts/ToastContext';
 import { useForm } from '@inertiajs/react';
@@ -19,6 +20,7 @@ const emptyForm = {
     name: '',
     unit: 'pcs',
     stock: '',
+    average_cost: '',
     is_active: true,
 };
 
@@ -38,6 +40,7 @@ export default function RawMaterialFormModal({ show, onClose, rawMaterial }) {
                       name: rawMaterial.name,
                       unit: rawMaterial.unit,
                       stock: rawMaterial.stock,
+                      average_cost: rawMaterial.average_cost,
                       is_active: rawMaterial.is_active,
                   }
                 : emptyForm,
@@ -45,6 +48,11 @@ export default function RawMaterialFormModal({ show, onClose, rawMaterial }) {
         clearErrors();
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [show, rawMaterial]);
+
+    const costIsLocked = Boolean(
+        isEdit && rawMaterial?.opening_cost_confirmed_at,
+    );
+    const costIsRequired = !costIsLocked && Number(data.stock || 0) > 0;
 
     const submit = (e) => {
         e.preventDefault();
@@ -152,6 +160,48 @@ export default function RawMaterialFormModal({ show, onClose, rawMaterial }) {
                                         {errors.stock}
                                     </p>
                                 )}
+                            </div>
+                        </div>
+
+                        <div className={`rounded-xl border p-4 ${costIsLocked ? 'border-emerald-100 bg-emerald-50/60' : 'border-amber-100 bg-amber-50/60'}`}>
+                            <div className="flex items-start gap-3">
+                                <span className={`mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-lg ${costIsLocked ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'}`}>
+                                    <i className="fi fi-rr-coins" />
+                                </span>
+                                <div className="min-w-0 flex-1">
+                                    <label
+                                        htmlFor="average_cost"
+                                        className="mb-1.5 block text-sm font-semibold text-slate-700"
+                                    >
+                                        {costIsLocked ? 'HPP rata-rata per satuan' : 'HPP awal per satuan'}
+                                        {costIsRequired && <span className="text-rose-500"> *</span>}
+                                    </label>
+                                    <MoneyInput
+                                        id="average_cost"
+                                        min="0"
+                                        max="999999999999"
+                                        required={costIsRequired}
+                                        disabled={costIsLocked}
+                                        value={data.average_cost}
+                                        onValueChange={(value) =>
+                                            setData('average_cost', value)
+                                        }
+                                        className="block w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-900 placeholder-slate-400 focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-100 disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-500"
+                                        placeholder="Contoh: 5.000"
+                                    />
+                                    <p className="mt-2 text-xs leading-5 text-slate-500">
+                                        {costIsLocked
+                                            ? 'Nilai ini diperbarui otomatis dari pembelian dan tidak dapat diubah manual.'
+                                            : costIsRequired
+                                              ? 'Wajib diisi karena bahan baku sudah memiliki stok awal.'
+                                              : 'Opsional jika stok masih 0; pembelian pertama akan menetapkan HPP otomatis.'}
+                                    </p>
+                                    {errors.average_cost && (
+                                        <p className="mt-1.5 text-sm text-red-600">
+                                            {errors.average_cost}
+                                        </p>
+                                    )}
+                                </div>
                             </div>
                         </div>
 
