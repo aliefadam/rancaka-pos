@@ -104,6 +104,15 @@ class PermissionCatalog
                 ],
             ],
             [
+                'key' => 'stock-opnames',
+                'label' => 'Stock Opname',
+                'actions' => [
+                    ['key' => 'view', 'label' => 'Lihat'],
+                    ['key' => 'create', 'label' => 'Buat & Mulai'],
+                    ['key' => 'count', 'label' => 'Hitung & Kirim'],
+                ],
+            ],
+            [
                 'key' => 'transactions',
                 'label' => 'Riwayat Transaksi',
                 'actions' => [

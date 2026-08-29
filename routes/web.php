@@ -36,6 +36,7 @@ use App\Http\Controllers\Tenant\SettingsController as TenantSettingsController;
 use App\Http\Controllers\Tenant\ShiftController as TenantShiftController;
 use App\Http\Controllers\Tenant\Stock\ProductStockController as TenantProductStockController;
 use App\Http\Controllers\Tenant\Stock\RawMaterialStockController as TenantRawMaterialStockController;
+use App\Http\Controllers\Tenant\StockOpnameController as TenantStockOpnameController;
 use App\Http\Controllers\Tenant\SupplierController as TenantSupplierController;
 use App\Http\Controllers\Tenant\SupplierPayableController as TenantSupplierPayableController;
 use App\Http\Controllers\Tenant\SupplierPaymentController as TenantSupplierPaymentController;
@@ -310,6 +311,18 @@ Route::middleware(['auth', 'role:owner,employee', 'tenant.onboarded', 'subscript
         Route::post('/raw-materials/adjustment', [TenantRawMaterialStockController::class, 'storeAdjustment'])
             ->name('raw-materials.adjustment')
             ->middleware('permission:stock-raw-materials.edit');
+    });
+
+    Route::prefix('stock-opnames')->name('stock-opnames.')->group(function () {
+        Route::get('/', [TenantStockOpnameController::class, 'index'])->name('index')->middleware('permission:stock-opnames.view');
+        Route::post('/', [TenantStockOpnameController::class, 'store'])->name('store')->middleware('permission:stock-opnames.create');
+        Route::get('/{stockOpname}', [TenantStockOpnameController::class, 'show'])->name('show')->middleware('permission:stock-opnames.view');
+        Route::patch('/{stockOpname}/start', [TenantStockOpnameController::class, 'start'])->name('start')->middleware('permission:stock-opnames.create');
+        Route::put('/{stockOpname}/counts', [TenantStockOpnameController::class, 'saveCounts'])->name('counts.update')->middleware('permission:stock-opnames.count');
+        Route::post('/{stockOpname}/submit', [TenantStockOpnameController::class, 'submit'])->name('submit')->middleware('permission:stock-opnames.count');
+        Route::post('/{stockOpname}/return', [TenantStockOpnameController::class, 'returnToCounting'])->name('return')->middleware('role:owner');
+        Route::post('/{stockOpname}/post', [TenantStockOpnameController::class, 'post'])->name('post')->middleware('role:owner');
+        Route::post('/{stockOpname}/cancel', [TenantStockOpnameController::class, 'cancel'])->name('cancel')->middleware('role:owner');
     });
 });
 

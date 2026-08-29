@@ -2,8 +2,10 @@
 
 namespace App\Http\Controllers\Tenant;
 
+use App\Enums\StockOpnameStatus;
 use App\Http\Controllers\Controller;
 use App\Models\Product;
+use App\Models\StockOpnameItem;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -256,6 +258,10 @@ class ProductController extends Controller
         ['product' => $validated, 'price_options' => $priceOptions] = $this->validated($request, $product);
         $ingredients = $this->ingredientsMap($request);
 
+        if ((float) ($validated['stock'] ?? $product->stock) !== (float) $product->stock && $this->isInActiveOpname($product)) {
+            throw ValidationException::withMessages(['stock' => 'Stok tidak dapat diubah dari master data selama stock opname aktif. Gunakan transaksi atau selesaikan sesi opname.']);
+        }
+
         DB::transaction(function () use ($product, $validated, $ingredients, $priceOptions) {
             $product->update($validated);
             $product->rawMaterials()->sync($ingredients);
@@ -278,6 +284,10 @@ class ProductController extends Controller
     {
         $this->authorizeTenant($request, $product);
 
+        if ($this->isInActiveOpname($product)) {
+            throw ValidationException::withMessages(['product' => 'Produk tidak dapat dihapus karena masih termasuk dalam stock opname aktif.']);
+        }
+
         $product->delete();
 
         return redirect()->route('tenant.products.index')->with('success', 'Produk berhasil dihapus.');
@@ -286,6 +296,18 @@ class ProductController extends Controller
     private function authorizeTenant(Request $request, Product $product): void
     {
         abort_unless($product->tenant_id === $request->user()->tenant_id, 403);
+    }
+
+    private function isInActiveOpname(Product $product): bool
+    {
+        return StockOpnameItem::query()
+            ->where('stockable_type', $product->getMorphClass())
+            ->where('stockable_id', $product->id)
+            ->whereHas('stockOpname', fn ($query) => $query->whereIn('status', [
+                StockOpnameStatus::Draft,
+                StockOpnameStatus::Counting,
+                StockOpnameStatus::Submitted,
+            ]))->exists();
     }
 
     /**

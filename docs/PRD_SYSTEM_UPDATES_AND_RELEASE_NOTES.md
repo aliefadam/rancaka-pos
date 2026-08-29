@@ -280,6 +280,16 @@ Perubahan yang belum masuk produksi boleh digabungkan ke draft versi yang sama. 
 
 Versi awal yang menjadi contoh penerapan PRD ini:
 
+### v1.1.0 — Stock Opname Terpadu
+
+- **Baru — Stock Opname:** Produk dan bahan baku kini dapat dihitung dalam satu sesi per outlet dengan alur draft, penghitungan, persetujuan owner, dan posting.
+- **Baru — Penghitungan mobile:** Petugas memasukkan stok fisik, sementara sistem menghitung stok pembanding dan selisih secara otomatis.
+- **Peningkatan — Transaksi berjalan:** Penjualan, pembelian, dan mutasi lain selama opname tetap direkonsiliasi berdasarkan snapshot dan waktu hitung.
+- **Baru — Laporan selisih:** Owner dapat melihat nilai stok lebih, stok kurang, nilai bersih, HPP, pelaku, dan riwayat posting.
+- **Keamanan — Persetujuan stok:** Hanya owner yang dapat memposting atau membatalkan sesi; perubahan langsung dari master stok diblokir selama sesi aktif.
+
+Klasifikasi: `MINOR`, karena menambahkan modul bisnis Stock Opname tanpa menghilangkan kompatibilitas fitur stok yang sudah ada. Detail kebutuhan dan aturan terdapat pada `docs/PRD_STOCK_OPNAME.md`.
+
 ### v1.0.2 — HPP bahan baku lebih mudah disiapkan
 
 - **Perbaikan — Master bahan baku:** HPP awal kini dapat diisi langsung ketika menambah atau mengedit bahan baku, sehingga bahan baku dengan stok awal dapat digunakan pada pembelian.

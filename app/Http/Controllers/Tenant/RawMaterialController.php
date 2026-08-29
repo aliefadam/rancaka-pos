@@ -2,11 +2,14 @@
 
 namespace App\Http\Controllers\Tenant;
 
+use App\Enums\StockOpnameStatus;
 use App\Http\Controllers\Controller;
 use App\Models\RawMaterial;
+use App\Models\StockOpnameItem;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -51,6 +54,10 @@ class RawMaterialController extends Controller
 
         $validated = $this->validated($request, $rawMaterial);
 
+        if ((float) ($validated['stock'] ?? $rawMaterial->stock) !== (float) $rawMaterial->stock && $this->isInActiveOpname($rawMaterial)) {
+            throw ValidationException::withMessages(['stock' => 'Stok tidak dapat diubah dari master data selama stock opname aktif. Gunakan transaksi atau selesaikan sesi opname.']);
+        }
+
         if ($rawMaterial->opening_cost_confirmed_at) {
             unset($validated['average_cost']);
         } else {
@@ -70,6 +77,10 @@ class RawMaterialController extends Controller
     {
         $this->authorizeTenant($request, $rawMaterial);
 
+        if ($this->isInActiveOpname($rawMaterial)) {
+            throw ValidationException::withMessages(['raw_material' => 'Bahan baku tidak dapat dihapus karena masih termasuk dalam stock opname aktif.']);
+        }
+
         $rawMaterial->delete();
 
         return redirect()->route('tenant.raw-materials.index')->with('success', 'Bahan baku berhasil dihapus.');
@@ -78,6 +89,18 @@ class RawMaterialController extends Controller
     private function authorizeTenant(Request $request, RawMaterial $rawMaterial): void
     {
         abort_unless($rawMaterial->tenant_id === $request->user()->tenant_id, 403);
+    }
+
+    private function isInActiveOpname(RawMaterial $rawMaterial): bool
+    {
+        return StockOpnameItem::query()
+            ->where('stockable_type', $rawMaterial->getMorphClass())
+            ->where('stockable_id', $rawMaterial->id)
+            ->whereHas('stockOpname', fn ($query) => $query->whereIn('status', [
+                StockOpnameStatus::Draft,
+                StockOpnameStatus::Counting,
+                StockOpnameStatus::Submitted,
+            ]))->exists();
     }
 
     /**

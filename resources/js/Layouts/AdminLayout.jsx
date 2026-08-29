@@ -198,6 +198,12 @@ const navigationByRole = {
                     icon: "fi-rr-boxes",
                     permission: "stock-raw-materials.view",
                 },
+                {
+                    name: "Stock Opname",
+                    href: "tenant.stock-opnames.index",
+                    icon: "fi-rr-list-check",
+                    permission: "stock-opnames.view",
+                },
             ],
         },
         {
@@ -373,6 +379,12 @@ const navigationByRole = {
                     href: "tenant.stock.raw-materials.index",
                     icon: "fi-rr-boxes",
                     permission: "stock-raw-materials.view",
+                },
+                {
+                    name: "Stock Opname",
+                    href: "tenant.stock-opnames.index",
+                    icon: "fi-rr-list-check",
+                    permission: "stock-opnames.view",
                 },
             ],
         },
