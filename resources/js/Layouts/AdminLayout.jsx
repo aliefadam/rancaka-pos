@@ -75,6 +75,11 @@ const navigationByRole = {
             group: "Sistem",
             items: [
                 {
+                    name: "Branding Aplikasi",
+                    href: "admin.branding.edit",
+                    icon: "fi-rr-picture",
+                },
+                {
                     name: "Versi Aplikasi",
                     href: "admin.version.index",
                     icon: "fi-rr-code-branch",

@@ -2,6 +2,7 @@
 
 use App\Enums\UserRole;
 use App\Http\Controllers\AccountController;
+use App\Http\Controllers\Admin\ApplicationBrandingController;
 use App\Http\Controllers\Admin\BillingController as AdminBillingController;
 use App\Http\Controllers\Admin\BranchNetworkController as AdminBranchNetworkController;
 use App\Http\Controllers\Admin\CommissionPayoutController;
@@ -9,6 +10,7 @@ use App\Http\Controllers\Admin\DeveloperController;
 use App\Http\Controllers\Admin\DevelopmentTicketController;
 use App\Http\Controllers\Admin\SalesController;
 use App\Http\Controllers\Admin\TenantController;
+use App\Http\Controllers\ApplicationManifestController;
 use App\Http\Controllers\Auth\StoreOnboardingController;
 use App\Http\Controllers\BridgeReceiptController;
 use App\Http\Controllers\ImpersonationController;
@@ -42,6 +44,8 @@ use App\Http\Controllers\Tenant\SupplierPayableController as TenantSupplierPayab
 use App\Http\Controllers\Tenant\SupplierPaymentController as TenantSupplierPaymentController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
+
+Route::get('/app.webmanifest', ApplicationManifestController::class)->name('app.manifest');
 
 Route::get('/', function () {
     if (! auth()->check()) {
@@ -90,6 +94,9 @@ Route::middleware(['auth', 'role:superadmin'])->prefix('admin')->name('admin.')-
     Route::get('/version', function () {
         return Inertia::render('Version/Index');
     })->name('version.index');
+
+    Route::get('/branding', [ApplicationBrandingController::class, 'edit'])->name('branding.edit');
+    Route::put('/branding', [ApplicationBrandingController::class, 'update'])->name('branding.update');
 
     Route::resource('tenants', TenantController::class)
         ->only(['index', 'show', 'store', 'update', 'destroy'])

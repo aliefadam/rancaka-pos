@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Models\ApplicationBranding;
 use App\Models\User;
 use App\Notifications\SupplierPayableNotification;
 use Illuminate\Http\Request;
@@ -36,12 +37,18 @@ class HandleInertiaRequests extends Middleware
         $originalUser = $originalUserId
             ? User::query()->find($originalUserId)
             : null;
+        $branding = ApplicationBranding::query()->first();
 
         return [
             ...parent::share($request),
             'app' => [
                 'name' => config('app.name'),
                 'version' => config('app.version'),
+            ],
+            'branding' => [
+                'light_logo_url' => $branding?->light_logo_url ?? asset('logo.png'),
+                'white_logo_url' => $branding?->white_logo_url ?? $branding?->light_logo_url ?? asset('logo.png'),
+                'app_logo_url' => $branding?->app_logo_url ?? asset('pwa/icon-512.png'),
             ],
             'auth' => [
                 'user' => $user,

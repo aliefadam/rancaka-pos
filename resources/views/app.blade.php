@@ -8,9 +8,9 @@
         <meta name="theme-color" content="#4f46e5">
         <meta name="apple-mobile-web-app-capable" content="yes">
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-        <link rel="manifest" href="{{ asset('manifest.webmanifest') }}">
-        <link rel="icon" type="image/png" href="{{ asset('logo.png') }}">
-        <link rel="apple-touch-icon" href="{{ asset('pwa/icon-192.png') }}">
+        <link rel="manifest" href="{{ route('app.manifest') }}">
+        <link rel="icon" href="{{ data_get($page, 'props.branding.app_logo_url', asset('pwa/icon-512.png')) }}">
+        <link rel="apple-touch-icon" href="{{ data_get($page, 'props.branding.app_logo_url', asset('pwa/icon-512.png')) }}">
 
         <script>
             (() => {

@@ -280,6 +280,14 @@ Perubahan yang belum masuk produksi boleh digabungkan ke draft versi yang sama. 
 
 Versi awal yang menjadi contoh penerapan PRD ini:
 
+### v1.2.0 — Branding aplikasi adaptif
+
+- **Baru — Branding superadmin:** Superadmin kini dapat mengunggah Logo Light, Logo Dark/White, dan Logo Aplikasi secara terpisah dari menu Sistem tanpa mengubah logo toko tenant.
+- **Peningkatan — Tema aplikasi:** Logo Light dan Logo Dark/White otomatis dipakai sesuai tema aktif pengguna.
+- **Peningkatan — Identitas aplikasi:** Logo Aplikasi digunakan sebagai favicon dan ikon PWA agar identitas Rancaka konsisten pada browser dan aplikasi terpasang.
+
+Klasifikasi: `MINOR`, karena menambahkan kemampuan pengelolaan branding aplikasi baru yang tetap kompatibel dengan pengaturan logo toko dan struk tenant. Implementasi mengacu pada PRD pembaruan sistem ini.
+
 ### v1.1.1 — Perbaikan validasi HPP produk
 
 - **Perbaikan — Edit produk:** Produk dengan HPP moving average pecahan kini dapat disimpan tanpa pesan keliru “HPP harus berupa bilangan bulat”.
