@@ -439,17 +439,7 @@ const navigationByRole = {
 const SidebarContent = ({ navigation, onClose, version }) => (
     <>
         <div className="app-sidebar-brand flex h-[72px] shrink-0 items-center justify-between gap-3 border-b border-slate-100 px-5">
-            <div className="flex min-w-0 items-center gap-3">
-                <BrandLogo className="h-9 w-9" />
-                <div className="min-w-0">
-                    <p className="truncate text-[17px] font-bold leading-tight tracking-[-0.02em] text-slate-900">
-                        Rancaka
-                    </p>
-                    <p className="mt-0.5 text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-400">
-                        Point of Sale
-                    </p>
-                </div>
-            </div>
+            <BrandLogo className="h-10 w-36 justify-start" />
             <button
                 type="button"
                 onClick={onClose}

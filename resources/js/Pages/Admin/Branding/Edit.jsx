@@ -40,19 +40,17 @@ export default function Edit({ brandingSettings }) {
     const submit = (event) => {
         event.preventDefault();
 
-        form.transform((data) => ({ ...data, _method: 'put' })).post(
-            route('admin.branding.update'),
-            {
-                forceFormData: true,
-                preserveScroll: true,
-                onSuccess: () => {
-                    form.reset();
-                    toast.success('Logo aplikasi Rancaka berhasil diperbarui.');
-                },
-                onError: () =>
-                    toast.error('Logo belum tersimpan. Periksa file yang dipilih.'),
+        form.transform((data) => ({ ...data, _method: 'put' }));
+        form.post(route('admin.branding.update'), {
+            forceFormData: true,
+            preserveScroll: true,
+            onSuccess: () => {
+                form.reset();
+                toast.success('Logo aplikasi Rancaka berhasil diperbarui.');
             },
-        );
+            onError: () =>
+                toast.error('Logo belum tersimpan. Periksa file yang dipilih.'),
+        });
     };
 
     return (

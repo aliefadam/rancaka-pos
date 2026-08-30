@@ -25,12 +25,10 @@ export default function Login({ status, googleAuthEnabled }) {
 
             <div className="flex min-h-screen bg-slate-50">
                 <div className="relative hidden w-1/2 flex-col justify-between overflow-hidden bg-gradient-to-br from-indigo-600 via-indigo-700 to-violet-800 p-12 text-white lg:flex">
-                    <div className="flex items-center gap-3">
-                        <BrandLogo className="h-12 w-12" />
-                        <span className="text-xl font-bold tracking-tight">
-                            Rancaka
-                        </span>
-                    </div>
+                    <BrandLogo
+                        variant="dark"
+                        className="h-12 w-44 justify-start"
+                    />
 
                     <div className="relative z-10">
                         <h1 className="text-4xl font-extrabold leading-tight">
@@ -55,11 +53,11 @@ export default function Login({ status, googleAuthEnabled }) {
 
                 <div className="flex w-full flex-col justify-center px-6 py-12 sm:px-12 lg:w-1/2 lg:px-20">
                     <div className="mx-auto w-full max-w-sm">
-                        <div className="mb-8 flex items-center gap-3 lg:hidden">
-                            <BrandLogo className="h-11 w-11" />
-                            <span className="text-lg font-bold text-slate-900">
-                                Rancaka
-                            </span>
+                        <div className="mb-8 inline-flex rounded-2xl bg-slate-950 px-4 py-3 lg:hidden">
+                            <BrandLogo
+                                variant="dark"
+                                className="h-10 w-36"
+                            />
                         </div>
 
                         <h2 className="text-2xl font-bold text-slate-900">

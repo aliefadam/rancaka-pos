@@ -280,6 +280,13 @@ Perubahan yang belum masuk produksi boleh digabungkan ke draft versi yang sama. 
 
 Versi awal yang menjadi contoh penerapan PRD ini:
 
+### v1.2.1 — Perbaikan branding aplikasi
+
+- **Perbaikan — Simpan branding:** Tombol Simpan Branding kini mengirim Logo Light, Logo Dark/White, dan Logo Aplikasi dengan benar tanpa berhenti akibat kesalahan JavaScript.
+- **Peningkatan — Tampilan logo:** Topbar landing page, halaman autentikasi, dan sidebar kini menampilkan aset logo tanpa teks merek tambahan; halaman login selalu menggunakan Logo Dark/White.
+
+Klasifikasi: `PATCH`, karena memperbaiki proses penyimpanan dan merapikan penyajian logo tanpa mengubah alur bisnis maupun akses pengguna.
+
 ### v1.2.0 — Branding aplikasi adaptif
 
 - **Baru — Branding superadmin:** Superadmin kini dapat mengunggah Logo Light, Logo Dark/White, dan Logo Aplikasi secara terpisah dari menu Sistem tanpa mengubah logo toko tenant.

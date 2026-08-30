@@ -256,12 +256,7 @@ export default function Landing() {
             <div className="min-h-screen overflow-x-hidden bg-slate-50 text-slate-900">
                 <header className="sticky top-0 z-20 border-b border-slate-200 bg-white/80 backdrop-blur">
                     <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
-                        <div className="flex items-center gap-2.5">
-                            <BrandLogo className="h-10 w-10" />
-                            <span className="text-lg font-bold tracking-tight">
-                                Rancaka
-                            </span>
-                        </div>
+                        <BrandLogo className="h-10 w-36 justify-start" />
 
                         <nav className="hidden items-center gap-8 text-sm font-medium text-slate-600 md:flex">
                             <a
@@ -589,12 +584,7 @@ export default function Landing() {
 
                 <footer className="border-t border-slate-200">
                     <div className="mx-auto flex max-w-6xl flex-col items-center gap-4 px-6 py-10 text-center sm:flex-row sm:justify-between sm:text-left">
-                        <div className="flex items-center gap-2.5">
-                            <BrandLogo className="h-8 w-8" />
-                            <span className="text-sm font-semibold text-slate-700">
-                                Rancaka
-                            </span>
-                        </div>
+                        <BrandLogo className="h-9 w-32 justify-start" />
 
                         <nav className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-sm text-slate-500">
                             <a

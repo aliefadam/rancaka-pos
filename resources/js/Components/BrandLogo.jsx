@@ -1,9 +1,27 @@
 import { usePage } from '@inertiajs/react';
 
-export default function BrandLogo({ className = 'h-9 w-9' }) {
+export default function BrandLogo({
+    className = 'h-9 w-9',
+    variant = 'auto',
+}) {
     const branding = usePage().props.branding ?? {};
     const lightLogo = branding.light_logo_url || '/logo.png';
     const whiteLogo = branding.white_logo_url || lightLogo;
+
+    if (variant === 'light' || variant === 'dark') {
+        return (
+            <span
+                className={`inline-flex shrink-0 items-center justify-center overflow-hidden ${className}`}
+                aria-hidden="true"
+            >
+                <img
+                    src={variant === 'dark' ? whiteLogo : lightLogo}
+                    alt=""
+                    className="h-full w-full object-contain"
+                />
+            </span>
+        );
+    }
 
     return (
         <span
