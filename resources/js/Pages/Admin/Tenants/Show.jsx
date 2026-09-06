@@ -33,6 +33,11 @@ const statusTone = {
     paid: 'bg-emerald-50 text-emerald-700',
     approved: 'bg-emerald-50 text-emerald-700',
     trialing: 'bg-blue-50 text-blue-700',
+    trial_expired: 'bg-orange-50 text-orange-700',
+    grace_period: 'bg-amber-50 text-amber-800',
+    suspended: 'bg-rose-50 text-rose-700',
+    grandfathered: 'bg-indigo-50 text-indigo-700',
+    pending_network: 'bg-slate-100 text-slate-600',
     pending: 'bg-amber-50 text-amber-700',
     open: 'bg-amber-50 text-amber-700',
     inactive: 'bg-slate-100 text-slate-600',
@@ -40,12 +45,12 @@ const statusTone = {
     overdue: 'bg-rose-50 text-rose-700',
 };
 
-function Badge({ value }) {
+function Badge({ value, label }) {
     return (
         <span
             className={`inline-flex rounded-full px-2.5 py-1 text-xs font-semibold capitalize ${statusTone[value] ?? 'bg-slate-100 text-slate-600'}`}
         >
-            {value ?? '-'}
+            {label ?? value ?? '-'}
         </span>
     );
 }
@@ -187,15 +192,18 @@ export default function Show({
                                             <p className="text-xs text-slate-400">Paket aktif</p>
                                             <p className="mt-1 text-lg font-bold">{subscription.plan_name}</p>
                                         </div>
-                                        <Badge value={subscription.status} />
+                                        <Badge value={subscription.lifecycle.status} label={subscription.lifecycle.label} />
                                     </div>
                                     <p className="mt-4 overflow-hidden text-ellipsis whitespace-nowrap text-xl font-bold sm:text-2xl">{rupiah(subscription.price)}<span className="text-xs font-normal text-slate-400"> /periode</span></p>
                                 </div>
                                 <dl className="space-y-2 text-sm">
                                     <div className="flex justify-between gap-3"><dt className="text-slate-400">Periode mulai</dt><dd className="font-medium text-slate-700">{date(subscription.current_period_start)}</dd></div>
-                                    <div className="flex justify-between gap-3"><dt className="text-slate-400">Berakhir</dt><dd className="font-medium text-slate-700">{date(subscription.current_period_end ?? subscription.trial_ends_at)}</dd></div>
+                                    <div className="flex justify-between gap-3"><dt className="text-slate-400">{['trialing', 'trial_expired'].includes(subscription.lifecycle.status) ? 'Trial berakhir' : 'Langganan berakhir'}</dt><dd className="font-medium text-slate-700">{date(subscription.lifecycle.ends_at)}</dd></div>
+                                    {subscription.lifecycle.grace_ends_at && <div className="flex justify-between gap-3"><dt className="text-slate-400">Batas masa tenggang</dt><dd className="font-semibold text-amber-700">{date(subscription.lifecycle.grace_ends_at)}</dd></div>}
                                     <div className="flex justify-between gap-3"><dt className="text-slate-400">Grandfathered</dt><dd className="font-medium text-slate-700">{subscription.is_grandfathered ? 'Ya' : 'Tidak'}</dd></div>
                                 </dl>
+                                {subscription.lifecycle.status === 'grace_period' && <p className="rounded-xl border border-amber-200 bg-amber-50 px-3 py-2.5 text-xs leading-5 text-amber-800">Akses masih aktif selama masa tenggang. Tenant akan dibekukan otomatis setelah batas di atas jika pembayaran belum disetujui.</p>}
+                                {['trial_expired', 'suspended'].includes(subscription.lifecycle.status) && <p className="rounded-xl border border-rose-200 bg-rose-50 px-3 py-2.5 text-xs leading-5 text-rose-700">Akses operasional tenant sedang dibekukan sampai pembayaran langganan disetujui.</p>}
                             </>
                         ) : <p className="py-10 text-center text-sm text-slate-400">Belum ada subscription.</p>}
                     </div>

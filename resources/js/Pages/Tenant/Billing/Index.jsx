@@ -15,6 +15,15 @@ const date = (value) =>
               year: 'numeric',
           })
         : '-';
+const lifecycleLabels = {
+    grandfathered: 'Aktif tanpa batas',
+    trialing: 'Masa trial',
+    trial_expired: 'Trial habis',
+    active: 'Langganan aktif',
+    grace_period: 'Masa tenggang',
+    suspended: 'Dibekukan',
+    pending_network: 'Menunggu jaringan',
+};
 
 export default function Index({ subscription, billing, paymentSettings, networkRelationship, paymentCentralized = false }) {
     const isOwner = usePage().props.auth.user.role === 'owner';
@@ -30,13 +39,8 @@ export default function Index({ subscription, billing, paymentSettings, networkR
         proof: null,
         note: '',
     });
-    const activeUntil = subscription.is_grandfathered
-        ? 'Tanpa batas'
-        : date(
-              subscription.status === 'trialing'
-                  ? subscription.trial_ends_at
-                  : subscription.current_period_end,
-          );
+    const lifecycle = subscription.lifecycle ?? { status: subscription.status, ends_at: subscription.status === 'trialing' ? subscription.trial_ends_at : subscription.current_period_end };
+    const activeUntil = subscription.is_grandfathered ? 'Tanpa batas' : date(lifecycle.status === 'grace_period' ? lifecycle.grace_ends_at : lifecycle.ends_at);
     const submit = (e) => {
         e.preventDefault();
         form.post(route('tenant.billing.submit', invoice.id), {
@@ -62,13 +66,11 @@ export default function Index({ subscription, billing, paymentSettings, networkR
                                 </span>
                             </h2>
                             <p className="mt-2 text-sm text-indigo-100">
-                                Akses aktif sampai: {activeUntil}
+                                {lifecycle.status === 'grace_period' ? 'Masa tenggang sampai' : 'Masa aktif sampai'}: {activeUntil}
                             </p>
                         </div>
                         <span className="rounded-full bg-white/15 px-4 py-2 text-sm font-bold uppercase">
-                            {subscription.is_grandfathered
-                                ? 'Grandfathered'
-                                : subscription.status}
+                            {lifecycleLabels[lifecycle.status] ?? lifecycle.status}
                         </span>
                     </div>
                 </div>

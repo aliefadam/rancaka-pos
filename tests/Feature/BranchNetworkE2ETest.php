@@ -90,8 +90,8 @@ class BranchNetworkE2ETest extends TestCase
     {
         [$central] = $this->central();
         [$branch, $relationship, $branchOwner] = $this->activeBranch($central);
-        $central->subscription->update(['is_grandfathered' => false, 'status' => 'active', 'current_period_end' => now()->subMinute()]);
-        $branch->subscription->update(['is_grandfathered' => false, 'status' => 'active', 'current_period_end' => now()->subMinute()]);
+        $central->subscription->update(['is_grandfathered' => false, 'status' => 'active', 'current_period_end' => now()->subDays(8)]);
+        $branch->subscription->update(['is_grandfathered' => false, 'status' => 'active', 'current_period_end' => now()->subDays(8)]);
         $start = now();
         $relationship->update(['billing_effective_at' => $start->copy()->subMonth()]);
         $invoice = app(ConsolidatedBillingService::class)->createInvoice($central, $start, $start->copy()->addMonth(), $start);

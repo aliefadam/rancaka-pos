@@ -98,7 +98,10 @@ class SalesController extends Controller
 
     public function store(Request $request): RedirectResponse
     {
-        $request->merge(['referral_code' => SalesProfile::normalizeReferralCode($request->input('referral_code'))]);
+        $request->merge([
+            'referral_code' => SalesProfile::normalizeReferralCode($request->input('referral_code')),
+            'commission_type' => $request->input('commission_type', 'percentage'),
+        ]);
         $data = $this->validated($request);
 
         DB::transaction(function () use ($data) {
@@ -117,7 +120,9 @@ class SalesController extends Controller
                 'email' => $data['email'] ?? null,
                 'phone' => $data['phone'] ?? null,
                 'referral_code' => $data['referral_code'],
-                'commission_rate' => $data['commission_rate'],
+                'commission_type' => $data['commission_type'],
+                'commission_rate' => $data['commission_type'] === 'percentage' ? $data['commission_rate'] : 0,
+                'commission_value' => $data['commission_type'] === 'fixed' ? $data['commission_value'] : null,
                 'status' => $data['status'],
             ]);
         });
@@ -127,7 +132,10 @@ class SalesController extends Controller
 
     public function update(Request $request, SalesProfile $salesProfile): RedirectResponse
     {
-        $request->merge(['referral_code' => SalesProfile::normalizeReferralCode($request->input('referral_code'))]);
+        $request->merge([
+            'referral_code' => SalesProfile::normalizeReferralCode($request->input('referral_code')),
+            'commission_type' => $request->input('commission_type', 'percentage'),
+        ]);
         $data = $this->validated($request, $salesProfile);
 
         DB::transaction(function () use ($data, $salesProfile) {
@@ -150,7 +158,9 @@ class SalesController extends Controller
                 'email' => $data['email'] ?? null,
                 'phone' => $data['phone'] ?? null,
                 'referral_code' => $data['referral_code'],
-                'commission_rate' => $data['commission_rate'],
+                'commission_type' => $data['commission_type'],
+                'commission_rate' => $data['commission_type'] === 'percentage' ? $data['commission_rate'] : 0,
+                'commission_value' => $data['commission_type'] === 'fixed' ? $data['commission_value'] : null,
                 'status' => $data['status'],
             ]);
         });
@@ -196,7 +206,9 @@ class SalesController extends Controller
             'password' => [Rule::requiredIf(! $salesProfile?->user_id), 'nullable', 'string', 'min:8'],
             'phone' => ['nullable', 'string', 'max:30'],
             'referral_code' => ['required', 'string', 'min:4', 'max:30', 'regex:/^[A-Z0-9_-]+$/', Rule::unique('sales_profiles')->ignore($salesProfile?->id)],
-            'commission_rate' => ['required', 'numeric', 'between:0,100', 'decimal:0,2'],
+            'commission_type' => ['required', Rule::in(['percentage', 'fixed'])],
+            'commission_rate' => ['nullable', Rule::requiredIf($request->input('commission_type') === 'percentage'), 'numeric', 'between:0,100', 'decimal:0,2'],
+            'commission_value' => ['nullable', Rule::requiredIf($request->input('commission_type') === 'fixed'), 'integer', 'min:0'],
             'status' => ['required', Rule::in(['active', 'inactive'])],
         ], [
             'referral_code.regex' => 'Kode referral hanya boleh berisi huruf, angka, dash, dan underscore.',

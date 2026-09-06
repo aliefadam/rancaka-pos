@@ -255,11 +255,17 @@ class BranchNetworkService
             if (! $expiresAt || $expiresAt->gt(now()->addDays(3))) {
                 return;
             }
-            $locked = $expiresAt->isPast() && ! $central->subscription?->allowsAccess();
+            $lifecycleStatus = $central->subscription?->lifecycleStatus();
+            $locked = in_array($lifecycleStatus, ['trial_expired', 'suspended'], true);
+            $inGracePeriod = $lifecycleStatus === 'grace_period';
             $payload = [
-                'kind' => $locked ? 'network_locked' : 'network_expiry',
-                'title' => $locked ? 'Jaringan terkunci' : 'Masa aktif jaringan segera berakhir',
-                'message' => $locked ? 'Invoice pusat belum dibayar sehingga akses jaringan dihentikan.' : 'Masa aktif jaringan berakhir '.$expiresAt->translatedFormat('d M Y').'.',
+                'kind' => $locked ? 'network_locked' : ($inGracePeriod ? 'network_grace_period' : 'network_expiry'),
+                'title' => $locked ? 'Jaringan terkunci' : ($inGracePeriod ? 'Jaringan dalam masa tenggang' : 'Masa aktif jaringan segera berakhir'),
+                'message' => $locked
+                    ? 'Masa tenggang invoice pusat telah habis sehingga akses jaringan dihentikan.'
+                    : ($inGracePeriod
+                        ? 'Segera lunasi invoice pusat sebelum '.$central->subscription->graceEndsAt()?->translatedFormat('d M Y').' agar jaringan tidak dibekukan.'
+                        : 'Masa aktif jaringan berakhir '.$expiresAt->translatedFormat('d M Y').'.'),
             ];
             $recipients = collect([$central->owner])->merge($central->branchRelationships->pluck('branchTenant.owner'))->filter()->unique('id');
             $recipients->each(function (User $user) use ($payload) {

@@ -11,6 +11,7 @@ use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
+use Inertia\Testing\AssertableInertia as Assert;
 use Tests\TestCase;
 
 class SubscriptionBillingTest extends TestCase
@@ -38,10 +39,54 @@ class SubscriptionBillingTest extends TestCase
     public function test_expired_tenant_is_redirected_to_billing(): void
     {
         [$tenant, $owner] = $this->tenantOwner();
-        $tenant->subscription->update(['is_grandfathered' => false, 'status' => 'active', 'current_period_end' => now()->subDay()]);
+        $tenant->subscription->update(['is_grandfathered' => false, 'status' => 'active', 'current_period_end' => now()->subDays(8)]);
 
         $this->actingAs($owner)->get(route('tenant.dashboard'))
             ->assertRedirect(route('tenant.billing.index'));
+
+        $this->assertSame('suspended', $tenant->subscription->fresh()->status);
+    }
+
+    public function test_paid_subscription_remains_accessible_during_seven_day_grace_period(): void
+    {
+        [$tenant, $owner] = $this->tenantOwner();
+        $tenant->subscription->update(['is_grandfathered' => false, 'status' => 'active', 'current_period_end' => now()->subDays(3)]);
+
+        $this->actingAs($owner)->get(route('tenant.dashboard'))->assertOk();
+
+        $subscription = $tenant->subscription->fresh();
+        $this->assertSame('grace_period', $subscription->status);
+        $this->assertTrue($subscription->allowsAccess());
+    }
+
+    public function test_expired_trial_is_frozen_without_a_grace_period(): void
+    {
+        [$tenant, $owner] = $this->tenantOwner();
+        $tenant->subscription->update([
+            'is_grandfathered' => false,
+            'status' => 'trialing',
+            'trial_ends_at' => now()->subMinute(),
+            'current_period_end' => null,
+        ]);
+
+        $this->actingAs($owner)->get(route('tenant.dashboard'))
+            ->assertRedirect(route('tenant.billing.index'));
+
+        $this->assertSame('trial_expired', $tenant->subscription->fresh()->status);
+    }
+
+    public function test_admin_tenant_management_exposes_subscription_lifecycle(): void
+    {
+        [$tenant] = $this->tenantOwner();
+        $tenant->subscription->update(['is_grandfathered' => false, 'status' => 'active', 'current_period_end' => now()->subDays(2)]);
+        $admin = User::factory()->create(['role' => UserRole::Superadmin, 'tenant_id' => null]);
+
+        $this->actingAs($admin)->get(route('admin.tenants.index'))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('tenants.data.0.subscription.status', 'grace_period')
+                ->where('tenants.data.0.subscription.label', 'Masa tenggang')
+                ->where('tenants.data.0.subscription.allows_access', true));
     }
 
     public function test_billing_page_repairs_a_missing_legacy_subscription(): void

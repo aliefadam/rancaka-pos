@@ -177,6 +177,8 @@ return [
         'closing_cash' => 'kas akhir',
         'commission_ids' => 'komisi',
         'commission_rate' => 'persentase komisi',
+        'commission_type' => 'tipe komisi',
+        'commission_value' => 'nominal komisi',
         'contact_name' => 'nama kontak',
         'cost' => 'HPP',
         'credit_customer_id' => 'pelanggan kredit',

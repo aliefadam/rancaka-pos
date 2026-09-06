@@ -167,6 +167,43 @@ class SalesReferralCommissionTest extends TestCase
         $this->assertSame('10.00', SalesCommission::where('tenant_id', $tenant->id)->firstOrFail()->commission_rate_snapshot);
     }
 
+    public function test_fixed_commission_is_stored_and_applied_as_a_nominal_value(): void
+    {
+        $admin = User::factory()->create(['role' => UserRole::Superadmin, 'tenant_id' => null]);
+
+        $this->actingAs($admin)->post(route('admin.sales.store'), [
+            'name' => 'Sales Nominal',
+            'username' => 'sales.nominal',
+            'password' => 'password123',
+            'referral_code' => 'NOMINAL50',
+            'commission_type' => 'fixed',
+            'commission_value' => 50000,
+            'status' => 'active',
+        ])->assertSessionHasNoErrors();
+
+        $sales = SalesProfile::where('referral_code', 'NOMINAL50')->firstOrFail();
+        $this->assertSame('fixed', $sales->commission_type);
+        $this->assertSame(50000, $sales->commission_value);
+        $this->assertSame('0.00', $sales->commission_rate);
+
+        $tenant = Tenant::factory()->create([
+            'referred_by_sales_id' => $sales->id,
+            'referral_code_used' => $sales->referral_code,
+            'referred_at' => now(),
+        ]);
+        $payment = $this->payment($tenant, 'INV-FIXED', 149000);
+
+        $this->actingAs($admin)->patch(route('admin.billing.approve', $payment))->assertSessionHasNoErrors();
+
+        $this->assertDatabaseHas('sales_commissions', [
+            'tenant_id' => $tenant->id,
+            'base_amount' => 149000,
+            'commission_type_snapshot' => 'fixed',
+            'commission_value_snapshot' => 50000,
+            'commission_amount' => 50000,
+        ]);
+    }
+
     public function test_google_onboarding_preserves_referral_code(): void
     {
         $sales = $this->sales();

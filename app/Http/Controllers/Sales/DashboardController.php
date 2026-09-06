@@ -21,7 +21,7 @@ class DashboardController extends Controller
             ->where('referred_by_sales_id', $sales->id)
             ->with([
                 'subscription:id,tenant_id,status,trial_ends_at,current_period_end',
-                'salesCommission:id,tenant_id,base_amount,commission_rate_snapshot,commission_amount,status,approved_at,paid_at',
+                'salesCommission:id,tenant_id,base_amount,commission_type_snapshot,commission_rate_snapshot,commission_value_snapshot,commission_amount,status,approved_at,paid_at',
                 'billingInvoices' => fn ($query) => $query->oldest()->limit(1)->select('id', 'tenant_id', 'number', 'amount', 'status', 'due_at'),
             ])
             ->oldest('referred_at')
@@ -31,9 +31,15 @@ class DashboardController extends Controller
         $rows = $downlines->map(function (Tenant $tenant) use ($sales, &$projected) {
             $commission = $tenant->salesCommission;
             $invoice = $tenant->billingInvoices->first();
+            $commissionType = $commission?->commission_type_snapshot ?? $sales->commission_type ?? 'percentage';
+            $commissionValue = $commission
+                ? ($commissionType === 'fixed' ? (int) $commission->commission_value_snapshot : $commission->commission_rate_snapshot)
+                : ($commissionType === 'fixed' ? (int) $sales->commission_value : $sales->commission_rate);
             $estimate = $commission
                 ? (int) $commission->commission_amount
-                : (int) round(((int) ($invoice?->amount ?? 0)) * ((float) $sales->commission_rate) / 100);
+                : ($commissionType === 'fixed'
+                    ? (int) $sales->commission_value
+                    : (int) round(((int) ($invoice?->amount ?? 0)) * ((float) $sales->commission_rate) / 100));
 
             if (! $commission) {
                 $projected += $estimate;
@@ -49,14 +55,15 @@ class DashboardController extends Controller
                 'invoice_amount' => (int) ($invoice?->amount ?? 0),
                 'commission_amount' => $estimate,
                 'commission_status' => $commission?->status ?? 'projected',
-                'commission_rate' => $commission?->commission_rate_snapshot ?? $sales->commission_rate,
+                'commission_type' => $commissionType,
+                'commission_value' => $commissionValue,
             ];
         })->values();
 
         $earned = (int) SalesCommission::query()->where('sales_profile_id', $sales->id)->sum('commission_amount');
 
         return Inertia::render('Sales/Dashboard', [
-            'sales' => $sales->only(['name', 'referral_code', 'commission_rate']),
+            'sales' => $sales->only(['name', 'referral_code', 'commission_type', 'commission_rate', 'commission_value']),
             'downlines' => $rows,
             'metrics' => [
                 'referrals' => $rows->count(),

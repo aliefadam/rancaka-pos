@@ -8,6 +8,7 @@ use App\Models\Tenant;
 use App\Models\Transaction;
 use App\Models\TransactionItem;
 use App\Models\User;
+use App\Services\SubscriptionLifecycleService;
 use Carbon\Carbon;
 use Carbon\CarbonPeriod;
 use Illuminate\Http\RedirectResponse;
@@ -20,10 +21,12 @@ use Inertia\Response;
 
 class TenantController extends Controller
 {
-    public function index(Request $request): Response
+    public function index(Request $request, SubscriptionLifecycleService $lifecycle): Response
     {
+        $lifecycle->syncAll();
         $search = $request->string('search')->toString();
         $status = $request->string('status')->toString();
+        $subscriptionStatus = $request->string('subscription_status')->toString();
 
         $tenants = Tenant::query()
             ->when($search, function ($query, $search) {
@@ -34,23 +37,31 @@ class TenantController extends Controller
                 });
             })
             ->when($status, fn ($query, $status) => $query->where('status', $status))
-            ->with('owner:id,tenant_id')
+            ->when($subscriptionStatus, fn ($query, $subscriptionStatus) => $query->whereHas('subscription', fn ($query) => $subscriptionStatus === 'grandfathered'
+                ? $query->where('is_grandfathered', true)
+                : $query->where('status', $subscriptionStatus)->where('is_grandfathered', false)))
+            ->with(['owner:id,tenant_id', 'subscription'])
             ->latest()
             ->paginate(10)
             ->withQueryString()
             ->through(function (Tenant $tenant) {
                 $canImpersonate = $tenant->owner !== null;
+                $subscription = $tenant->subscription;
 
                 return [
-                    ...$tenant->makeHidden('owner')->toArray(),
+                    ...$tenant->makeHidden(['owner', 'subscription'])->toArray(),
                     'can_impersonate' => $canImpersonate,
                     'can_reset_password' => $canImpersonate,
+                    'subscription' => $subscription ? [
+                        'plan_name' => $subscription->plan_name,
+                        ...$subscription->lifecycleSummary(),
+                    ] : null,
                 ];
             });
 
         return Inertia::render('Admin/Tenants/Index', [
             'tenants' => $tenants,
-            'filters' => ['search' => $search, 'status' => $status],
+            'filters' => ['search' => $search, 'status' => $status, 'subscription_status' => $subscriptionStatus],
         ]);
     }
 
@@ -78,8 +89,9 @@ class TenantController extends Controller
         return redirect()->route('admin.tenants.index')->with('success', 'Tenant berhasil ditambahkan.');
     }
 
-    public function show(Tenant $tenant): Response
+    public function show(Tenant $tenant, SubscriptionLifecycleService $lifecycle): Response
     {
+        $lifecycle->sync($tenant->subscription);
         $completedTransactions = Transaction::query()
             ->where('tenant_id', $tenant->id)
             ->where('status', 'completed');
@@ -137,9 +149,15 @@ class TenantController extends Controller
             'billingInvoices' => fn ($query) => $query->with('payments')->latest()->limit(10),
         ]);
 
+        $subscription = $tenant->subscription;
+        $subscriptionData = $subscription?->toArray();
+        if ($subscription) {
+            $subscriptionData['lifecycle'] = $subscription->lifecycleSummary();
+        }
+
         return Inertia::render('Admin/Tenants/Show', [
             'tenant' => $tenant->only(['id', 'name', 'email', 'phone', 'address', 'status', 'logo_url', 'created_at']),
-            'subscription' => $tenant->subscription,
+            'subscription' => $subscriptionData,
             'accounts' => $tenant->users,
             'invoices' => $tenant->billingInvoices,
             'metrics' => [

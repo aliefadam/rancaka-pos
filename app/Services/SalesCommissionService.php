@@ -26,10 +26,13 @@ class SalesCommissionService
             return null;
         }
 
+        $commissionType = $tenant->referringSales->commission_type ?? 'percentage';
         $rate = (string) $tenant->referringSales->commission_rate;
-        $basisPoints = (int) round(((float) $rate) * 100);
+        $value = $commissionType === 'fixed' ? (int) $tenant->referringSales->commission_value : null;
         $baseAmount = (int) ($payment->invoice?->items()->where('type', 'central_plan')->sum('total_amount') ?: $payment->amount);
-        $commissionAmount = intdiv(($baseAmount * $basisPoints) + 5000, 10000);
+        $commissionAmount = $commissionType === 'fixed'
+            ? $value
+            : intdiv(($baseAmount * (int) round(((float) $rate) * 100)) + 5000, 10000);
 
         return SalesCommission::create([
             'sales_profile_id' => $tenant->referringSales->id,
@@ -37,7 +40,9 @@ class SalesCommissionService
             'billing_invoice_id' => $payment->billing_invoice_id,
             'subscription_payment_id' => $payment->id,
             'base_amount' => $baseAmount,
+            'commission_type_snapshot' => $commissionType,
             'commission_rate_snapshot' => $rate,
+            'commission_value_snapshot' => $value,
             'commission_amount' => $commissionAmount,
             'status' => 'accrued',
             'approved_at' => $payment->reviewed_at ?? now(),

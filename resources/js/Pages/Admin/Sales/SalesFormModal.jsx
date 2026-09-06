@@ -11,7 +11,9 @@ const emptyForm = {
     email: '',
     phone: '',
     referral_code: '',
+    commission_type: 'percentage',
     commission_rate: '10',
+    commission_value: '',
     status: 'active',
 };
 
@@ -29,7 +31,9 @@ export default function SalesFormModal({ show, onClose, sales }) {
             email: sales.email ?? '',
             phone: sales.phone ?? '',
             referral_code: sales.referral_code,
+            commission_type: sales.commission_type ?? 'percentage',
             commission_rate: sales.commission_rate,
+            commission_value: sales.commission_value ?? '',
             status: sales.status,
         } : emptyForm);
         form.clearErrors();
@@ -78,15 +82,44 @@ export default function SalesFormModal({ show, onClose, sales }) {
                         <Field label="Kode referral" error={form.errors.referral_code}>
                             <input value={form.data.referral_code} onChange={(e) => form.setData('referral_code', e.target.value.toUpperCase().replace(/\s/g, ''))} className={`${inputClass} font-bold uppercase tracking-wide`} placeholder="SALESBUDI" />
                         </Field>
-                        <Field label="Komisi (%)" error={form.errors.commission_rate}>
-                            <input type="number" min="0" max="100" step="0.01" value={form.data.commission_rate} onChange={(e) => form.setData('commission_rate', e.target.value)} className={inputClass} />
+                        <Field label="Tipe komisi" error={form.errors.commission_type} wide>
+                            <div className="grid grid-cols-2 gap-2 rounded-2xl bg-slate-100 p-1.5">
+                                {[
+                                    { value: 'percentage', label: 'Persentase', icon: 'fi-rr-percentage' },
+                                    { value: 'fixed', label: 'Nominal', icon: 'fi-rr-coins' },
+                                ].map((option) => (
+                                    <button
+                                        key={option.value}
+                                        type="button"
+                                        onClick={() => form.setData('commission_type', option.value)}
+                                        className={`flex items-center justify-center gap-2 rounded-xl px-3 py-2.5 text-sm font-bold transition ${form.data.commission_type === option.value ? 'bg-white text-indigo-700 shadow-sm ring-1 ring-slate-200' : 'text-slate-500 hover:text-slate-700'}`}
+                                    >
+                                        <i className={`fi ${option.icon}`} /> {option.label}
+                                    </button>
+                                ))}
+                            </div>
                         </Field>
+                        {form.data.commission_type === 'fixed' ? (
+                            <Field label="Nominal komisi" error={form.errors.commission_value}>
+                                <div className="relative">
+                                    <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-sm font-bold text-slate-400">Rp</span>
+                                    <input type="number" min="0" step="1000" value={form.data.commission_value} onChange={(e) => form.setData('commission_value', e.target.value)} className={`${inputClass} pl-10`} placeholder="50000" />
+                                </div>
+                            </Field>
+                        ) : (
+                            <Field label="Persentase komisi" error={form.errors.commission_rate}>
+                                <div className="relative">
+                                    <input type="number" min="0" max="100" step="0.01" value={form.data.commission_rate} onChange={(e) => form.setData('commission_rate', e.target.value)} className={`${inputClass} pr-9`} />
+                                    <span className="absolute right-3.5 top-1/2 -translate-y-1/2 text-sm font-bold text-slate-400">%</span>
+                                </div>
+                            </Field>
+                        )}
                         <Field label="Status" error={form.errors.status}>
                             <Select value={form.data.status} onChange={(value) => form.setData('status', value)} options={[{ value: 'active', label: 'Aktif' }, { value: 'inactive', label: 'Nonaktif' }]} />
                         </Field>
                     </div>
                     <div className="mt-5 rounded-2xl border border-indigo-100 bg-indigo-50/70 p-4 text-xs leading-relaxed text-indigo-700">
-                        Perubahan persentase hanya berlaku untuk pembayaran pertama yang disetujui setelah perubahan. Komisi lama tetap memakai persentase snapshot.
+                        Komisi dihitung satu kali saat pembayaran pertama disetujui. Perubahan tipe atau nilai komisi tidak mengubah komisi lama yang sudah tercatat.
                     </div>
                 </Modal.Body>
                 <Modal.Footer>

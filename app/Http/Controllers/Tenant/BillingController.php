@@ -7,6 +7,7 @@ use App\Models\BillingInvoice;
 use App\Models\BillingSetting;
 use App\Services\BranchNetworkService;
 use App\Services\OptimizedUploadService;
+use App\Services\SubscriptionLifecycleService;
 use App\Support\UploadRules;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -15,7 +16,7 @@ use Inertia\Response;
 
 class BillingController extends Controller
 {
-    public function index(Request $request, BranchNetworkService $network): Response
+    public function index(Request $request, BranchNetworkService $network, SubscriptionLifecycleService $lifecycle): Response
     {
         abort_unless($request->user()->tenant?->status === 'active', 403, 'Tenant tidak aktif.');
         $tenant = $request->user()->tenant;
@@ -31,6 +32,8 @@ class BillingController extends Controller
         $subscription = $tenant->subscription()
             ->with(['invoices' => fn ($q) => $q->with(['payments', 'items.branchTenant'])->latest()])
             ->first();
+        $lifecycle->sync($subscription);
+        $subscription->setAttribute('lifecycle', $subscription->lifecycleSummary());
 
         $relationship = $tenant->currentBranchRelationship()
             ->with(['parentTenant:id,name,email', 'parentTenant.subscription:id,tenant_id,status,trial_ends_at,current_period_end'])

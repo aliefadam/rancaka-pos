@@ -9,17 +9,57 @@ import { Head, Link, router } from '@inertiajs/react';
 import { useEffect, useRef, useState } from 'react';
 
 const formatDate = (value) =>
-    new Date(value).toLocaleDateString('id-ID', {
+    value ? new Date(value).toLocaleDateString('id-ID', {
         day: 'numeric',
         month: 'short',
         year: 'numeric',
-    });
+    }) : '-';
 
 const statusFilterOptions = [
     { value: '', label: 'Semua Status' },
     { value: 'active', label: 'Aktif' },
     { value: 'inactive', label: 'Nonaktif' },
 ];
+
+const subscriptionFilterOptions = [
+    { value: '', label: 'Semua Langganan' },
+    { value: 'trialing', label: 'Masa trial' },
+    { value: 'trial_expired', label: 'Trial habis' },
+    { value: 'active', label: 'Langganan aktif' },
+    { value: 'grace_period', label: 'Masa tenggang' },
+    { value: 'suspended', label: 'Dibekukan' },
+    { value: 'grandfathered', label: 'Aktif tanpa batas' },
+    { value: 'pending_network', label: 'Menunggu jaringan' },
+];
+
+const subscriptionTones = {
+    trialing: 'bg-sky-50 text-sky-700 ring-sky-100',
+    trial_expired: 'bg-orange-50 text-orange-700 ring-orange-100',
+    active: 'bg-emerald-50 text-emerald-700 ring-emerald-100',
+    grace_period: 'bg-amber-50 text-amber-800 ring-amber-200',
+    suspended: 'bg-rose-50 text-rose-700 ring-rose-100',
+    grandfathered: 'bg-indigo-50 text-indigo-700 ring-indigo-100',
+    pending_network: 'bg-slate-100 text-slate-600 ring-slate-200',
+};
+
+function SubscriptionBadge({ subscription }) {
+    if (!subscription) return <span className="text-xs text-slate-400">Belum tersedia</span>;
+
+    return (
+        <div>
+            <span className={`inline-flex rounded-full px-2.5 py-1 text-[11px] font-semibold ring-1 ${subscriptionTones[subscription.status] ?? subscriptionTones.pending_network}`}>
+                {subscription.label}
+            </span>
+            <p className="mt-1.5 whitespace-nowrap text-[11px] text-slate-400">
+                {subscription.status === 'grace_period'
+                    ? `Batas ${formatDate(subscription.grace_ends_at)}`
+                    : ['trialing', 'trial_expired', 'active', 'suspended'].includes(subscription.status)
+                      ? `Berakhir ${formatDate(subscription.ends_at)}`
+                      : subscription.plan_name}
+            </p>
+        </div>
+    );
+}
 
 function StatusBadge({ status }) {
     const active = status === 'active';
@@ -45,6 +85,7 @@ export default function Index({ tenants, filters }) {
 
     const [search, setSearch] = useState(filters.search ?? '');
     const [status, setStatus] = useState(filters.status ?? '');
+    const [subscriptionStatus, setSubscriptionStatus] = useState(filters.subscription_status ?? '');
     const [refreshing, setRefreshing] = useState(false);
     const [modalOpen, setModalOpen] = useState(false);
     const [editingTenant, setEditingTenant] = useState(null);
@@ -68,6 +109,7 @@ export default function Index({ tenants, filters }) {
                 {
                     ...(search ? { search } : {}),
                     ...(status ? { status } : {}),
+                    ...(subscriptionStatus ? { subscription_status: subscriptionStatus } : {}),
                 },
                 {
                     preserveState: true,
@@ -80,7 +122,7 @@ export default function Index({ tenants, filters }) {
 
         return () => clearTimeout(timeout);
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [search, status]);
+    }, [search, status, subscriptionStatus]);
 
     const openCreateModal = () => {
         setEditingTenant(null);
@@ -218,10 +260,17 @@ export default function Index({ tenants, filters }) {
                         placeholder="Semua Status"
                         className="w-full sm:w-48"
                     />
+                    <Select
+                        value={subscriptionStatus}
+                        onChange={setSubscriptionStatus}
+                        options={subscriptionFilterOptions}
+                        placeholder="Semua Langganan"
+                        className="w-full sm:w-56"
+                    />
                 </div>
 
                 <div className="scrollbar-thin hidden overflow-x-auto md:block">
-                    <table className="w-full min-w-[900px] text-left text-sm">
+                    <table className="w-full min-w-[1080px] text-left text-sm">
                         <thead>
                             <tr className="border-b border-slate-100 text-xs font-semibold uppercase tracking-wider text-slate-400">
                                 <th className="px-6 py-3.5 font-semibold">
@@ -234,7 +283,10 @@ export default function Index({ tenants, filters }) {
                                     Alamat
                                 </th>
                                 <th className="px-6 py-3.5 font-semibold">
-                                    Status
+                                    Akun
+                                </th>
+                                <th className="px-6 py-3.5 font-semibold">
+                                    Langganan
                                 </th>
                                 <th className="px-6 py-3.5 font-semibold">
                                     Bergabung
@@ -275,6 +327,9 @@ export default function Index({ tenants, filters }) {
                                     </td>
                                     <td className="px-6 py-4">
                                         <StatusBadge status={tenant.status} />
+                                    </td>
+                                    <td className="px-6 py-4">
+                                        <SubscriptionBadge subscription={tenant.subscription} />
                                     </td>
                                     <td className="whitespace-nowrap px-6 py-4 text-slate-500">
                                         {formatDate(tenant.created_at)}
@@ -350,7 +405,7 @@ export default function Index({ tenants, filters }) {
                             {tenants.data.length === 0 && (
                                 <tr>
                                     <td
-                                        colSpan={6}
+                                        colSpan={7}
                                         className="px-6 py-20 text-center"
                                     >
                                         <span className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-slate-50 text-slate-400">
@@ -404,6 +459,10 @@ export default function Index({ tenants, filters }) {
                                     <dd className="max-w-[65%] truncate text-right text-slate-600">
                                         {tenant.address || '-'}
                                     </dd>
+                                </div>
+                                <div className="flex items-start justify-between gap-3">
+                                    <dt className="pt-1 text-slate-400">Langganan</dt>
+                                    <dd className="text-right"><SubscriptionBadge subscription={tenant.subscription} /></dd>
                                 </div>
                                 <div className="flex items-center justify-between gap-3">
                                     <dt className="text-slate-400">

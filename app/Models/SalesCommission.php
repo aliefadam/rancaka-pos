@@ -7,13 +7,14 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
-#[Fillable(['sales_profile_id', 'tenant_id', 'billing_invoice_id', 'subscription_payment_id', 'base_amount', 'commission_rate_snapshot', 'commission_amount', 'status', 'approved_at', 'paid_at', 'paid_by', 'note'])]
+#[Fillable(['sales_profile_id', 'tenant_id', 'billing_invoice_id', 'subscription_payment_id', 'base_amount', 'commission_type_snapshot', 'commission_rate_snapshot', 'commission_value_snapshot', 'commission_amount', 'status', 'approved_at', 'paid_at', 'paid_by', 'note'])]
 class SalesCommission extends Model
 {
     protected function casts(): array
     {
         return [
             'commission_rate_snapshot' => 'decimal:2',
+            'commission_value_snapshot' => 'integer',
             'approved_at' => 'datetime',
             'paid_at' => 'datetime',
         ];
