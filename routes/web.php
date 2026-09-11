@@ -39,6 +39,7 @@ use App\Http\Controllers\Tenant\ShiftController as TenantShiftController;
 use App\Http\Controllers\Tenant\Stock\ProductStockController as TenantProductStockController;
 use App\Http\Controllers\Tenant\Stock\RawMaterialStockController as TenantRawMaterialStockController;
 use App\Http\Controllers\Tenant\StockOpnameController as TenantStockOpnameController;
+use App\Http\Controllers\Tenant\StockTransferController as TenantStockTransferController;
 use App\Http\Controllers\Tenant\SupplierController as TenantSupplierController;
 use App\Http\Controllers\Tenant\SupplierPayableController as TenantSupplierPayableController;
 use App\Http\Controllers\Tenant\SupplierPaymentController as TenantSupplierPaymentController;
@@ -318,6 +319,15 @@ Route::middleware(['auth', 'role:owner,employee', 'tenant.onboarded', 'subscript
         Route::post('/raw-materials/adjustment', [TenantRawMaterialStockController::class, 'storeAdjustment'])
             ->name('raw-materials.adjustment')
             ->middleware('permission:stock-raw-materials.edit');
+    });
+
+    Route::prefix('stock-transfers')->name('stock-transfers.')->group(function () {
+        Route::get('/', [TenantStockTransferController::class, 'index'])->name('index')->middleware('permission:stock-transfers.view');
+        Route::post('/', [TenantStockTransferController::class, 'store'])->name('store')->middleware('permission:stock-transfers.create');
+        Route::get('/{stockTransfer}', [TenantStockTransferController::class, 'show'])->name('show')->middleware('permission:stock-transfers.view');
+        Route::post('/{stockTransfer}/receive', [TenantStockTransferController::class, 'receive'])->name('receive')->middleware('permission:stock-transfers.receive');
+        Route::post('/{stockTransfer}/cancel', [TenantStockTransferController::class, 'cancel'])->name('cancel')->middleware('permission:stock-transfers.cancel');
+        Route::post('/{stockTransfer}/reject', [TenantStockTransferController::class, 'reject'])->name('reject')->middleware('permission:stock-transfers.receive');
     });
 
     Route::prefix('stock-opnames')->name('stock-opnames.')->group(function () {

@@ -202,7 +202,7 @@ class SalesController extends Controller
         return $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'username' => ['required', 'string', 'max:255', 'regex:/^[A-Za-z0-9._-]+$/', Rule::unique('users', 'username')->ignore($salesProfile?->user_id)],
-            'email' => ['nullable', 'email', 'max:255'],
+            'email' => ['nullable', 'email', 'max:255', Rule::unique('users', 'email')->ignore($salesProfile?->user_id)],
             'password' => [Rule::requiredIf(! $salesProfile?->user_id), 'nullable', 'string', 'min:8'],
             'phone' => ['nullable', 'string', 'max:30'],
             'referral_code' => ['required', 'string', 'min:4', 'max:30', 'regex:/^[A-Z0-9_-]+$/', Rule::unique('sales_profiles')->ignore($salesProfile?->id)],

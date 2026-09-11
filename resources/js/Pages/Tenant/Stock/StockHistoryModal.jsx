@@ -4,12 +4,18 @@ const typeLabels = {
     in: 'masuk',
     sale: 'keluar-transaksi',
     adjustment: 'penyesuaian',
+    transfer_out: 'transfer keluar',
+    transfer_in: 'transfer masuk',
+    transfer_return: 'pengembalian transfer',
 };
 
 const typeStyles = {
     in: 'bg-emerald-50 text-emerald-700',
     sale: 'bg-slate-100 text-slate-600',
     adjustment: 'bg-amber-50 text-amber-700',
+    transfer_out: 'bg-orange-50 text-orange-700',
+    transfer_in: 'bg-sky-50 text-sky-700',
+    transfer_return: 'bg-violet-50 text-violet-700',
 };
 
 function formatDateTime(value) {

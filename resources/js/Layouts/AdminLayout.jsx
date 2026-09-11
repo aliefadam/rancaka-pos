@@ -209,6 +209,13 @@ const navigationByRole = {
                     icon: "fi-rr-list-check",
                     permission: "stock-opnames.view",
                 },
+                {
+                    name: "Transfer Stok",
+                    href: "tenant.stock-transfers.index",
+                    activePattern: "tenant.stock-transfers.*",
+                    icon: "fi-rr-truck-loading",
+                    permission: "stock-transfers.view",
+                },
             ],
         },
         {
@@ -390,6 +397,13 @@ const navigationByRole = {
                     href: "tenant.stock-opnames.index",
                     icon: "fi-rr-list-check",
                     permission: "stock-opnames.view",
+                },
+                {
+                    name: "Transfer Stok",
+                    href: "tenant.stock-transfers.index",
+                    activePattern: "tenant.stock-transfers.*",
+                    icon: "fi-rr-truck-loading",
+                    permission: "stock-transfers.view",
                 },
             ],
         },

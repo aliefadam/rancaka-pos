@@ -50,6 +50,29 @@ class SalesReferralCommissionTest extends TestCase
         $this->actingAs($owner)->get(route('admin.sales.index'))->assertForbidden();
     }
 
+    public function test_sales_email_collision_returns_validation_error_instead_of_server_error(): void
+    {
+        $admin = User::factory()->create([
+            'role' => UserRole::Superadmin,
+            'tenant_id' => null,
+            'email' => 'sudah-dipakai@example.com',
+        ]);
+
+        $this->actingAs($admin)->post(route('admin.sales.store'), [
+            'name' => 'Sales Baru',
+            'username' => 'sales.baru',
+            'password' => 'password123',
+            'email' => 'sudah-dipakai@example.com',
+            'referral_code' => 'SALESBARU',
+            'commission_type' => 'fixed',
+            'commission_value' => 50000,
+            'status' => 'active',
+        ])->assertSessionHasErrors('email');
+
+        $this->assertDatabaseMissing('users', ['username' => 'sales.baru']);
+        $this->assertDatabaseMissing('sales_profiles', ['referral_code' => 'SALESBARU']);
+    }
+
     public function test_manual_registration_accepts_only_an_active_referral_code(): void
     {
         $sales = $this->sales();

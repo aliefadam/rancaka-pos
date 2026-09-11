@@ -127,6 +127,16 @@ class Tenant extends Model
         return $this->hasMany(Purchase::class);
     }
 
+    public function outgoingStockTransfers(): HasMany
+    {
+        return $this->hasMany(StockTransfer::class, 'source_tenant_id');
+    }
+
+    public function incomingStockTransfers(): HasMany
+    {
+        return $this->hasMany(StockTransfer::class, 'destination_tenant_id');
+    }
+
     public function branchRelationships(): HasMany
     {
         return $this->hasMany(TenantBranchRelationship::class, 'parent_tenant_id');

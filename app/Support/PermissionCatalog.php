@@ -113,6 +113,16 @@ class PermissionCatalog
                 ],
             ],
             [
+                'key' => 'stock-transfers',
+                'label' => 'Transfer Stok',
+                'actions' => [
+                    ['key' => 'view', 'label' => 'Lihat'],
+                    ['key' => 'create', 'label' => 'Kirim'],
+                    ['key' => 'receive', 'label' => 'Terima/Tolak'],
+                    ['key' => 'cancel', 'label' => 'Batalkan'],
+                ],
+            ],
+            [
                 'key' => 'transactions',
                 'label' => 'Riwayat Transaksi',
                 'actions' => [
