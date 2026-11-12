@@ -33,25 +33,20 @@ class PosController extends Controller
             ->with('user:id,name')
             ->first();
 
-        $heldTransactions = [];
-        $heldTransactionCount = 0;
+        $heldTransactionQuery = Transaction::where('tenant_id', $tenantId)
+            ->where('status', TransactionStatus::Held);
+        $heldTransactionCount = (clone $heldTransactionQuery)->count();
+        $heldTransactions = (clone $heldTransactionQuery)
+            ->when(
+                $request->user()->hasRestrictedCashierAccess(),
+                fn ($query) => $query->where('user_id', $request->user()->id),
+            )
+            ->with('items')
+            ->latest()
+            ->get();
         $shiftSummary = null;
 
         if ($activeShift) {
-            $heldTransactionCount = Transaction::where('tenant_id', $tenantId)
-                ->where('status', TransactionStatus::Held)
-                ->count();
-
-            $heldTransactions = Transaction::where('tenant_id', $tenantId)
-                ->where('status', TransactionStatus::Held)
-                ->when(
-                    $request->user()->hasRestrictedCashierAccess(),
-                    fn ($query) => $query->where('user_id', $request->user()->id),
-                )
-                ->with('items')
-                ->latest()
-                ->get();
-
             if ($request->user()->hasPermission('financial-reports.view')) {
                 $completed = Transaction::where('shift_id', $activeShift->id)
                     ->where('status', TransactionStatus::Completed);
@@ -128,6 +123,7 @@ class PosController extends Controller
             'heldTransactionCount' => $heldTransactionCount,
             'shiftSummary' => $shiftSummary,
             'storeSettings' => [
+                'id' => $tenant->id,
                 'name' => $tenant->name,
                 'address' => $tenant->address,
                 'phone' => $tenant->phone,
@@ -217,10 +213,6 @@ class PosController extends Controller
                 ->whereNull('closed_at')
                 ->lockForUpdate()
                 ->first();
-
-            if (! $activeShift) {
-                throw ValidationException::withMessages(['items' => 'Sesi kasir belum dimulai.']);
-            }
 
             $productIds = collect($data['items'])->pluck('product_id')->unique();
 
@@ -426,7 +418,7 @@ class PosController extends Controller
 
             $transaction = Transaction::create([
                 'tenant_id' => $tenantId,
-                'shift_id' => $activeShift->id,
+                'shift_id' => $activeShift?->id,
                 'user_id' => $request->user()->id,
                 'invoice_number' => $invoiceNumber,
                 'status' => $status,
@@ -456,7 +448,7 @@ class PosController extends Controller
                 if ($initialPayment > 0) {
                     $creditSale->payments()->create([
                         'tenant_id' => $tenantId, 'user_id' => $request->user()->id,
-                        'shift_id' => $activeShift->id,
+                        'shift_id' => $activeShift?->id,
                         'amount' => $initialPayment, 'note' => 'Pembayaran awal saat transaksi',
                     ]);
                 }

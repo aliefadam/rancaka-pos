@@ -55,6 +55,7 @@ export default function Index({ shifts, filters, outletScope }) {
     const [search, setSearch] = useState(filters.search ?? '');
     const [date, setDate] = useState(filters.date ?? '');
     const [status, setStatus] = useState(filters.status ?? '');
+    const [showFilters, setShowFilters] = useState(Boolean(filters.date || filters.status));
     const isFirstRun = useRef(true);
 
     useEffect(() => {
@@ -97,6 +98,12 @@ export default function Index({ shifts, filters, outletScope }) {
             replace: true,
         });
     };
+    const activeFilterCount = [date, status].filter(Boolean).length;
+    const resetFilters = () => {
+        setDate('');
+        setStatus('');
+        setShowFilters(false);
+    };
 
     return (
         <AdminLayout header="Riwayat Sesi Kasir">
@@ -116,8 +123,9 @@ export default function Index({ shifts, filters, outletScope }) {
             <OutletScopeFilter scope={outletScope} onChange={changeScope} className="mb-5" />
 
             <div className="rounded-2xl border border-slate-200/70 bg-white shadow-sm shadow-slate-200/40">
-                <div className="flex flex-col gap-3 border-b border-slate-100 p-5 sm:flex-row sm:items-center sm:p-6">
-                    <div className="relative w-full sm:max-w-xs">
+                <div className="border-b border-slate-100 p-5 sm:p-6">
+                    <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+                    <div className="relative w-full sm:max-w-md">
                         <span className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3.5 text-slate-400">
                             <i className="fi fi-rr-search" />
                         </span>
@@ -130,6 +138,13 @@ export default function Index({ shifts, filters, outletScope }) {
                         />
                     </div>
 
+                    <button type="button" aria-expanded={showFilters} aria-controls="shift-extra-filters" onClick={() => setShowFilters((value) => !value)} className="flex h-[42px] items-center justify-center gap-2 rounded-lg border border-slate-200 px-3.5 text-sm font-semibold text-slate-600 hover:bg-slate-50 sm:ml-auto">
+                        <i className="fi fi-rr-settings-sliders" /> Filter lainnya
+                        {activeFilterCount > 0 && <span className="rounded-full bg-indigo-100 px-2 py-0.5 text-xs font-bold text-indigo-700">{activeFilterCount}</span>}
+                    </button>
+                    </div>
+
+                    {showFilters && <div id="shift-extra-filters" className="mt-4 grid gap-3 border-t border-slate-100 pt-4 sm:grid-cols-3">
                     <div className="relative w-full sm:w-48">
                         <span className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3.5 text-slate-400">
                             <i className="fi fi-rr-calendar" />
@@ -150,6 +165,8 @@ export default function Index({ shifts, filters, outletScope }) {
                         placeholder="Semua Status"
                         className="w-full sm:w-48"
                     />
+                    <button type="button" onClick={resetFilters} disabled={activeFilterCount === 0} className="h-[42px] rounded-lg px-3.5 text-sm font-semibold text-slate-600 hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-40">Hapus filter</button>
+                    </div>}
                 </div>
 
                 <div className="scrollbar-thin hidden overflow-x-auto md:block">
@@ -167,7 +184,7 @@ export default function Index({ shifts, filters, outletScope }) {
                                     Waktu Tutup
                                 </th>
                                 <th className="px-6 py-3.5 font-semibold">
-                                    Modal Awal
+                                    Uang Awal di Laci
                                 </th>
                                 <th className="px-6 py-3.5 font-semibold">
                                     Penjualan Tunai
@@ -179,7 +196,7 @@ export default function Index({ shifts, filters, outletScope }) {
                                 <th className="px-6 py-3.5 font-semibold">Penjualan Bon</th>
                                 <th className="px-6 py-3.5 font-semibold">Pembayaran Utang</th>
                                 <th className="px-6 py-3.5 font-semibold">
-                                    Modal Akhir Sistem
+                                    Kas Seharusnya
                                 </th>
                                 <th className="px-6 py-3.5 font-semibold">
                                     Kas Aktual
@@ -313,7 +330,7 @@ export default function Index({ shifts, filters, outletScope }) {
                                 </div>
                                 <div className="flex items-center justify-between gap-3">
                                     <dt className="text-slate-400">
-                                        Modal Awal
+                                        Uang Awal di Laci
                                     </dt>
                                     <dd className="text-right text-slate-600">
                                         {formatRupiah(shift.opening_cash)}
@@ -349,7 +366,7 @@ export default function Index({ shifts, filters, outletScope }) {
                                 </div>
                                 <div className="flex items-center justify-between gap-3">
                                     <dt className="text-slate-400">
-                                        Modal Akhir Sistem
+                                        Kas Seharusnya
                                     </dt>
                                     <dd className="text-right font-medium text-slate-700">
                                         {formatRupiah(

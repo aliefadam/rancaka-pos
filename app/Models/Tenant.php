@@ -15,6 +15,7 @@ use Illuminate\Support\Facades\Storage;
 
 #[Fillable([
     'name', 'email', 'phone', 'address', 'status',
+    'business_type', 'interface_mode', 'enabled_modules',
     'logo_path', 'receipt_footer', 'receipt_size', 'auto_print_receipt',
     'tax_percentage', 'service_charge_percentage',
     'referred_by_sales_id', 'referral_code_used', 'referred_at',
@@ -46,6 +47,7 @@ class Tenant extends Model
             'auto_print_receipt' => 'boolean',
             'tax_percentage' => 'decimal:2',
             'service_charge_percentage' => 'decimal:2',
+            'enabled_modules' => 'array',
             'referred_at' => 'datetime',
         ];
     }

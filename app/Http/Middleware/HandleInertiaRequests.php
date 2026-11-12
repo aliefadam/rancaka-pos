@@ -74,6 +74,11 @@ class HandleInertiaRequests extends Middleware
             'features' => [
                 'branch_network' => (bool) config('billing.branch_network_enabled'),
             ],
+            'tenant_ui' => $user?->tenant ? [
+                'business_type' => $user->tenant->business_type ?? 'retail',
+                'mode' => $user->tenant->interface_mode ?? 'complete',
+                'enabled_modules' => $user->tenant->enabled_modules ?? [],
+            ] : null,
             'flash' => [
                 'success' => fn () => $request->session()->get('success'),
                 'error' => fn () => $request->session()->get('error'),

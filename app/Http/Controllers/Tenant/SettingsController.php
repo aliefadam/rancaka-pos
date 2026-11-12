@@ -34,6 +34,10 @@ class SettingsController extends Controller
             'auto_print_receipt' => ['nullable', 'boolean'],
             'tax_percentage' => ['required', 'numeric', 'min:0', 'max:100'],
             'service_charge_percentage' => ['required', 'numeric', 'min:0', 'max:100'],
+            'business_type' => ['required', 'in:retail,food_beverage,service,other'],
+            'interface_mode' => ['required', 'in:simple,complete'],
+            'enabled_modules' => ['nullable', 'array'],
+            'enabled_modules.*' => ['string', 'in:inventory,purchases,expenses,credit,reports,team'],
         ]);
 
         if ($request->hasFile('logo')) {
@@ -46,6 +50,9 @@ class SettingsController extends Controller
 
         unset($validated['logo']);
         $validated['auto_print_receipt'] = (bool) ($validated['auto_print_receipt'] ?? false);
+        $validated['enabled_modules'] = $validated['interface_mode'] === 'complete'
+            ? null
+            : array_values(array_unique($validated['enabled_modules'] ?? []));
 
         $tenant->update($validated);
 

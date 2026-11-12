@@ -88,17 +88,17 @@ export default function Index({
     const changeScope = (scope) => visit({ ...filters, scope });
 
     return (
-        <AdminLayout header="Laporan Keuangan">
-            <Head title="Laporan Keuangan" />
+        <AdminLayout header="Laporan Untung-Rugi">
+            <Head title="Laporan Untung-Rugi" />
 
             <Breadcrumb
-                items={[{ label: 'Laporan' }, { label: 'Keuangan' }]}
+                items={[{ label: 'Laporan' }, { label: 'Untung-Rugi' }]}
             />
 
             <div className="mb-5 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
                 <div>
                     <h2 className="text-xl font-bold text-slate-900">
-                        Laporan Keuangan
+                        Laporan Untung-Rugi
                     </h2>
                     <p className="mt-1 text-sm text-slate-500">
                         Ringkasan performa keuangan periode {periodLabel}.
@@ -146,7 +146,7 @@ export default function Index({
                     comparisonLabel={comparison.label}
                 />
                 <SummaryCard
-                    label="Modal per item"
+                    label="Modal barang terjual"
                     value={summary.costOfGoodsSold}
                     icon="fi-rr-box-dollar"
                     tone="amber"
@@ -165,7 +165,7 @@ export default function Index({
                     footer={`Pembayaran ke pemasok ${summary.supplierPayments} dicatat sebagai arus kas, bukan biaya ulang`}
                 />
                 <SummaryCard
-                    label="Untung Bersih"
+                    label="Untung bersih"
                     value={summary.netProfit}
                     icon="fi-rr-sack-dollar"
                     tone={summary.netProfitValue < 0 ? 'amber' : 'indigo'}
@@ -173,7 +173,7 @@ export default function Index({
                     comparisonLabel={comparison.label}
                 />
                 <SummaryCard
-                    label="Transaksi Selesai"
+                    label="Transaksi selesai"
                     value={summary.transactionCount.toLocaleString('id-ID')}
                     icon="fi-rr-receipt"
                     tone="sky"
@@ -292,7 +292,7 @@ export default function Index({
                                 dot={false}
                             />
                             <Line
-                                name="Untung Bersih"
+                                name="Untung bersih"
                                 type="monotone"
                                 dataKey="netProfit"
                                 stroke="#059669"

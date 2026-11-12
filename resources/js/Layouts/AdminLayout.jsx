@@ -129,7 +129,7 @@ const tenantNavigation = [
         children: [
             { name: "Jualan", href: "tenant.pos.index" },
             { name: "Riwayat transaksi", href: "tenant.reports.transactions.index", permission: "transactions.view" },
-            { name: "Penjualan bon (kredit)", href: "tenant.credit-sales.index", activePattern: "tenant.credit-sales.*" },
+            { name: "Penjualan bon (kredit)", href: "tenant.credit-sales.index", activePattern: "tenant.credit-sales.*", module: "credit" },
             { name: "Sesi kasir", href: "tenant.reports.shifts.index", permission: "shift-reports.view" },
         ],
     },
@@ -140,28 +140,28 @@ const tenantNavigation = [
             { name: "Produk", href: "tenant.products.index", permission: "products.view" },
             { name: "Kategori", href: "tenant.categories.index", permission: "categories.view" },
             { name: "Stok", href: "tenant.stock.products.index", activePatterns: ["tenant.stock.products.*", "tenant.stock.raw-materials.*"], permissions: ["stock-products.view", "stock-raw-materials.view"], alternateHref: "tenant.stock.raw-materials.index", alternatePermission: "stock-raw-materials.view" },
-            { name: "Bahan baku", href: "tenant.raw-materials.index", permission: "raw-materials.view" },
-            { name: "Cek stok", href: "tenant.stock-opnames.index", activePattern: "tenant.stock-opnames.*", permission: "stock-opnames.view" },
-            { name: "Pindah stok", href: "tenant.stock-transfers.index", activePattern: "tenant.stock-transfers.*", permission: "stock-transfers.view" },
+            { name: "Bahan baku", href: "tenant.raw-materials.index", permission: "raw-materials.view", module: "inventory" },
+            { name: "Cek stok", href: "tenant.stock-opnames.index", activePattern: "tenant.stock-opnames.*", permission: "stock-opnames.view", module: "inventory" },
+            { name: "Pindah stok", href: "tenant.stock-transfers.index", activePattern: "tenant.stock-transfers.*", permission: "stock-transfers.view", module: "inventory" },
         ],
     },
     {
         name: "Belanja & Biaya",
         icon: "fi-rr-shopping-cart",
         children: [
-            { name: "Belanja stok", href: "tenant.purchases.index", activePattern: "tenant.purchases.*", permission: "purchases.view" },
-            { name: "Biaya operasional", href: "tenant.expenses.index", permission: "expenses.view" },
-            { name: "Hutang ke pemasok", href: "tenant.supplier-payables.index", permission: "supplier-payables.view" },
-            { name: "Pemasok", href: "tenant.suppliers.index", activePattern: "tenant.suppliers.*", permission: "suppliers.view" },
+            { name: "Belanja stok", href: "tenant.purchases.index", activePattern: "tenant.purchases.*", permission: "purchases.view", module: "purchases" },
+            { name: "Biaya operasional", href: "tenant.expenses.index", permission: "expenses.view", module: "expenses" },
+            { name: "Hutang ke pemasok", href: "tenant.supplier-payables.index", permission: "supplier-payables.view", module: "purchases" },
+            { name: "Pemasok", href: "tenant.suppliers.index", activePattern: "tenant.suppliers.*", permission: "suppliers.view", module: "purchases" },
         ],
     },
     {
         name: "Laporan",
         icon: "fi-rr-chart-histogram",
         children: [
-            { name: "Untung-rugi", href: "tenant.reports.financial.index", inactiveHashes: ["#penjualan"] , permission: "financial-reports.view" },
-            { name: "Laporan belanja", href: "tenant.reports.purchases.index", activePattern: "tenant.reports.purchases.*", permission: "purchases.view" },
-            { name: "Laporan penjualan", href: "tenant.reports.financial.index", hash: "#penjualan", permission: "financial-reports.view" },
+            { name: "Untung-rugi", href: "tenant.reports.financial.index", inactiveHashes: ["#penjualan"] , permission: "financial-reports.view", module: "reports" },
+            { name: "Laporan belanja", href: "tenant.reports.purchases.index", activePattern: "tenant.reports.purchases.*", permission: "purchases.view", module: "purchases" },
+            { name: "Laporan penjualan", href: "tenant.reports.financial.index", hash: "#penjualan", permission: "financial-reports.view", module: "reports" },
         ],
     },
     {
@@ -171,7 +171,7 @@ const tenantNavigation = [
         children: [
             { name: "Info toko", href: "tenant.settings.edit", inactiveHashes: ["#struk-pajak"] },
             { name: "Struk & pajak", href: "tenant.settings.edit", hash: "#struk-pajak" },
-            { name: "Karyawan & akses", href: "tenant.employees.index", activePatterns: ["tenant.employees.*", "tenant.roles.*"] },
+            { name: "Karyawan & akses", href: "tenant.employees.index", activePatterns: ["tenant.employees.*", "tenant.roles.*"], module: "team" },
             { name: "Cabang", href: "tenant.network.index", activePattern: "tenant.network.*", networkOnly: true },
             { name: "Langganan", href: "tenant.billing.index" },
         ],
@@ -261,9 +261,17 @@ export default function AdminLayout({ children }) {
     const navigation = useMemo(() => {
         if (user.role === "owner" || user.role === "employee") {
             const permissions = auth.permissions ?? [];
+            const tenantUi = page.props.tenant_ui;
+            const enabledModules = new Set(tenantUi?.enabled_modules ?? []);
+            const moduleIsVisible = (item) => (
+                tenantUi?.mode !== "simple" ||
+                !item.module ||
+                enabledModules.has(item.module)
+            );
             const canOpen = (item) => {
                 if (item.ownerOnly && user.role !== "owner") return false;
                 if (item.networkOnly && !page.props.features?.branch_network) return false;
+                if (!moduleIsVisible(item)) return false;
                 if (!route().has(item.href)) return false;
                 if (user.role !== "employee") return true;
                 if (item.permission) return permissions.includes(item.permission);
@@ -307,7 +315,7 @@ export default function AdminLayout({ children }) {
             .filter((section) => section.items.length > 0);
 
         return availableSections;
-    }, [auth.permissions, page.props.features?.branch_network, user.role]);
+    }, [auth.permissions, page.props.features?.branch_network, page.props.tenant_ui, user.role]);
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const [desktopSidebarOpen, setDesktopSidebarOpen] = useState(true);
     const [searchQuery, setSearchQuery] = useState("");

@@ -180,6 +180,7 @@ class TenantDashboardTest extends TestCase
             ->assertOk()
             ->assertInertia(fn (Assert $page) => $page
                 ->where('summary.1.key', 'products')
+                ->has('summary', 3)
                 ->where('capabilities.can_view_profit', false)
                 ->where('capabilities.can_view_financial_report', false));
 

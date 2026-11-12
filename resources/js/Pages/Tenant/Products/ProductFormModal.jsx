@@ -3,7 +3,7 @@ import MoneyInput from '@/Components/MoneyInput';
 import Select from '@/Components/Select';
 import { useToast } from '@/Contexts/ToastContext';
 import { useForm } from '@inertiajs/react';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 
 function initials(name) {
     return name
@@ -29,8 +29,8 @@ const emptyForm = {
     name: '',
     category_id: '',
     price: '',
-    cost: '',
-    margin_percentage: '',
+    cost: 0,
+    margin_percentage: 0,
     stock: '',
     track_stock: true,
     is_active: true,
@@ -55,6 +55,7 @@ export default function ProductFormModal({
 }) {
     const isEdit = Boolean(product);
     const toast = useToast();
+    const [showAdvanced, setShowAdvanced] = useState(false);
 
     const { data, setData, post, put, processing, errors, reset, clearErrors } =
         useForm(emptyForm);
@@ -71,6 +72,19 @@ export default function ProductFormModal({
 
     useEffect(() => {
         if (!show) return;
+
+        const hasAdvancedConfiguration = Boolean(
+            product &&
+                (Number(product.cost) > 0 ||
+                    !product.track_stock ||
+                    !product.is_active ||
+                    product.raw_materials?.length ||
+                    product.price_options?.length > 1 ||
+                    (product.price_options?.[0]?.name &&
+                        product.price_options[0].name !== 'Harga utama')),
+        );
+
+        setShowAdvanced(hasAdvancedConfiguration);
 
         setData(
             product
@@ -258,10 +272,18 @@ export default function ProductFormModal({
             put(route('tenant.products.update', product.id), {
                 preserveScroll: true,
                 onSuccess: () => onClose(),
-                onError: () =>
+                onError: (formErrors) => {
+                    if (
+                        Object.keys(formErrors).some((key) =>
+                            /^(cost|margin_percentage|track_stock|is_active|ingredients|price_options)/.test(key),
+                        )
+                    ) {
+                        setShowAdvanced(true);
+                    }
                     toast.error(
                         'Gagal memperbarui produk. Periksa kembali data yang dimasukkan.',
-                    ),
+                    );
+                },
             });
         } else {
             post(route('tenant.products.store'), {
@@ -270,10 +292,18 @@ export default function ProductFormModal({
                     onClose();
                     reset();
                 },
-                onError: () =>
+                onError: (formErrors) => {
+                    if (
+                        Object.keys(formErrors).some((key) =>
+                            /^(cost|margin_percentage|track_stock|is_active|ingredients|price_options)/.test(key),
+                        )
+                    ) {
+                        setShowAdvanced(true);
+                    }
                     toast.error(
                         'Gagal menambahkan produk. Periksa kembali data yang dimasukkan.',
-                    ),
+                    );
+                },
             });
         }
     };
@@ -288,23 +318,22 @@ export default function ProductFormModal({
                 </Modal.Header>
 
                 <Modal.Body>
-                    <div className="space-y-5">
-                        <div className="flex items-center gap-3 rounded-xl bg-indigo-50/60 p-3">
+                    <div className="flex flex-col gap-5">
+                        <div className="order-1 flex items-center gap-3 rounded-xl bg-indigo-50/60 p-3">
                             <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-indigo-100 text-base font-bold text-indigo-600">
                                 {initials(data.name) || 'PB'}
                             </span>
                             <div>
                                 <p className="text-sm font-semibold text-slate-800">
-                                    Preview produk
+                                    Data utama produk
                                 </p>
                                 <p className="text-xs text-slate-400">
-                                    Inisial akan dibuat otomatis dari nama
-                                    produk.
+                                    Isi data penting dahulu. Pengaturan lain dapat dilengkapi nanti.
                                 </p>
                             </div>
                         </div>
 
-                        <section className="overflow-hidden rounded-xl border border-indigo-100 bg-indigo-50/40">
+                        {showAdvanced && <section className="order-7 overflow-hidden rounded-xl border border-indigo-100 bg-indigo-50/40">
                             <div className="flex items-start justify-between gap-4 border-b border-indigo-100 bg-white/70 p-4">
                                 <div className="flex gap-3">
                                     <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-indigo-600 text-white shadow-sm shadow-indigo-200">
@@ -312,7 +341,7 @@ export default function ProductFormModal({
                                     </span>
                                     <div>
                                         <h3 className="text-sm font-semibold text-slate-800">
-                                            Pilihan Harga
+                                            Pilihan harga
                                         </h3>
                                         <p className="mt-0.5 text-xs leading-5 text-slate-500">
                                             Semua pilihan memakai stok produk yang sama. Harga default menjadi harga utama produk.
@@ -388,7 +417,7 @@ export default function ProductFormModal({
                                                     onChange={() => updatePriceOption(index, 'is_default', true)}
                                                     className="h-4 w-4 border-slate-300 text-indigo-600 focus:ring-indigo-500"
                                                 />
-                                                Harga default
+                                                Harga utama
                                             </label>
                                             <label className={`flex items-center gap-2 text-xs font-medium ${option.is_default ? 'cursor-not-allowed text-slate-400' : 'cursor-pointer text-slate-600'}`}>
                                                 <input
@@ -398,7 +427,7 @@ export default function ProductFormModal({
                                                     onChange={(event) => updatePriceOption(index, 'is_active', event.target.checked)}
                                                     className="h-4 w-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
                                                 />
-                                                Aktif di kasir
+                                                Tampil di kasir
                                             </label>
                                             {option.id && !option.is_active && (
                                                 <button type="button" onClick={() => updatePriceOption(index, 'is_active', true)} className="ml-auto text-xs font-semibold text-indigo-600 hover:text-indigo-700">
@@ -415,9 +444,9 @@ export default function ProductFormModal({
                                     </p>
                                 )}
                             </div>
-                        </section>
+                        </section>}
 
-                        <div>
+                        <div className="order-2">
                             <label
                                 htmlFor="name"
                                 className="mb-1.5 block text-sm font-medium text-slate-700"
@@ -441,7 +470,7 @@ export default function ProductFormModal({
                             )}
                         </div>
 
-                        <div>
+                        <div className="order-3">
                             <label className="mb-1.5 block text-sm font-medium text-slate-700">
                                 Kategori <span className="text-rose-500">*</span>
                             </label>
@@ -460,8 +489,8 @@ export default function ProductFormModal({
                             )}
                         </div>
 
-                        <div className="rounded-xl border border-slate-200 bg-slate-50/60 p-4">
-                            <div className="mb-4 flex items-start gap-3">
+                        <div className="order-4 rounded-xl border border-slate-200 bg-slate-50/60 p-4">
+                            {showAdvanced && <div className="mb-4 flex items-start gap-3">
                                 <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-emerald-50 text-emerald-600 ring-1 ring-emerald-100">
                                     <i className="fi fi-rr-calculator" />
                                 </span>
@@ -473,10 +502,10 @@ export default function ProductFormModal({
                                         Keuntungan dihitung dari modal per item. Ubah persentase keuntungan untuk menghitung harga jual otomatis.
                                     </p>
                                 </div>
-                            </div>
+                            </div>}
 
-                            <div className="grid gap-4 sm:grid-cols-3">
-                                <div>
+                            <div className={`grid gap-4 ${showAdvanced ? 'sm:grid-cols-3' : ''}`}>
+                                {showAdvanced && <div>
                                     <label
                                         htmlFor="cost"
                                         className="mb-1.5 block text-sm font-medium text-slate-700"
@@ -495,14 +524,14 @@ export default function ProductFormModal({
                                     {errors.cost && (
                                         <p className="mt-1.5 text-sm text-red-600">{errors.cost}</p>
                                     )}
-                                </div>
+                                </div>}
 
                             <div>
                                 <label
                                     htmlFor="price"
                                     className="mb-1.5 block text-sm font-medium text-slate-700"
                                 >
-                                    Harga Jual (Rp) <span className="text-rose-500">*</span>
+                                    Harga jual (Rp) <span className="text-rose-500">*</span>
                                 </label>
                                 <MoneyInput
                                     id="price"
@@ -520,7 +549,7 @@ export default function ProductFormModal({
                                 )}
                             </div>
 
-                            <div>
+                            {showAdvanced && <div>
                                 <label
                                     htmlFor="margin_percentage"
                                     className="mb-1.5 block text-sm font-medium text-slate-700"
@@ -545,7 +574,7 @@ export default function ProductFormModal({
                                 {errors.margin_percentage && (
                                     <p className="mt-1.5 text-sm text-red-600">{errors.margin_percentage}</p>
                                 )}
-                            </div>
+                            </div>}
                             </div>
 
                             {Number(data.price) >= Number(data.cost) && Number(data.cost) > 0 && (
@@ -559,12 +588,12 @@ export default function ProductFormModal({
                             )}
                         </div>
 
-                        <div>
+                        <div className="order-5">
                             <label
                                 htmlFor="stock"
                                 className="mb-1.5 block text-sm font-medium text-slate-700"
                             >
-                                Stok (pcs)
+                                Stok awal (pcs)
                             </label>
                             <input
                                 id="stock"
@@ -572,6 +601,7 @@ export default function ProductFormModal({
                                 min="0"
                                 disabled={!data.track_stock}
                                 value={data.stock}
+                                onKeyDown={preventNegativeInput}
                                 onChange={(e) => setData('stock', e.target.value)}
                                 className="block w-full rounded-lg border border-slate-200 px-3 py-2.5 text-sm text-slate-900 placeholder-slate-400 focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-100 disabled:cursor-not-allowed disabled:bg-slate-50 disabled:text-slate-400"
                                 placeholder="0"
@@ -579,9 +609,25 @@ export default function ProductFormModal({
                             {errors.stock && (
                                 <p className="mt-1.5 text-sm text-red-600">{errors.stock}</p>
                             )}
+                            <p className="mt-1 text-xs text-slate-400">Stok dapat diperbarui lagi dari menu Stok.</p>
                         </div>
 
-                        <div className="space-y-2.5">
+                        <button
+                            type="button"
+                            aria-expanded={showAdvanced}
+                            aria-controls="product-advanced-settings"
+                            onClick={() => setShowAdvanced((value) => !value)}
+                            className="order-6 flex w-full items-center justify-between gap-3 rounded-xl border border-slate-200 p-4 text-left transition hover:bg-slate-50"
+                        >
+                            <span>
+                                <span className="block text-sm font-semibold text-slate-800">Pengaturan tambahan</span>
+                                <span className="mt-0.5 block text-xs text-slate-500">Modal, keuntungan, pilihan harga, status, dan resep bahan baku.</span>
+                            </span>
+                            <i className={`fi fi-rr-angle-small-down text-xl text-slate-400 transition ${showAdvanced ? 'rotate-180' : ''}`} />
+                        </button>
+
+                        {showAdvanced && <div id="product-advanced-settings" className="order-8 space-y-2.5 rounded-xl border border-slate-200 p-4">
+                            <p className="text-sm font-semibold text-slate-800">Status produk</p>
                             <label className="flex cursor-pointer items-center gap-2.5 text-sm text-slate-700">
                                 <input
                                     type="checkbox"
@@ -594,7 +640,7 @@ export default function ProductFormModal({
                                     }
                                     className="h-4 w-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
                                 />
-                                Produk ini menggunakan stok
+                                Catat stok produk ini
                             </label>
 
                             <label className="flex cursor-pointer items-center gap-2.5 text-sm text-slate-700">
@@ -606,15 +652,15 @@ export default function ProductFormModal({
                                     }
                                     className="h-4 w-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
                                 />
-                                Produk aktif dijual
+                                Tampilkan produk di kasir
                             </label>
-                        </div>
+                        </div>}
 
-                        <div className="border-t border-slate-100 pt-4">
+                        {showAdvanced && <div className="order-9 border-t border-slate-100 pt-4">
                             <div className="flex items-center justify-between gap-3">
                                 <div>
                                     <p className="text-sm font-semibold text-slate-800">
-                                        Resep Bahan Baku
+                                        Resep bahan baku
                                     </p>
                                     <p className="mt-0.5 text-xs text-slate-400">
                                         Opsional — bahan baku yang otomatis
@@ -624,7 +670,8 @@ export default function ProductFormModal({
                                 <button
                                     type="button"
                                     onClick={addIngredient}
-                                    className="flex shrink-0 items-center gap-1.5 rounded-lg border border-slate-200 px-3 py-2 text-xs font-semibold text-slate-600 transition hover:bg-slate-50"
+                                    disabled={!rawMaterialOptions.length}
+                                    className="flex shrink-0 items-center gap-1.5 rounded-lg border border-slate-200 px-3 py-2 text-xs font-semibold text-slate-600 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
                                 >
                                     <i className="fi fi-rr-add" />
                                     Tambah Bahan
@@ -711,7 +758,7 @@ export default function ProductFormModal({
                                     )}
                                 </div>
                             )}
-                        </div>
+                        </div>}
                     </div>
                 </Modal.Body>
 
@@ -731,7 +778,7 @@ export default function ProductFormModal({
                         {processing && (
                             <i className="fi fi-rr-spinner animate-spin" />
                         )}
-                        {isEdit ? 'Simpan Perubahan' : 'Tambah'}
+                        {isEdit ? 'Simpan perubahan' : 'Simpan produk'}
                     </button>
                 </Modal.Footer>
             </form>

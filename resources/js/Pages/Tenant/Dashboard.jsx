@@ -146,13 +146,13 @@ const tourSteps = [
         icon: 'fi-rr-cash-register',
         eyebrow: 'Langkah 3 dari 4',
         title: 'Coba satu transaksi',
-        description: 'Buka Kasir, mulai sesi kasir bila diminta, pilih produk, lalu selesaikan pembayaran seperti transaksi biasa.',
+        description: 'Buka Kasir, pilih produk, lalu selesaikan pembayaran. Sesi kasir dapat digunakan jika Anda ingin mencocokkan uang di laci.',
     },
     {
         icon: 'fi-rr-chart-histogram',
         eyebrow: 'Langkah 4 dari 4',
-        title: 'Dashboard terisi otomatis',
-        description: 'Setelah transaksi pertama selesai, ringkasan penjualan, tren, produk terlaris, dan metode pembayaran akan muncul di sini.',
+        title: 'Beranda terisi otomatis',
+        description: 'Setelah transaksi pertama selesai, ringkasan penjualan dan hal yang perlu diperhatikan akan muncul di sini. Rincian lain dapat dibuka saat diperlukan.',
     },
 ];
 
@@ -167,7 +167,7 @@ function OnboardingChecklist({ onboarding, onOpenTour, onCreateSample, samplePro
                         <div>
                             <p className="text-xs font-bold uppercase tracking-[.18em] text-indigo-300">Mulai dalam 3 langkah</p>
                             <h2 className="mt-2 text-2xl font-black tracking-tight">Siapkan toko untuk transaksi pertama</h2>
-                            <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-400">Ikuti urutan berikut. Dashboard lengkap akan tampil otomatis setelah transaksi pertama selesai.</p>
+                            <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-400">Ikuti urutan berikut. Ringkasan toko akan tampil otomatis setelah transaksi pertama selesai.</p>
                         </div>
                         <div className="shrink-0 text-left sm:text-right">
                             <p className="text-2xl font-black">{onboarding.completed_steps}/3</p>
@@ -252,6 +252,7 @@ export default function Dashboard({
     const [tourIndex, setTourIndex] = useState(0);
     const [sampleProcessing, setSampleProcessing] = useState(false);
     const [confirmSampleRemoval, setConfirmSampleRemoval] = useState(false);
+    const [showAnalysis, setShowAnalysis] = useState(false);
 
     useEffect(() => {
         if (!onboarding || window.localStorage.getItem('rancaka-onboarding-tour-seen')) return;
@@ -305,8 +306,8 @@ export default function Dashboard({
     };
 
     return (
-        <AdminLayout header="Dashboard">
-            <Head title="Dashboard" />
+        <AdminLayout header="Beranda">
+            <Head title="Beranda" />
 
             <div className="max-w-[1440px]">
                 <header className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
@@ -323,7 +324,7 @@ export default function Dashboard({
                             type="button"
                             onClick={refresh}
                             disabled={refreshing}
-                            aria-label="Perbarui dashboard"
+                            aria-label="Perbarui beranda"
                             className="flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-500 shadow-sm transition hover:border-slate-300 hover:text-slate-800 disabled:opacity-60"
                         >
                             <i className={`fi fi-rr-refresh ${refreshing ? 'animate-spin' : ''}`} />
@@ -399,8 +400,25 @@ export default function Dashboard({
                     {summary.map((item) => <SummaryCard key={item.key} item={item} />)}
                 </section>
 
-                <section className="mt-5 grid gap-4 lg:grid-cols-[minmax(0,1.85fr)_minmax(280px,0.8fr)]">
-                    <article className="min-w-0 rounded-2xl border border-slate-200/70 bg-white p-5 shadow-sm shadow-slate-200/40 sm:p-6">
+                <div className="mt-5 flex flex-col gap-3 rounded-2xl border border-slate-200/70 bg-white p-4 shadow-sm sm:flex-row sm:items-center sm:justify-between">
+                    <div>
+                        <p className="text-sm font-bold text-slate-800">Butuh rincian penjualan?</p>
+                        <p className="mt-0.5 text-xs text-slate-500">Buka tren, produk terlaris, dan komposisi pembayaran saat diperlukan.</p>
+                    </div>
+                    <button
+                        type="button"
+                        aria-expanded={showAnalysis}
+                        aria-controls="dashboard-sales-analysis"
+                        onClick={() => setShowAnalysis((value) => !value)}
+                        className="flex shrink-0 items-center justify-center gap-2 rounded-xl border border-indigo-200 px-4 py-2.5 text-sm font-bold text-indigo-600 transition hover:bg-indigo-50"
+                    >
+                        {showAnalysis ? 'Sembunyikan rincian' : 'Lihat rincian'}
+                        <i className={`fi fi-rr-angle-small-down text-lg transition ${showAnalysis ? 'rotate-180' : ''}`} />
+                    </button>
+                </div>
+
+                <section className={`mt-5 grid gap-4 ${showAnalysis ? 'lg:grid-cols-[minmax(0,1.85fr)_minmax(280px,0.8fr)]' : ''}`}>
+                    {showAnalysis && <article id="dashboard-sales-analysis" className="min-w-0 rounded-2xl border border-slate-200/70 bg-white p-5 shadow-sm shadow-slate-200/40 sm:p-6">
                         <div className="flex items-start justify-between gap-4">
                             <div>
                                 <p className="text-xs font-bold uppercase tracking-[0.14em] text-slate-400">Tren penjualan</p>
@@ -431,7 +449,7 @@ export default function Dashboard({
                                 </AreaChart>
                             </ResponsiveContainer>
                         </div>
-                    </article>
+                    </article>}
 
                     <aside className="rounded-2xl border border-slate-200/70 bg-white p-5 shadow-sm shadow-slate-200/40 sm:p-6">
                         <div className="flex items-center justify-between gap-3">
@@ -455,7 +473,7 @@ export default function Dashboard({
                     </aside>
                 </section>
 
-                <section className="mt-5 grid gap-4 lg:grid-cols-2">
+                {showAnalysis && <section className="mt-5 grid gap-4 lg:grid-cols-2">
                     <article className="rounded-2xl border border-slate-200/70 bg-white shadow-sm shadow-slate-200/40">
                         <div className="border-b border-slate-100 px-5 py-4 sm:px-6">
                             <p className="text-xs font-bold uppercase tracking-[0.14em] text-emerald-600">Produk terlaris</p>
@@ -493,7 +511,7 @@ export default function Dashboard({
                             ))}
                         </div>
                     </article>
-                </section>
+                </section>}
 
                 {capabilities.can_view_financial_report && (
                     <div className="mt-5 flex justify-end">

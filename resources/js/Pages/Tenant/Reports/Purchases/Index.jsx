@@ -30,6 +30,7 @@ function SectionHeader({ eyebrow, title, note, total }) {
 export default function Index({ filters, suppliers, periodLabel, summary, aging, supplierBreakdown, itemBreakdown, priceHistory, valuation, hpp }) {
     const [form, setForm] = useState(filters);
     const [tab, setTab] = useState('overview');
+    const [showFilters, setShowFilters] = useState(Boolean(filters.supplier_id || filters.item_type || filters.search));
     const activeTab = tabs.find(([key]) => key === tab);
     const set = (key, value) => setForm((current) => ({ ...current, [key]: value }));
     const apply = (event) => {
@@ -40,9 +41,11 @@ export default function Index({ filters, suppliers, periodLabel, summary, aging,
         const today = new Date();
         const empty = { start_date: inputDate(new Date(today.getFullYear(), today.getMonth(), 1)), end_date: inputDate(today), supplier_id: '', item_type: '', search: '' };
         setForm(empty);
+        setShowFilters(false);
         router.get(route('tenant.reports.purchases.index'), clean(empty), { preserveState: true, replace: true });
     };
     const exportUrl = useMemo(() => route('tenant.reports.purchases.export', { ...clean(filters), section: activeTab?.[2] || 'aging' }), [filters, activeTab]);
+    const activeFilterCount = [form.supplier_id, form.item_type, form.search].filter(Boolean).length;
     const summaryCards = [
         ['Total belanja stok', money(summary.purchase_total), `${summary.purchase_count} dokumen`, 'fi-rr-shopping-cart', 'text-indigo-700 bg-indigo-50'],
         ['Pembayaran ke pemasok', money(summary.supplier_payments), 'Kas keluar pada periode', 'fi-rr-money-bill-wave', 'text-sky-700 bg-sky-50'],
@@ -71,14 +74,17 @@ export default function Index({ filters, suppliers, periodLabel, summary, aging,
                 </header>
 
                 <form onSubmit={apply} className="rounded-2xl border border-slate-200/80 bg-white p-4 shadow-sm shadow-slate-200/40 print:hidden sm:p-5">
-                    <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-5">
+                    <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
                         <label><span className="text-xs font-bold text-slate-600">Mulai periode</span><input type="date" value={form.start_date} onChange={(event) => set('start_date', event.target.value)} className="mt-1.5 w-full rounded-xl border-slate-200 py-2.5 text-sm" /></label>
                         <label><span className="text-xs font-bold text-slate-600">Akhir periode</span><input type="date" value={form.end_date} onChange={(event) => set('end_date', event.target.value)} className="mt-1.5 w-full rounded-xl border-slate-200 py-2.5 text-sm" /></label>
+                        <button type="button" aria-expanded={showFilters} aria-controls="purchase-report-extra-filters" onClick={() => setShowFilters((value) => !value)} className="flex h-[42px] items-center justify-center gap-2 rounded-xl border border-slate-200 px-4 text-sm font-bold text-slate-600 hover:bg-slate-50 sm:ml-auto"><i className="fi fi-rr-settings-sliders" />Filter lainnya{activeFilterCount > 0 && <span className="rounded-full bg-indigo-100 px-2 py-0.5 text-xs text-indigo-700">{activeFilterCount}</span>}</button>
+                    </div>
+                    {showFilters && <div id="purchase-report-extra-filters" className="mt-4 grid gap-3 border-t border-slate-100 pt-4 md:grid-cols-3">
                         <label><span className="text-xs font-bold text-slate-600">Pemasok</span><Select value={form.supplier_id} onChange={(value) => set('supplier_id', value)} options={[{ value: '', label: 'Semua pemasok' }, ...suppliers.map((supplier) => ({ value: String(supplier.id), label: supplier.name }))]} className="mt-1.5" searchPlaceholder="Cari pemasok..." /></label>
                         <label><span className="text-xs font-bold text-slate-600">Jenis barang</span><Select value={form.item_type} onChange={(value) => set('item_type', value)} searchable={false} options={[{ value: '', label: 'Semua jenis' }, { value: 'product', label: 'Produk' }, { value: 'raw_material', label: 'Bahan baku' }]} className="mt-1.5" /></label>
                         <label><span className="text-xs font-bold text-slate-600">Cari barang</span><div className="relative mt-1.5"><i className="fi fi-rr-search pointer-events-none absolute left-3.5 top-3 text-sm text-slate-400" /><input value={form.search} onChange={(event) => set('search', event.target.value)} placeholder="Nama produk/bahan" className="w-full rounded-xl border-slate-200 py-2.5 pl-10 text-sm" /></div></label>
-                    </div>
-                    <p className="mt-3 text-[11px] leading-5 text-slate-500">Pilihan pemasok memengaruhi belanja stok, pembayaran, dan aging. Jenis barang memengaruhi belanja stok barang, harga, dan valuasi; pencarian nama juga menyaring Modal per item penjualan.</p>
+                    </div>}
+                    {showFilters && <p className="mt-3 text-[11px] leading-5 text-slate-500">Pemasok, jenis barang, dan pencarian akan diterapkan ke bagian laporan yang berkaitan.</p>}
                     <div className="mt-4 flex justify-end gap-2 border-t border-slate-100 pt-4"><button type="button" onClick={reset} className="rounded-xl px-4 py-2.5 text-sm font-bold text-slate-600 hover:bg-slate-100">Reset</button><button className="rounded-xl bg-slate-950 px-5 py-2.5 text-sm font-bold text-white hover:bg-slate-800">Terapkan</button></div>
                 </form>
 

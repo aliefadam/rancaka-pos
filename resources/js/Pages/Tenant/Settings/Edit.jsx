@@ -10,6 +10,29 @@ import {
 import { Head, useForm } from '@inertiajs/react';
 import { useEffect, useRef, useState } from 'react';
 
+const businessTypes = [
+    { value: 'retail', label: 'Toko / retail' },
+    { value: 'food_beverage', label: 'Makanan & minuman' },
+    { value: 'service', label: 'Jasa' },
+    { value: 'other', label: 'Usaha lainnya' },
+];
+
+const optionalModules = [
+    { key: 'inventory', label: 'Stok lanjutan', description: 'Bahan baku, cek stok, dan pindah stok.' },
+    { key: 'purchases', label: 'Belanja & pemasok', description: 'Belanja stok, hutang, pemasok, dan laporannya.' },
+    { key: 'expenses', label: 'Biaya operasional', description: 'Pencatatan uang keluar untuk operasional.' },
+    { key: 'credit', label: 'Penjualan bon', description: 'Piutang pelanggan dan pembayaran bon.' },
+    { key: 'reports', label: 'Untung-rugi', description: 'Laporan keuangan dan analisis penjualan.' },
+    { key: 'team', label: 'Karyawan & akses', description: 'Akun karyawan dan pengaturan akses.' },
+];
+
+const modulePresets = {
+    retail: ['inventory', 'purchases', 'expenses', 'credit', 'reports'],
+    food_beverage: ['inventory', 'purchases', 'expenses', 'reports'],
+    service: ['expenses', 'credit', 'reports'],
+    other: ['expenses', 'reports'],
+};
+
 export default function Edit({ tenant }) {
     const toast = useToast();
     const fileInputRef = useRef(null);
@@ -30,6 +53,9 @@ export default function Edit({ tenant }) {
         auto_print_receipt: Boolean(tenant.auto_print_receipt),
         tax_percentage: tenant.tax_percentage ?? 0,
         service_charge_percentage: tenant.service_charge_percentage ?? 0,
+        business_type: tenant.business_type ?? 'retail',
+        interface_mode: tenant.interface_mode ?? 'complete',
+        enabled_modules: tenant.enabled_modules ?? modulePresets[tenant.business_type ?? 'retail'],
     });
 
     transform((data) => ({ ...data, _method: 'put' }));
@@ -94,6 +120,32 @@ export default function Edit({ tenant }) {
                     'Gagal menyimpan pengaturan. Periksa kembali data yang dimasukkan.',
                 ),
         });
+    };
+
+    const changeBusinessType = (value) => {
+        setData((current) => ({
+            ...current,
+            business_type: value,
+            enabled_modules: current.interface_mode === 'simple'
+                ? modulePresets[value]
+                : current.enabled_modules,
+        }));
+    };
+
+    const changeInterfaceMode = (value) => {
+        setData((current) => ({
+            ...current,
+            interface_mode: value,
+            enabled_modules: value === 'simple'
+                ? modulePresets[current.business_type]
+                : current.enabled_modules,
+        }));
+    };
+
+    const toggleModule = (module) => {
+        setData('enabled_modules', data.enabled_modules.includes(module)
+            ? data.enabled_modules.filter((item) => item !== module)
+            : [...data.enabled_modules, module]);
     };
 
     return (
@@ -208,6 +260,53 @@ export default function Edit({ tenant }) {
                                 </p>
                             )}
                         </div>
+                    </div>
+                </section>
+
+                <section className="rounded-2xl border border-slate-200/70 bg-white p-6 shadow-sm shadow-slate-200/40">
+                    <h2 className="text-base font-semibold text-slate-900">Tampilan &amp; fitur usaha</h2>
+                    <p className="mt-1 text-sm text-slate-500">Atur menu agar sesuai dengan pekerjaan yang paling sering dilakukan.</p>
+
+                    <div className="mt-5 grid gap-4 sm:grid-cols-2">
+                        <label>
+                            <span className="mb-1.5 block text-sm font-medium text-slate-700">Jenis usaha</span>
+                            <Select value={data.business_type} onChange={changeBusinessType} options={businessTypes} searchable={false} />
+                            {errors.business_type && <p className="mt-1.5 text-sm text-rose-600">{errors.business_type}</p>}
+                        </label>
+                        <div>
+                            <span className="mb-1.5 block text-sm font-medium text-slate-700">Mode tampilan</span>
+                            <div className="grid grid-cols-2 gap-2 rounded-xl bg-slate-100 p-1">
+                                {[
+                                    ['simple', 'Sederhana'],
+                                    ['complete', 'Lengkap'],
+                                ].map(([value, label]) => (
+                                    <button key={value} type="button" aria-pressed={data.interface_mode === value} onClick={() => changeInterfaceMode(value)} className={`rounded-lg px-3 py-2.5 text-sm font-semibold transition ${data.interface_mode === value ? 'bg-white text-indigo-700 shadow-sm' : 'text-slate-500 hover:text-slate-800'}`}>{label}</button>
+                                ))}
+                            </div>
+                            {errors.interface_mode && <p className="mt-1.5 text-sm text-rose-600">{errors.interface_mode}</p>}
+                        </div>
+                    </div>
+
+                    <div className="mt-5 rounded-xl border border-slate-200 p-4">
+                        <div className="flex items-start gap-3">
+                            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-indigo-50 text-indigo-600"><i className="fi fi-rr-apps" /></span>
+                            <div>
+                                <p className="text-sm font-semibold text-slate-800">Modul tambahan</p>
+                                <p className="mt-0.5 text-xs leading-5 text-slate-500">Mode Lengkap menampilkan semua modul. Pada Mode Sederhana, pilih hanya yang dibutuhkan.</p>
+                            </div>
+                        </div>
+                        <div className="mt-4 grid gap-2 sm:grid-cols-2">
+                            {optionalModules.map((module) => {
+                                const checked = data.interface_mode === 'complete' || data.enabled_modules.includes(module.key);
+                                return (
+                                    <label key={module.key} className={`flex items-start gap-3 rounded-xl border p-3 ${checked ? 'border-indigo-100 bg-indigo-50/50' : 'border-slate-200'}`}>
+                                        <input type="checkbox" checked={checked} disabled={data.interface_mode === 'complete'} onChange={() => toggleModule(module.key)} className="mt-0.5 rounded border-slate-300 text-indigo-600" />
+                                        <span><span className="block text-sm font-semibold text-slate-700">{module.label}</span><span className="mt-0.5 block text-xs leading-5 text-slate-500">{module.description}</span></span>
+                                    </label>
+                                );
+                            })}
+                        </div>
+                        {errors.enabled_modules && <p className="mt-2 text-sm text-rose-600">{errors.enabled_modules}</p>}
                     </div>
                 </section>
 

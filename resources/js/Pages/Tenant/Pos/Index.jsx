@@ -9,14 +9,15 @@ import { Dialog, Transition } from '@headlessui/react';
 import { Head, router, useForm, usePage } from '@inertiajs/react';
 import { Fragment, useEffect, useMemo, useRef, useState } from 'react';
 
-const cartStorageKey = (shiftId) => `pos-cart-draft:${shiftId}`;
+const cartStorageKey = (scope) => `pos-cart-draft:${scope}`;
 
-function restoreCartDraft(activeShift, products) {
-    if (!activeShift || typeof window === 'undefined') return null;
+function restoreCartDraft(activeShift, products, tenantId) {
+    if (typeof window === 'undefined') return null;
 
     try {
+        const scope = activeShift?.id ?? `tenant-${tenantId}-without-shift`;
         const saved = JSON.parse(
-            window.localStorage.getItem(cartStorageKey(activeShift.id)),
+            window.localStorage.getItem(cartStorageKey(scope)),
         );
 
         if (!saved || !Array.isArray(saved.items)) return null;
@@ -205,8 +206,8 @@ export default function Index({
     const toast = useToast();
     const { flash, impersonation } = usePage().props;
     const restoredDraft = useMemo(
-        () => restoreCartDraft(activeShift, products),
-        [activeShift, products],
+        () => restoreCartDraft(activeShift, products, storeSettings.id),
+        [activeShift, products, storeSettings.id],
     );
 
     const [search, setSearch] = useState('');
@@ -231,6 +232,7 @@ export default function Index({
     const [creditInitialPayment, setCreditInitialPayment] = useState('0');
     const [processing, setProcessing] = useState(false);
     const [closeShiftOpen, setCloseShiftOpen] = useState(false);
+    const [openShiftPanel, setOpenShiftPanel] = useState(false);
     const [heldPanelOpen, setHeldPanelOpen] = useState(false);
     const [mobileCartOpen, setMobileCartOpen] = useState(false);
     const [clearCartConfirmOpen, setClearCartConfirmOpen] = useState(false);
@@ -295,11 +297,12 @@ export default function Index({
     }, [flash?.bridge_receipt_url, storeSettings.auto_print_receipt]);
 
     useEffect(() => {
-        if (!activeShift || typeof window === 'undefined') return;
+        if (typeof window === 'undefined') return;
 
         try {
+            const scope = activeShift?.id ?? `tenant-${storeSettings.id}-without-shift`;
             window.localStorage.setItem(
-                cartStorageKey(activeShift.id),
+                cartStorageKey(scope),
                 JSON.stringify({
                     items: cart,
                     paymentMethod,
@@ -320,6 +323,7 @@ export default function Index({
         discountType,
         discountValue,
         paymentMethod,
+        storeSettings.id,
     ]);
 
     const filteredProducts = useMemo(() => {
@@ -398,9 +402,10 @@ export default function Index({
     }, [discountType, discountValue, subtotal]);
 
     const clearCart = () => {
-        if (activeShift && typeof window !== 'undefined') {
+        if (typeof window !== 'undefined') {
             try {
-                window.localStorage.removeItem(cartStorageKey(activeShift.id));
+                const scope = activeShift?.id ?? `tenant-${storeSettings.id}-without-shift`;
+                window.localStorage.removeItem(cartStorageKey(scope));
             } catch {
                 // Abaikan jika penyimpanan browser tidak tersedia.
             }
@@ -706,74 +711,6 @@ export default function Index({
 
     const cartCount = cart.reduce((sum, item) => sum + item.quantity, 0);
 
-    if (!activeShift) {
-        return (
-            <AdminLayout header="Transaksi Baru">
-                <Head title="Transaksi Baru" />
-
-                <h2 className="text-2xl font-bold text-slate-900">
-                    Transaksi Baru
-                </h2>
-                <p className="mt-1 text-sm text-slate-500">
-                    Pilih produk lalu proses pembayaran.
-                </p>
-
-                <div className="flex items-center justify-center py-10">
-                    <div className="w-full max-w-md rounded-2xl border border-slate-200/70 bg-white p-8 text-center shadow-sm shadow-slate-200/40">
-                        <span className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-indigo-50 text-2xl text-indigo-600">
-                            <i className="fi fi-rr-cash-register" />
-                        </span>
-                        <h3 className="mt-5 text-lg font-bold text-slate-900">
-                            Mulai Sesi Kasir Dulu
-                        </h3>
-                        <p className="mt-2 text-sm text-slate-500">
-                            Masukkan jumlah uang di laci sebelum mulai
-                            bertransaksi.
-                        </p>
-
-                        <form
-                            onSubmit={submitOpenShift}
-                            className="mt-6 text-left"
-                        >
-                            <label
-                                htmlFor="opening_cash"
-                                className="mb-1.5 block text-sm font-medium text-slate-700"
-                            >
-                                Uang di Laci Saat Mulai (Rp)
-                            </label>
-                            <MoneyInput
-                                id="opening_cash"
-                                min="0"
-                                value={openShiftForm.data.opening_cash}
-                                onValueChange={(value) => openShiftForm.setData('opening_cash', value)}
-                                placeholder="0"
-                                className="block w-full rounded-lg border border-slate-200 px-3 py-2.5 text-sm text-slate-900 placeholder-slate-400 focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-100"
-                            />
-                            {openShiftForm.errors.opening_cash && (
-                                <p className="mt-1.5 text-sm text-red-600">
-                                    {openShiftForm.errors.opening_cash}
-                                </p>
-                            )}
-
-                            <button
-                                type="submit"
-                                disabled={openShiftForm.processing}
-                                className="mt-5 flex w-full items-center justify-center gap-2 rounded-xl bg-indigo-600 px-4 py-3 text-sm font-semibold text-white shadow-sm shadow-indigo-200 transition hover:bg-indigo-700 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-70"
-                            >
-                                {openShiftForm.processing ? (
-                                    <i className="fi fi-rr-spinner animate-spin" />
-                                ) : (
-                                    <i className="fi fi-rr-unlock" />
-                                )}
-                                Mulai Sesi Kasir
-                            </button>
-                        </form>
-                    </div>
-                </div>
-            </AdminLayout>
-        );
-    }
-
     const cartPanelProps = {
         items: cart,
         onIncrement: incrementQty,
@@ -913,15 +850,22 @@ export default function Index({
             <div className="flex flex-col gap-6 lg:flex-row lg:items-start">
                 <div className="min-w-0 flex-1">
                     <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
-                        <span
-                            className="flex min-w-0 items-center gap-2 text-xs font-semibold text-emerald-700"
-                            title={`Sesi Kasir aktif sejak ${formatDateTime(activeShift.opened_at)}`}
-                        >
-                            <span className="h-2 w-2 shrink-0 rounded-full bg-emerald-500 ring-4 ring-emerald-100" />
-                            <span className="truncate">
-                                Sesi Kasir aktif · {formatDateTime(activeShift.opened_at)}
+                        {activeShift ? (
+                            <span
+                                className="flex min-w-0 items-center gap-2 text-xs font-semibold text-emerald-700"
+                                title={`Sesi kasir aktif sejak ${formatDateTime(activeShift.opened_at)}`}
+                            >
+                                <span className="h-2 w-2 shrink-0 rounded-full bg-emerald-500 ring-4 ring-emerald-100" />
+                                <span className="truncate">
+                                    Sesi kasir aktif · {formatDateTime(activeShift.opened_at)}
+                                </span>
                             </span>
-                        </span>
+                        ) : (
+                            <span className="flex min-w-0 items-center gap-2 text-xs font-semibold text-slate-600">
+                                <span className="h-2 w-2 shrink-0 rounded-full bg-slate-400 ring-4 ring-slate-100" />
+                                Berjualan tanpa sesi kasir
+                            </span>
+                        )}
                         <div className="flex items-center gap-1.5">
                             <button
                                 type="button"
@@ -936,16 +880,46 @@ export default function Index({
                                     </span>
                                 )}
                             </button>
-                            <button
-                                type="button"
-                                onClick={() => setCloseShiftOpen(true)}
-                                className="flex h-8 items-center gap-1.5 rounded-lg border border-rose-200 bg-white px-2.5 text-xs font-semibold text-rose-600 transition hover:bg-rose-50 active:scale-95"
-                            >
-                                <i className="fi fi-rr-power" />
-                                Tutup Sesi Kasir
-                            </button>
+                            {activeShift ? (
+                                <button
+                                    type="button"
+                                    onClick={() => setCloseShiftOpen(true)}
+                                    className="flex h-8 items-center gap-1.5 rounded-lg border border-rose-200 bg-white px-2.5 text-xs font-semibold text-rose-600 transition hover:bg-rose-50 active:scale-95"
+                                >
+                                    <i className="fi fi-rr-power" />
+                                    Tutup sesi
+                                </button>
+                            ) : (
+                                <button
+                                    type="button"
+                                    aria-expanded={openShiftPanel}
+                                    aria-controls="open-shift-panel"
+                                    onClick={() => setOpenShiftPanel((value) => !value)}
+                                    className="flex h-8 items-center gap-1.5 rounded-lg border border-indigo-200 bg-white px-2.5 text-xs font-semibold text-indigo-600 transition hover:bg-indigo-50 active:scale-95"
+                                >
+                                    <i className="fi fi-rr-unlock" />
+                                    Mulai sesi
+                                </button>
+                            )}
                         </div>
                     </div>
+
+                    {!activeShift && openShiftPanel && (
+                        <form id="open-shift-panel" onSubmit={submitOpenShift} className="mb-4 rounded-xl border border-indigo-100 bg-indigo-50/60 p-4">
+                            <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
+                                <div className="min-w-0 flex-1">
+                                    <label htmlFor="opening_cash" className="mb-1.5 block text-xs font-semibold text-slate-700">Uang di laci saat mulai (Rp)</label>
+                                    <MoneyInput id="opening_cash" min="0" value={openShiftForm.data.opening_cash} onValueChange={(value) => openShiftForm.setData('opening_cash', value)} placeholder="0" className="block w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-900 focus:border-indigo-400 focus:ring-indigo-100" />
+                                    {openShiftForm.errors.opening_cash && <p className="mt-1 text-xs text-rose-600">{openShiftForm.errors.opening_cash}</p>}
+                                </div>
+                                <button type="submit" disabled={openShiftForm.processing} className="flex h-[42px] items-center justify-center gap-2 rounded-lg bg-indigo-600 px-4 text-sm font-semibold text-white disabled:opacity-60">
+                                    {openShiftForm.processing && <i className="fi fi-rr-spinner animate-spin" />}
+                                    Mulai sesi kasir
+                                </button>
+                            </div>
+                            <p className="mt-2 text-xs text-slate-500">Opsional. Gunakan sesi jika Anda ingin mencocokkan uang kas saat toko tutup.</p>
+                        </form>
+                    )}
 
                     <div
                         className={`sticky ${impersonation ? 'top-[6.5rem]' : 'top-16'} z-10 -mx-4 bg-slate-50/95 px-4 pb-3 pt-1 backdrop-blur-xl sm:-mx-6 sm:px-6 lg:static lg:z-auto lg:mx-0 lg:bg-transparent lg:p-0 lg:backdrop-blur-none`}

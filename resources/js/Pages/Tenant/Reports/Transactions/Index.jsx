@@ -81,6 +81,9 @@ export default function Index({ transactions, paymentSummary, filters, limitedTo
     const [dateTo, setDateTo] = useState(filters.date_to ?? filters.date ?? '');
     const [status, setStatus] = useState(filters.status ?? '');
     const [paymentMethod, setPaymentMethod] = useState(filters.payment_method ?? '');
+    const [showFilters, setShowFilters] = useState(Boolean(
+        filters.date_from || filters.date_to || filters.status || filters.payment_method,
+    ));
     const [refreshing, setRefreshing] = useState(false);
     const [detailTransaction, setDetailTransaction] = useState(null);
     const [selected, setSelected] = useState([]);
@@ -148,6 +151,19 @@ export default function Index({ transactions, paymentSummary, filters, limitedTo
             only: ['transactions', 'paymentSummary'],
             onFinish: () => setRefreshing(false),
         });
+    };
+
+    const activeFilterCount = [
+        ...(!limitedToOwnToday ? [dateFrom, dateTo] : []),
+        status,
+        paymentMethod,
+    ].filter(Boolean).length;
+    const resetFilters = () => {
+        setDateFrom('');
+        setDateTo('');
+        setStatus('');
+        setPaymentMethod('');
+        setShowFilters(false);
     };
 
     const toggleSelected = (id) => setSelected((current) => current.includes(id) ? current.filter((item) => item !== id) : [...current, id]);
@@ -251,8 +267,9 @@ export default function Index({ transactions, paymentSummary, filters, limitedTo
             <OutletScopeFilter scope={outletScope} onChange={changeScope} className="mb-5" />
 
             <div className="rounded-2xl border border-slate-200/70 bg-white shadow-sm shadow-slate-200/40">
-                <div className="flex flex-col gap-3 border-b border-slate-100 p-5 sm:flex-row sm:items-center sm:p-6">
-                    <div className="relative w-full sm:max-w-xs">
+                <div className="border-b border-slate-100 p-5 sm:p-6">
+                    <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+                    <div className="relative w-full sm:max-w-md">
                         <span className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3.5 text-slate-400">
                             <i className="fi fi-rr-search" />
                         </span>
@@ -265,6 +282,20 @@ export default function Index({ transactions, paymentSummary, filters, limitedTo
                         />
                     </div>
 
+                    <button
+                        type="button"
+                        aria-expanded={showFilters}
+                        aria-controls="transaction-extra-filters"
+                        onClick={() => setShowFilters((value) => !value)}
+                        className="flex h-[42px] items-center justify-center gap-2 rounded-lg border border-slate-200 px-3.5 text-sm font-semibold text-slate-600 hover:bg-slate-50 sm:ml-auto"
+                    >
+                        <i className="fi fi-rr-settings-sliders" />
+                        Filter lainnya
+                        {activeFilterCount > 0 && <span className="rounded-full bg-indigo-100 px-2 py-0.5 text-xs font-bold text-indigo-700">{activeFilterCount}</span>}
+                    </button>
+                    </div>
+
+                    {showFilters && <div id="transaction-extra-filters" className="mt-4 grid gap-3 border-t border-slate-100 pt-4 sm:grid-cols-2 lg:grid-cols-4">
                     {!limitedToOwnToday && (
                         <div className="grid w-full grid-cols-2 gap-2 sm:w-auto">
                             <label className="relative">
@@ -306,6 +337,8 @@ export default function Index({ transactions, paymentSummary, filters, limitedTo
                         placeholder="Semua Pembayaran"
                         className="w-full sm:w-48"
                     />
+                    <button type="button" onClick={resetFilters} disabled={activeFilterCount === 0} className="h-[42px] rounded-lg px-3.5 text-sm font-semibold text-slate-600 hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-40">Hapus filter</button>
+                    </div>}
                 </div>
 
                 <section className="border-b border-slate-100 bg-slate-50/70 px-5 py-4 sm:px-6" aria-label="Ringkasan metode pembayaran">
