@@ -340,7 +340,7 @@ export default function CartPanel({
                     {paymentMethod === 'credit' && (
                         <div className="space-y-3 rounded-xl border border-amber-200 bg-amber-50/70 p-3">
                             <div>
-                                <label className="mb-1.5 block text-xs font-bold text-amber-900">Nama pemilik hutang</label>
+                                <label className="mb-1.5 block text-xs font-bold text-amber-900">Nama owner hutang</label>
                                 <Select
                                     value={creditCustomerName}
                                     onChange={onCreditCustomerNameChange}

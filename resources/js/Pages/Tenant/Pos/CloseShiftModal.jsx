@@ -56,7 +56,7 @@ export default function CloseShiftModal({ show, onClose, summary, heldCount = 0 
             <form onSubmit={submit} className="flex min-h-0 flex-1 flex-col">
                 <Modal.Header>
                     <h2 className="text-lg font-semibold text-slate-900">
-                        Tutup Shift
+                        Tutup Sesi Kasir
                     </h2>
                 </Modal.Header>
 
@@ -64,7 +64,7 @@ export default function CloseShiftModal({ show, onClose, summary, heldCount = 0 
                     <div className="space-y-4">
                         <p className="text-sm text-slate-500">
                             Hitung uang di laci kas Anda dan masukkan
-                            jumlahnya untuk menutup shift ini.
+                            jumlahnya untuk menutup sesi kasir ini.
                         </p>
 
                         {heldCount > 0 && (
@@ -73,7 +73,7 @@ export default function CloseShiftModal({ show, onClose, summary, heldCount = 0 
                                     <i className="fi fi-sr-triangle-warning mt-0.5 text-amber-600" />
                                     <div>
                                         <p className="font-bold">
-                                            Shift belum dapat ditutup
+                                            Sesi Kasir belum dapat ditutup
                                         </p>
                                         <p className="mt-1 text-xs leading-5 text-amber-800">
                                             Masih ada {heldCount} transaksi
@@ -125,7 +125,7 @@ export default function CloseShiftModal({ show, onClose, summary, heldCount = 0 
                                     <span className="font-medium text-slate-800">{formatRupiah(summary.online_sales)}</span>
                                 </div>
                                 <div className="flex items-center justify-between">
-                                    <span className="text-slate-500">Penjualan Kredit</span>
+                                    <span className="text-slate-500">Penjualan Bon</span>
                                     <span className="font-medium text-slate-800">{formatRupiah(summary.credit_sales)}</span>
                                 </div>
                                 <div className="flex items-center justify-between rounded-lg bg-emerald-50 px-2 py-1.5">
@@ -306,7 +306,7 @@ export default function CloseShiftModal({ show, onClose, summary, heldCount = 0 
                             ? 'Selesaikan Transaksi Ditahan'
                             : hasFinancialSummary && !isCashMatched
                               ? 'Cocokkan atau Bulatkan Kas'
-                              : 'Tutup Shift'}
+                              : 'Tutup Sesi Kasir'}
                     </button>
                 </Modal.Footer>
             </form>

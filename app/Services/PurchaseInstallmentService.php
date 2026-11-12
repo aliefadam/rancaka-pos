@@ -23,7 +23,7 @@ class PurchaseInstallmentService
 
             if ($purchase->document_status !== 'posted' || $purchase->payment_term !== 'installment') {
                 throw ValidationException::withMessages([
-                    'installments' => 'Jadwal hanya dapat direvisi untuk pembelian cicilan yang masih aktif.',
+                    'installments' => 'Jadwal hanya dapat direvisi untuk belanja stok cicilan yang masih aktif.',
                 ]);
             }
 
@@ -36,7 +36,7 @@ class PurchaseInstallmentService
                 throw ValidationException::withMessages(['installments' => 'Termin yang sama tidak boleh dikirim lebih dari sekali.']);
             }
             if ($submittedIds->contains(fn ($id) => ! $existingById->has($id))) {
-                throw ValidationException::withMessages(['installments' => 'Terdapat termin yang bukan milik pembelian ini.']);
+                throw ValidationException::withMessages(['installments' => 'Terdapat termin yang bukan milik belanja stok ini.']);
             }
 
             $omittedPaid = $installments->first(fn (PurchaseInstallment $item) => $item->paid_amount > 0 && ! $submittedIds->contains($item->id));

@@ -202,7 +202,7 @@ export default function TenantFormModal({ show, onClose, tenant }) {
                         {!isEdit && (
                             <div className="space-y-4 border-t border-slate-100 pt-4">
                                 <p className="text-xs font-semibold uppercase tracking-wider text-slate-400">
-                                    Akun Login Owner
+                                    Akun Login Pemilik
                                 </p>
 
                                 <div>
@@ -210,7 +210,7 @@ export default function TenantFormModal({ show, onClose, tenant }) {
                                         htmlFor="owner_username"
                                         className="mb-1.5 block text-sm font-medium text-slate-700"
                                     >
-                                        Username Owner
+                                        Username Pemilik
                                     </label>
                                     <input
                                         id="owner_username"
@@ -237,7 +237,7 @@ export default function TenantFormModal({ show, onClose, tenant }) {
                                         htmlFor="owner_password"
                                         className="mb-1.5 block text-sm font-medium text-slate-700"
                                     >
-                                        Password Owner
+                                        Password Pemilik
                                     </label>
                                     <input
                                         id="owner_password"

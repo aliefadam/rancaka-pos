@@ -583,7 +583,7 @@ export default function Index({ tenants, filters }) {
                 }}
                 onConfirm={confirmResetPassword}
                 processing={resettingPassword}
-                title="Reset Password Owner"
+                title="Reset Password Pemilik"
                 message={
                     resetPasswordTarget &&
                     `Password owner tenant "${resetPasswordTarget.name}" akan diubah menjadi 123123123.`

@@ -119,7 +119,7 @@ export default function StockInModal({
                                 onChange={(e) =>
                                     setData('note', e.target.value)
                                 }
-                                placeholder="Contoh: Restock dari supplier"
+                                placeholder="Contoh: Restock dari pemasok"
                                 className="block w-full resize-none rounded-lg border border-slate-200 px-3 py-2.5 text-sm text-slate-900 placeholder-slate-400 focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-100"
                             />
                             {errors.note && (

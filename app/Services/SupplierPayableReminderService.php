@@ -49,9 +49,9 @@ class SupplierPayableReminderService
                     }
 
                     $title = match (true) {
-                        $overdue => 'Hutang supplier terlambat',
-                        $dueDate->isToday() => 'Hutang supplier jatuh tempo hari ini',
-                        default => 'Hutang supplier jatuh tempo besok',
+                        $overdue => 'Hutang ke pemasok terlambat',
+                        $dueDate->isToday() => 'Hutang ke pemasok jatuh tempo hari ini',
+                        default => 'Hutang ke pemasok jatuh tempo besok',
                     };
 
                     $owner->notify(new SupplierPayableNotification([

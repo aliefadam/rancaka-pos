@@ -35,7 +35,7 @@ class RoleController extends Controller
 
         $request->user()->tenant->roles()->create($validated);
 
-        return redirect()->route('tenant.roles.index')->with('success', 'Role berhasil ditambahkan.');
+        return redirect()->route('tenant.roles.index')->with('success', 'Kelompok akses berhasil ditambahkan.');
     }
 
     public function update(Request $request, Role $role): RedirectResponse
@@ -46,7 +46,7 @@ class RoleController extends Controller
 
         $role->update($validated);
 
-        return redirect()->route('tenant.roles.index')->with('success', 'Role berhasil diperbarui.');
+        return redirect()->route('tenant.roles.index')->with('success', 'Kelompok akses berhasil diperbarui.');
     }
 
     public function destroy(Request $request, Role $role): RedirectResponse
@@ -55,7 +55,7 @@ class RoleController extends Controller
 
         $role->delete();
 
-        return redirect()->route('tenant.roles.index')->with('success', 'Role berhasil dihapus.');
+        return redirect()->route('tenant.roles.index')->with('success', 'Kelompok akses berhasil dihapus.');
     }
 
     private function authorizeTenant(Request $request, Role $role): void

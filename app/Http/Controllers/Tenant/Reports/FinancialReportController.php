@@ -419,7 +419,7 @@ class FinancialReportController extends Controller
     private function chartMeta(string $granularity, string $periodLabel): array
     {
         [$title, $subtitle, $granularityLabel] = match ($granularity) {
-            'hourly' => ['Arus Keuangan per Jam', 'Pendapatan dan pengeluaran sepanjang hari', 'Jam'],
+            'hourly' => ['Arus Keuangan per Jam', 'Uang masuk dan biaya sepanjang hari', 'Jam'],
             'monthly' => ['Arus Keuangan Bulanan', 'Ringkasan setiap bulan pada periode terpilih', 'Bulan'],
             default => ['Arus Keuangan Harian', 'Ringkasan setiap tanggal pada periode terpilih', 'Tanggal'],
         };

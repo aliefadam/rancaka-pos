@@ -179,7 +179,7 @@ class ExpenseManagementTest extends TestCase
                 'receipt' => UploadedFile::fake()->create('nota.pdf', 100, 'application/pdf'),
             ])
             ->assertSessionHasErrors([
-                'expense_date' => 'Tanggal pengeluaran tidak boleh melewati hari ini.',
+                'expense_date' => 'Tanggal biaya tidak boleh melewati hari ini.',
             ]);
 
         $this->assertDatabaseCount('expenses', 0);
@@ -202,7 +202,7 @@ class ExpenseManagementTest extends TestCase
                 'description' => 'Diubah ke masa depan',
             ])
             ->assertSessionHasErrors([
-                'expense_date' => 'Tanggal pengeluaran tidak boleh melewati hari ini.',
+                'expense_date' => 'Tanggal biaya tidak boleh melewati hari ini.',
             ]);
 
         $this->assertSame(today()->toDateString(), $expense->fresh()->expense_date->toDateString());

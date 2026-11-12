@@ -29,10 +29,10 @@ export default function Show({ creditSale }) {
     };
 
     return (
-        <AdminLayout header="Detail Penjualan Kredit">
+        <AdminLayout header="Detail Penjualan Bon">
             <Head title={`Hutang ${creditSale.customer.name}`} />
             <Breadcrumb items={[
-                { label: 'Penjualan Kredit', href: route('tenant.credit-sales.index') },
+                { label: 'Penjualan Bon', href: route('tenant.credit-sales.index') },
                 { label: creditSale.transaction.invoice_number },
             ]} />
 

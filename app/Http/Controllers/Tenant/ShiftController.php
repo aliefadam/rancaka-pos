@@ -25,7 +25,7 @@ class ShiftController extends Controller
         $tenantId = $request->user()->tenant_id;
 
         if (Shift::where('tenant_id', $tenantId)->whereNull('closed_at')->exists()) {
-            return redirect()->route('tenant.pos.index')->with('error', 'Shift sudah dibuka.');
+            return redirect()->route('tenant.pos.index')->with('error', 'Sesi kasir sudah dimulai.');
         }
 
         Shift::create([
@@ -35,7 +35,7 @@ class ShiftController extends Controller
             'opened_at' => now(),
         ]);
 
-        return redirect()->route('tenant.pos.index')->with('success', 'Shift berhasil dibuka.');
+        return redirect()->route('tenant.pos.index')->with('success', 'Sesi kasir berhasil dimulai.');
     }
 
     public function close(Request $request): RedirectResponse
@@ -61,7 +61,7 @@ class ShiftController extends Controller
 
             if ($heldCount > 0) {
                 throw ValidationException::withMessages([
-                    'closing_cash' => "Shift tidak dapat ditutup karena masih ada {$heldCount} transaksi ditahan. Selesaikan atau batalkan transaksi tersebut terlebih dahulu.",
+                    'closing_cash' => "Sesi kasir tidak dapat ditutup karena masih ada {$heldCount} transaksi ditahan. Selesaikan atau batalkan transaksi tersebut terlebih dahulu.",
                 ]);
             }
 
@@ -100,6 +100,6 @@ class ShiftController extends Controller
             ]);
         });
 
-        return redirect()->route('tenant.pos.index')->with('success', 'Shift berhasil ditutup.');
+        return redirect()->route('tenant.pos.index')->with('success', 'Sesi kasir berhasil ditutup.');
     }
 }

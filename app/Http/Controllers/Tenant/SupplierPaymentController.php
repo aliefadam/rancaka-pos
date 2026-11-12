@@ -39,7 +39,7 @@ class SupplierPaymentController extends Controller
         }
 
         return back()
-            ->with('success', 'Pembayaran supplier berhasil dicatat.')
+            ->with('success', 'Pembayaran ke pemasok berhasil dicatat.')
             ->with('supplier_payment_receipt_url', route('tenant.supplier-payments.receipt', $payment));
     }
 

@@ -19,7 +19,7 @@ export default function EmployeeFormModal({ show, onClose, employee, roles = [] 
         useForm(emptyForm);
 
     const roleOptions = [
-        { value: '', label: 'Tanpa role (tidak ada akses menu)' },
+        { value: '', label: 'Tanpa kelompok (tidak ada akses menu)' },
         ...roles.map((role) => ({
             value: role.id,
             label: role.name,
@@ -159,7 +159,7 @@ export default function EmployeeFormModal({ show, onClose, employee, roles = [] 
 
                         <div>
                             <label className="mb-1.5 block text-sm font-medium text-slate-700">
-                                Role
+                                Kelompok akses
                             </label>
                             <Select
                                 value={data.employee_role_id}

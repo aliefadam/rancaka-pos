@@ -75,7 +75,7 @@ export default function ExpenseFormModal({
                 },
                 onError: () =>
                     toast.error(
-                        `Gagal ${isEdit ? 'memperbarui' : 'menambahkan'} pengeluaran. Periksa kembali data yang dimasukkan.`,
+                        `Gagal ${isEdit ? 'memperbarui' : 'menambahkan'} biaya. Periksa kembali data yang dimasukkan.`,
                     ),
             },
         );
@@ -109,7 +109,7 @@ export default function ExpenseFormModal({
             <form onSubmit={submit} className="flex min-h-0 flex-1 flex-col">
                 <Modal.Header>
                     <h2 className="text-lg font-semibold text-slate-900">
-                        {isEdit ? 'Edit Pengeluaran' : 'Tambah Pengeluaran'}
+                        {isEdit ? 'Edit Biaya' : 'Tambah Biaya'}
                     </h2>
                 </Modal.Header>
 
@@ -167,7 +167,7 @@ export default function ExpenseFormModal({
                                 onChange={(event) =>
                                     setData('description', event.target.value)
                                 }
-                                placeholder="Tuliskan detail pengeluaran..."
+                                placeholder="Tuliskan detail biaya..."
                                 className="block w-full resize-none rounded-lg border border-slate-200 px-3 py-2.5 text-sm text-slate-900 placeholder-slate-400 focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-100"
                             />
                         </Field>

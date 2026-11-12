@@ -724,10 +724,10 @@ export default function Index({
                             <i className="fi fi-rr-cash-register" />
                         </span>
                         <h3 className="mt-5 text-lg font-bold text-slate-900">
-                            Buka Shift Dulu
+                            Mulai Sesi Kasir Dulu
                         </h3>
                         <p className="mt-2 text-sm text-slate-500">
-                            Masukkan modal awal kas di laci sebelum mulai
+                            Masukkan jumlah uang di laci sebelum mulai
                             bertransaksi.
                         </p>
 
@@ -739,7 +739,7 @@ export default function Index({
                                 htmlFor="opening_cash"
                                 className="mb-1.5 block text-sm font-medium text-slate-700"
                             >
-                                Modal Awal Kas (Rp)
+                                Uang di Laci Saat Mulai (Rp)
                             </label>
                             <MoneyInput
                                 id="opening_cash"
@@ -765,7 +765,7 @@ export default function Index({
                                 ) : (
                                     <i className="fi fi-rr-unlock" />
                                 )}
-                                Buka Shift
+                                Mulai Sesi Kasir
                             </button>
                         </form>
                     </div>
@@ -915,11 +915,11 @@ export default function Index({
                     <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
                         <span
                             className="flex min-w-0 items-center gap-2 text-xs font-semibold text-emerald-700"
-                            title={`Shift aktif sejak ${formatDateTime(activeShift.opened_at)}`}
+                            title={`Sesi Kasir aktif sejak ${formatDateTime(activeShift.opened_at)}`}
                         >
                             <span className="h-2 w-2 shrink-0 rounded-full bg-emerald-500 ring-4 ring-emerald-100" />
                             <span className="truncate">
-                                Shift aktif · {formatDateTime(activeShift.opened_at)}
+                                Sesi Kasir aktif · {formatDateTime(activeShift.opened_at)}
                             </span>
                         </span>
                         <div className="flex items-center gap-1.5">
@@ -942,7 +942,7 @@ export default function Index({
                                 className="flex h-8 items-center gap-1.5 rounded-lg border border-rose-200 bg-white px-2.5 text-xs font-semibold text-rose-600 transition hover:bg-rose-50 active:scale-95"
                             >
                                 <i className="fi fi-rr-power" />
-                                Tutup Shift
+                                Tutup Sesi Kasir
                             </button>
                         </div>
                     </div>

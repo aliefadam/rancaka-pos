@@ -111,7 +111,7 @@ class PurchaseController extends Controller
             throw $exception;
         }
 
-        return redirect()->route('tenant.purchases.show', $purchase)->with('success', 'Pembelian berhasil diposting dan stok telah diperbarui.');
+        return redirect()->route('tenant.purchases.show', $purchase)->with('success', 'Belanja stok berhasil diposting dan stok telah diperbarui.');
     }
 
     public function show(Request $request, Purchase $purchase): Response
@@ -134,7 +134,7 @@ class PurchaseController extends Controller
         $data = $request->validate(['reason' => ['required', 'string', 'max:1000'], 'password' => ['required', 'current_password']]);
         $service->void($request->user(), $purchase, $data['reason']);
 
-        return back()->with('success', 'Pembelian berhasil dibatalkan dan stok dipulihkan.');
+        return back()->with('success', 'Belanja stok berhasil dibatalkan dan stok dipulihkan.');
     }
 
     public function invoice(Request $request, Purchase $purchase)

@@ -47,7 +47,7 @@ class PurchaseReportController extends Controller
         ])['section'];
         $data = $this->reportData($tenantId, $filters, $aging, false);
         [$headers, $rows] = $this->csvRows($section, $data);
-        $filename = "laporan-pembelian-{$section}-{$filters['start_date']}-{$filters['end_date']}.csv";
+        $filename = "laporan-belanja stok-{$section}-{$filters['start_date']}-{$filters['end_date']}.csv";
 
         return response()->streamDownload(function () use ($headers, $rows): void {
             $stream = fopen('php://output', 'w');
@@ -269,11 +269,11 @@ class PurchaseReportController extends Controller
     private function csvRows(string $section, array $data): array
     {
         return match ($section) {
-            'suppliers' => [['Supplier', 'Jumlah Pembelian', 'Total Pembelian', 'Pembayaran Periode', 'Sisa Hutang'], $data['supplierBreakdown']->map(fn (array $row) => [$row['supplier_name'], $row['purchase_count'], $row['purchase_total'], $row['period_payments'], $row['outstanding']])],
+            'suppliers' => [['Supplier', 'Jumlah Belanja stok', 'Total Belanja stok', 'Pembayaran Periode', 'Sisa Hutang'], $data['supplierBreakdown']->map(fn (array $row) => [$row['supplier_name'], $row['purchase_count'], $row['purchase_total'], $row['period_payments'], $row['outstanding']])],
             'items' => [['Barang', 'Jenis', 'Satuan', 'Jumlah Dibeli', 'Jumlah Dokumen', 'Rata-rata Biaya', 'Total Biaya'], $data['itemBreakdown']->map(fn (array $row) => [$row['item_name'], $row['item_type'], $row['unit_name'], $row['quantity'], $row['purchase_count'], $row['average_unit_cost'], $row['total_cost']])],
-            'price_history' => [['Tanggal', 'Pembelian', 'Supplier', 'Barang', 'Jenis', 'Kuantitas', 'Satuan', 'Harga Faktur', 'Biaya Bersih'], $data['priceHistory']->map(fn (array $row) => [$row['purchase_date'], $row['purchase_number'], $row['supplier_name'], $row['item_name'], $row['item_type'], $row['quantity'], $row['unit_name'], $row['unit_cost'], $row['net_unit_cost']])],
-            'valuation' => [['Barang', 'Jenis', 'Satuan', 'Stok', 'HPP Rata-rata', 'Nilai Persediaan'], $data['valuation']['rows']->map(fn (array $row) => [$row['item_name'], $row['item_type'], $row['unit_name'], $row['stock'], $row['average_cost'], $row['value']])],
-            'hpp' => [['Tanggal', 'Invoice', 'Barang', 'Kuantitas', 'Pendapatan', 'HPP Aktual', 'Laba Kotor'], $data['hpp']['rows']->map(fn (array $row) => [$row['transaction_date'], $row['invoice_number'], $row['item_name'], $row['quantity'], $row['revenue'], $row['actual_cost'], $row['gross_profit']])],
+            'price_history' => [['Tanggal', 'Belanja stok', 'Supplier', 'Barang', 'Jenis', 'Kuantitas', 'Satuan', 'Harga Faktur', 'Biaya Bersih'], $data['priceHistory']->map(fn (array $row) => [$row['purchase_date'], $row['purchase_number'], $row['supplier_name'], $row['item_name'], $row['item_type'], $row['quantity'], $row['unit_name'], $row['unit_cost'], $row['net_unit_cost']])],
+            'valuation' => [['Barang', 'Jenis', 'Satuan', 'Stok', 'Modal per item Rata-rata', 'Nilai Persediaan'], $data['valuation']['rows']->map(fn (array $row) => [$row['item_name'], $row['item_type'], $row['unit_name'], $row['stock'], $row['average_cost'], $row['value']])],
+            'hpp' => [['Tanggal', 'Invoice', 'Barang', 'Kuantitas', 'Uang masuk', 'Modal per item Aktual', 'Laba Kotor'], $data['hpp']['rows']->map(fn (array $row) => [$row['transaction_date'], $row['invoice_number'], $row['item_name'], $row['quantity'], $row['revenue'], $row['actual_cost'], $row['gross_profit']])],
             default => [['Kelompok Umur', 'Jumlah Dokumen', 'Nilai Hutang'], collect([
                 ['Belum jatuh tempo', $data['aging']['not_due']['count'], $data['aging']['not_due']['amount']],
                 ['Terlambat 1-7 hari', $data['aging']['overdue_1_7']['count'], $data['aging']['overdue_1_7']['amount']],

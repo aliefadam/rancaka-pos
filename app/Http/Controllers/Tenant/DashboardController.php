@@ -58,8 +58,8 @@ class DashboardController extends Controller
                 'comparison' => $this->comparison($revenue, $previousRevenue, $comparisonLabel), 'tone' => 'ink',
             ],
             $canViewProfit ? [
-                'key' => 'profit', 'label' => 'Laba Bersih', 'value' => $this->formatRupiah($netProfit),
-                'raw_value' => $netProfit, 'subtitle' => 'Penjualan dikurangi HPP dan pengeluaran',
+                'key' => 'profit', 'label' => 'Untung Bersih', 'value' => $this->formatRupiah($netProfit),
+                'raw_value' => $netProfit, 'subtitle' => 'Hasil jualan dikurangi modal barang dan biaya',
                 'comparison' => $this->comparison($netProfit, $previousNetProfit, $comparisonLabel),
                 'tone' => $netProfit >= 0 ? 'emerald' : 'rose',
             ] : [
@@ -264,7 +264,7 @@ class DashboardController extends Controller
 
         if ($activeShift?->opened_at?->lt(Carbon::today())) {
             $items[] = [
-                'key' => 'shift', 'label' => 'Shift belum ditutup',
+                'key' => 'shift', 'label' => 'Sesi kasir belum ditutup',
                 'detail' => 'Dibuka '.$activeShift->opened_at->diffForHumans(), 'icon' => 'fi-rr-time-check',
                 'tone' => 'amber', 'href' => route('tenant.pos.index'),
             ];

@@ -26,7 +26,7 @@ const lifecycleLabels = {
 };
 
 export default function Index({ subscription, billing, paymentSettings, networkRelationship, paymentCentralized = false }) {
-    const isOwner = usePage().props.auth.user.role === 'owner';
+    const isPemilik = usePage().props.auth.user.role === 'owner';
     const qrisAvailable = Boolean(
         paymentSettings?.qris_enabled && paymentSettings?.qris_image_url,
     );
@@ -48,9 +48,9 @@ export default function Index({ subscription, billing, paymentSettings, networkR
         });
     };
     return (
-        <AdminLayout header="Billing">
-            <Head title="Billing" />
-            <Breadcrumb items={[{ label: 'Pengaturan' }, { label: 'Billing' }]} />
+        <AdminLayout header="Langganan">
+            <Head title="Langganan" />
+            <Breadcrumb items={[{ label: 'Pengaturan' }, { label: 'Langganan' }]} />
             <div className="max-w-5xl">
                 <div className="rounded-3xl bg-gradient-to-br from-indigo-600 to-violet-700 p-7 text-white shadow-lg">
                     <p className="text-sm font-semibold text-indigo-100">
@@ -76,7 +76,7 @@ export default function Index({ subscription, billing, paymentSettings, networkR
                 </div>
                 {paymentCentralized && networkRelationship && (
                     <section className="mt-6 rounded-2xl border border-indigo-200 bg-indigo-50 p-6">
-                        <div className="flex items-start gap-4"><span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-indigo-600 text-white"><i className="fi fi-rr-chart-network" /></span><div><p className="text-xs font-bold uppercase tracking-wide text-indigo-500">Billing terpusat</p><h3 className="mt-1 text-lg font-extrabold text-indigo-950">Dibayar oleh {networkRelationship.parent_tenant.name}</h3><p className="mt-2 text-sm leading-6 text-indigo-700">Cabang tidak perlu mengirim pembayaran terpisah. Akses mengikuti subscription jaringan dan invoice gabungan tenant pusat.</p></div></div>
+                        <div className="flex items-start gap-4"><span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-indigo-600 text-white"><i className="fi fi-rr-chart-network" /></span><div><p className="text-xs font-bold uppercase tracking-wide text-indigo-500">Langganan terpusat</p><h3 className="mt-1 text-lg font-extrabold text-indigo-950">Dibayar oleh {networkRelationship.parent_tenant.name}</h3><p className="mt-2 text-sm leading-6 text-indigo-700">Cabang tidak perlu mengirim pembayaran terpisah. Akses mengikuti langganan jaringan dan tagihan gabungan toko pusat.</p></div></div>
                     </section>
                 )}
                 {invoice && !paymentCentralized && (
@@ -135,7 +135,7 @@ export default function Index({ subscription, billing, paymentSettings, networkR
                                     Bukti pembayaran sedang diverifikasi
                                     superadmin.
                                 </div>
-                            ) : isOwner ? (
+                            ) : isPemilik ? (
                                 <form
                                     onSubmit={submit}
                                     className="mt-5 space-y-4"

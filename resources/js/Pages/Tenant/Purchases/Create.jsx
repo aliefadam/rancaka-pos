@@ -78,12 +78,12 @@ export default function Create({
         form.post(route("tenant.purchases.store"), { forceFormData: true });
     };
     return (
-        <AdminLayout header="Catat Pembelian">
-            <Head title="Catat Pembelian" />
+        <AdminLayout header="Catat Belanja Stok">
+            <Head title="Catat Belanja Stok" />
             <Breadcrumb
                 items={[
                     {
-                        label: "Pembelian",
+                        label: "Belanja Stok",
                         href: route("tenant.purchases.index"),
                     },
                     { label: "Catat baru" },
@@ -96,7 +96,7 @@ export default function Create({
                             Dokumen baru
                         </p>
                         <h2 className="mt-1 text-2xl font-bold text-slate-900">
-                            Catat pembelian
+                            Catat belanja stok
                         </h2>
                     </div>
                     <Link
@@ -119,12 +119,12 @@ export default function Create({
                             </span>
                             <div>
                                 <p className="font-bold">
-                                    {openingCostCount} bahan baku belum memiliki HPP awal
+                                    {openingCostCount} bahan baku belum memiliki Modal per item awal
                                 </p>
                                 <p className="mt-1 leading-5 text-amber-800">
                                     {canSetOpeningCosts
-                                        ? 'Tetapkan HPP terlebih dahulu agar bahan baku tersebut dapat diterima dalam pembelian.'
-                                        : 'Hubungi owner untuk menetapkan HPP sebelum bahan baku tersebut diterima.'}
+                                        ? 'Tetapkan Modal per item terlebih dahulu agar bahan baku tersebut dapat diterima dalam belanja stok.'
+                                        : 'Hubungi owner untuk menetapkan Modal per item sebelum bahan baku tersebut diterima.'}
                                 </p>
                             </div>
                         </div>
@@ -133,14 +133,14 @@ export default function Create({
                                 href={route('tenant.purchases.opening-costs.index')}
                                 className="shrink-0 rounded-lg bg-amber-600 px-3 py-2 text-xs font-bold text-white transition hover:bg-amber-700"
                             >
-                                Atur HPP
+                                Atur Modal per item
                             </Link>
                         )}
                     </div>
                 )}
                 <section className="grid gap-4 rounded-2xl border border-slate-200/70 bg-white p-5 shadow-sm shadow-slate-200/40 md:grid-cols-3">
                     <label className="text-sm text-slate-600">
-                        Supplier *
+                        Pemasok *
                         <Select
                             value={form.data.supplier_id}
                             onChange={(value) => form.setData("supplier_id", value)}
@@ -148,13 +148,13 @@ export default function Create({
                                 value: String(supplier.id),
                                 label: supplier.name,
                             }))}
-                            placeholder="Pilih supplier"
-                            searchPlaceholder="Cari supplier..."
+                            placeholder="Pilih pemasok"
+                            searchPlaceholder="Cari pemasok..."
                             className="mt-1 w-full"
                         />
                     </label>
                     <label className="text-sm text-slate-600">
-                        Tanggal pembelian *
+                        Tanggal belanja stok *
                         <input
                             type="date"
                             max={today}
@@ -166,7 +166,7 @@ export default function Create({
                         />
                     </label>
                     <label className="text-sm text-slate-600">
-                        No. faktur supplier
+                        No. faktur pemasok
                         <input
                             value={form.data.supplier_invoice_number}
                             onChange={(e) =>
@@ -246,7 +246,7 @@ export default function Create({
                                     }
                                     options={options(item.item_type).map((entry) => ({
                                         value: String(entry.id),
-                                        label: `${entry.name} · stok ${entry.stock} ${entry.unit || "pcs"}${item.item_type === "raw_material" && Number(entry.stock) > 0 && !entry.opening_cost_confirmed_at ? " · HPP belum siap" : ""}`,
+                                        label: `${entry.name} · stok ${entry.stock} ${entry.unit || "pcs"}${item.item_type === "raw_material" && Number(entry.stock) > 0 && !entry.opening_cost_confirmed_at ? " · Modal per item belum siap" : ""}`,
                                     }))}
                                     placeholder="Pilih barang"
                                     searchPlaceholder="Cari barang..."
@@ -472,7 +472,7 @@ export default function Create({
                         </div>
                         <div className="mt-6">
                             <FileDropzone
-                                label="Nota / faktur supplier"
+                                label="Nota / faktur pemasok"
                                 file={form.data.supplier_invoice}
                                 onFileChange={(file) => form.setData("supplier_invoice", file)}
                                 accept={proofAccept}
@@ -489,7 +489,7 @@ export default function Create({
                         >
                             {form.processing
                                 ? "Memproses..."
-                                : "Posting pembelian"}
+                                : "Posting belanja stok"}
                         </button>
                     </aside>
                 </div>

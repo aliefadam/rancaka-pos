@@ -95,7 +95,7 @@ export default function Show({ purchase }) {
             <Breadcrumb
                 items={[
                     {
-                        label: "Pembelian",
+                        label: "Belanja Stok",
                         href: route("tenant.purchases.index"),
                     },
                     { label: purchase.number },
@@ -277,7 +277,7 @@ export default function Show({ purchase }) {
                     </section>
                 </main>
                 <aside className="h-fit rounded-2xl bg-slate-900 p-5 text-white">
-                    <h3 className="font-bold">Nilai pembelian</h3>
+                    <h3 className="font-bold">Nilai belanja stok</h3>
                     <div className="mt-5 space-y-3 text-sm">
                         <div className="flex justify-between text-slate-300">
                             <span>Subtotal</span>
@@ -319,7 +319,7 @@ export default function Show({ purchase }) {
                             target="_blank"
                             className="mt-5 block rounded-xl border border-slate-700 p-3 text-center text-sm font-semibold"
                         >
-                            Lihat faktur supplier ↗
+                            Lihat faktur pemasok ↗
                         </a>
                     )}
                 </aside>
@@ -333,7 +333,7 @@ export default function Show({ purchase }) {
                         >
                         <div className="flex justify-between">
                             <h3 className="text-lg font-bold">
-                                Pembayaran supplier
+                                Pembayaran ke pemasok
                             </h3>
                             <button
                                 type="button"
@@ -458,7 +458,7 @@ export default function Show({ purchase }) {
                                 ))}
                                 <button type="button" onClick={() => schedule.setData("installments", [...schedule.data.installments, { id: null, due_date: purchase.due_date.slice(0, 10), planned_amount: 1, paid_amount: 0 }])} className="w-full rounded-xl border border-dashed border-indigo-300 py-2.5 text-sm font-bold text-indigo-700 hover:bg-indigo-50">+ Tambah termin</button>
                                 <label className="block text-sm font-semibold text-slate-700">Alasan revisi
-                                    <textarea rows="3" value={schedule.data.reason} onChange={(event) => schedule.setData("reason", event.target.value)} placeholder="Contoh: kesepakatan ulang jatuh tempo dengan supplier" className="mt-1 block w-full rounded-xl border-slate-200 text-sm" />
+                                    <textarea rows="3" value={schedule.data.reason} onChange={(event) => schedule.setData("reason", event.target.value)} placeholder="Contoh: kesepakatan ulang jatuh tempo dengan pemasok" className="mt-1 block w-full rounded-xl border-slate-200 text-sm" />
                                 </label>
                             </div>
                             <div className="flex flex-col gap-3 border-t border-slate-200 bg-slate-50 px-5 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6">
@@ -486,10 +486,10 @@ export default function Show({ purchase }) {
                 }}
                 processing={voidProcessing}
                 errors={voidErrors}
-                title="Batalkan pembelian?"
-                message="Stok dan HPP akan dikembalikan hanya jika belum ada pergerakan stok setelah penerimaan ini."
+                title="Batalkan belanja stok?"
+                message="Stok dan Modal per item akan dikembalikan hanya jika belum ada pergerakan stok setelah penerimaan ini."
                 totalLabel={money(purchase.total_amount)}
-                actionLabel="Batalkan pembelian"
+                actionLabel="Batalkan belanja stok"
             />
             <PasswordConfirmDialog
                 show={Boolean(paymentVoid)}
@@ -506,7 +506,7 @@ export default function Show({ purchase }) {
                 processing={voidProcessing}
                 errors={paymentVoidErrors}
                 title="Batalkan pembayaran?"
-                message="Nominal ini akan kembali menjadi hutang supplier dan tetap tersimpan di audit."
+                message="Nominal ini akan kembali menjadi hutang ke pemasok dan tetap tersimpan di audit."
                 totalLabel={paymentVoid ? money(paymentVoid.amount) : ""}
                 actionLabel="Batalkan pembayaran"
             />

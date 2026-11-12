@@ -86,7 +86,7 @@ class ExpenseController extends Controller
         Expense::create($validated);
 
         return redirect()->route('tenant.expenses.index')
-            ->with('success', 'Pengeluaran berhasil ditambahkan.');
+            ->with('success', 'Biaya berhasil ditambahkan.');
     }
 
     public function update(Request $request, Expense $expense, OptimizedUploadService $uploads): RedirectResponse
@@ -108,7 +108,7 @@ class ExpenseController extends Controller
         $expense->update($validated);
 
         return redirect()->route('tenant.expenses.index')
-            ->with('success', 'Pengeluaran berhasil diperbarui.');
+            ->with('success', 'Biaya berhasil diperbarui.');
     }
 
     public function destroy(Request $request, Expense $expense): RedirectResponse
@@ -118,7 +118,7 @@ class ExpenseController extends Controller
         $this->deleteMany($request, [$expense->id], $data['reason']);
 
         return back()
-            ->with('success', 'Pengeluaran berhasil dihapus.');
+            ->with('success', 'Biaya berhasil dihapus.');
     }
 
     public function bulkDestroy(Request $request): RedirectResponse
@@ -126,7 +126,7 @@ class ExpenseController extends Controller
         $data = $this->validatedDeletion($request, true);
         $count = $this->deleteMany($request, $data['ids'], $data['reason']);
 
-        return back()->with('success', "{$count} pengeluaran berhasil dihapus.");
+        return back()->with('success', "{$count} biaya berhasil dihapus.");
     }
 
     /**
@@ -141,8 +141,8 @@ class ExpenseController extends Controller
             'description' => ['required', 'string', 'max:1000'],
             'receipt' => UploadRules::proof(! $updating),
         ], [
-            'expense_date.date_format' => 'Format tanggal pengeluaran tidak valid.',
-            'expense_date.before_or_equal' => 'Tanggal pengeluaran tidak boleh melewati hari ini.',
+            'expense_date.date_format' => 'Format tanggal biaya tidak valid.',
+            'expense_date.before_or_equal' => 'Tanggal biaya tidak boleh melewati hari ini.',
         ]);
     }
 
@@ -179,7 +179,7 @@ class ExpenseController extends Controller
 
             if ($expenses->count() !== $uniqueIds->count()) {
                 throw ValidationException::withMessages([
-                    'expenses' => 'Sebagian pengeluaran tidak ditemukan atau bukan milik toko ini.',
+                    'expenses' => 'Sebagian biaya tidak ditemukan atau bukan milik toko ini.',
                 ]);
             }
 

@@ -56,16 +56,16 @@ export default function Index({ suppliers, filters }) {
     };
 
     return (
-        <AdminLayout header="Supplier">
-            <Head title="Supplier" />
-            <Breadcrumb items={[{ label: 'Master Data' }, { label: 'Supplier' }]} />
+        <AdminLayout header="Pemasok">
+            <Head title="Pemasok" />
+            <Breadcrumb items={[{ label: 'Data Toko' }, { label: 'Pemasok' }]} />
 
             <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
                 <div>
                     <p className="text-xs font-semibold uppercase tracking-[.2em] text-indigo-600">
                         Mitra pasokan
                     </p>
-                    <h2 className="mt-1 text-2xl font-bold text-slate-900">Supplier</h2>
+                    <h2 className="mt-1 text-2xl font-bold text-slate-900">Pemasok</h2>
                     <p className="mt-1 text-sm text-slate-500">
                         Kontak dan posisi hutang dalam satu tempat.
                     </p>
@@ -77,7 +77,7 @@ export default function Index({ suppliers, filters }) {
                         className="flex w-full items-center justify-center gap-2 rounded-xl bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white sm:w-auto"
                     >
                         <i className="fi fi-rr-add" />
-                        Supplier baru
+                        Pemasok baru
                     </button>
                 )}
             </div>
@@ -99,7 +99,7 @@ export default function Index({ suppliers, filters }) {
                                     { preserveState: true, replace: true },
                                 )
                             }
-                            placeholder="Cari supplier..."
+                            placeholder="Cari pemasok..."
                             className="w-full rounded-xl border-slate-200 py-2.5 pl-10 text-sm"
                         />
                     </div>
@@ -151,7 +151,7 @@ export default function Index({ suppliers, filters }) {
                         <span className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-slate-50 text-slate-400">
                             <i className="fi fi-rr-truck-side" />
                         </span>
-                        <p className="mt-3 text-sm text-slate-500">Belum ada supplier.</p>
+                        <p className="mt-3 text-sm text-slate-500">Belum ada pemasok.</p>
                     </div>
                 )}
                 <div className="border-t border-slate-100 p-4">
@@ -168,7 +168,7 @@ export default function Index({ suppliers, filters }) {
                         >
                             <div className="flex shrink-0 items-center justify-between border-b border-slate-100 px-5 py-4 sm:px-6">
                                 <h3 className="text-lg font-bold text-slate-900">
-                                    {editing ? 'Ubah supplier' : 'Supplier baru'}
+                                    {editing ? 'Ubah pemasok' : 'Pemasok baru'}
                                 </h3>
                                 <button
                                     type="button"
@@ -183,7 +183,7 @@ export default function Index({ suppliers, filters }) {
                             <div className="scrollbar-thin min-h-0 flex-1 overflow-y-auto p-5 sm:p-6">
                                 <div className="grid gap-4 sm:grid-cols-2">
                                     {[
-                                        ['name', 'Nama supplier *'],
+                                        ['name', 'Nama pemasok *'],
                                         ['contact_name', 'Nama kontak'],
                                         ['phone', 'Telepon / WhatsApp'],
                                         ['email', 'Email'],
@@ -217,7 +217,7 @@ export default function Index({ suppliers, filters }) {
                                             checked={form.data.is_active}
                                             onChange={(event) => form.setData('is_active', event.target.checked)}
                                         />
-                                        Supplier aktif
+                                        Pemasok aktif
                                     </label>
                                 </div>
                             </div>

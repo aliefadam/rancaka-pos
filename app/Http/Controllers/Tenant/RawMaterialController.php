@@ -55,7 +55,7 @@ class RawMaterialController extends Controller
         $validated = $this->validated($request, $rawMaterial);
 
         if ((float) ($validated['stock'] ?? $rawMaterial->stock) !== (float) $rawMaterial->stock && $this->isInActiveOpname($rawMaterial)) {
-            throw ValidationException::withMessages(['stock' => 'Stok tidak dapat diubah dari master data selama stock opname aktif. Gunakan transaksi atau selesaikan sesi opname.']);
+            throw ValidationException::withMessages(['stock' => 'Stok tidak dapat diubah dari data toko selama cek stok aktif. Gunakan transaksi atau selesaikan sesi opname.']);
         }
 
         if ($rawMaterial->opening_cost_confirmed_at) {
@@ -78,7 +78,7 @@ class RawMaterialController extends Controller
         $this->authorizeTenant($request, $rawMaterial);
 
         if ($this->isInActiveOpname($rawMaterial)) {
-            throw ValidationException::withMessages(['raw_material' => 'Bahan baku tidak dapat dihapus karena masih termasuk dalam stock opname aktif.']);
+            throw ValidationException::withMessages(['raw_material' => 'Bahan baku tidak dapat dihapus karena masih termasuk dalam cek stok aktif.']);
         }
 
         $rawMaterial->delete();
@@ -129,9 +129,9 @@ class RawMaterialController extends Controller
             ],
             'is_active' => ['boolean'],
         ], [
-            'average_cost.required' => 'HPP awal wajib diisi jika stok bahan baku lebih dari 0.',
+            'average_cost.required' => 'Modal per item awal wajib diisi jika stok bahan baku lebih dari 0.',
         ], [
-            'average_cost' => 'HPP awal',
+            'average_cost' => 'Modal per item awal',
         ]);
     }
 }

@@ -22,6 +22,6 @@ class OpeningCostController extends Controller
         $data = $request->validate(['average_cost' => ['required', 'numeric', 'min:0', 'max:999999999999']]);
         $rawMaterial->update(['average_cost' => $data['average_cost'], 'opening_cost_confirmed_at' => now(), 'opening_cost_confirmed_by' => $request->user()->id]);
 
-        return back()->with('success', 'Saldo awal HPP berhasil ditetapkan.');
+        return back()->with('success', 'Saldo awal Modal per item berhasil ditetapkan.');
     }
 }

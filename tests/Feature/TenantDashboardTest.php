@@ -111,7 +111,7 @@ class TenantDashboardTest extends TestCase
             ->where('summary.0.value', 'Rp 30.000')
             ->where('summary.1.key', 'profit')
             ->where('summary.1.value', 'Rp 6.000')
-            ->where('summary.1.subtitle', 'Penjualan dikurangi HPP dan pengeluaran')
+                ->where('summary.1.subtitle', 'Hasil jualan dikurangi modal barang dan biaya')
             ->where('summary.2.value', '1')
             ->where('trendTotal', 'Rp 30.000')
             ->where('topProducts.0.name', 'Kopi Susu')

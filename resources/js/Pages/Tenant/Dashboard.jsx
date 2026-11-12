@@ -226,11 +226,11 @@ export default function Dashboard({
                                 <i className="fi fi-rr-time-check relative" />
                             </span>
                             <div>
-                                <p className="text-sm font-bold text-slate-800">Shift aktif · {activeShift.cashier}</p>
+                                <p className="text-sm font-bold text-slate-800">Sesi Kasir aktif · {activeShift.cashier}</p>
                                 <p className="text-xs text-slate-500">Dibuka {activeShift.opened_at} · {activeShift.duration}</p>
                             </div>
                         </div>
-                        <Link href={route('tenant.pos.index')} className="text-xs font-bold text-indigo-600 hover:text-indigo-700">Lihat shift →</Link>
+                        <Link href={route('tenant.pos.index')} className="text-xs font-bold text-indigo-600 hover:text-indigo-700">Lihat sesi kasir →</Link>
                     </div>
                 )}
 

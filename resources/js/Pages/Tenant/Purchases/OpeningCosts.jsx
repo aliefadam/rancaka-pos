@@ -26,7 +26,7 @@ function Row({ material }) {
             <MoneyInput
                 min="0"
                 required
-                placeholder="HPP per unit"
+                placeholder="Modal per item per unit"
                 value={form.data.average_cost}
                 onValueChange={(value) => form.setData('average_cost', value)}
                 className="rounded-xl border-slate-200"
@@ -40,22 +40,22 @@ function Row({ material }) {
 
 export default function OpeningCosts({ materials }) {
     return (
-        <AdminLayout header="Saldo Awal HPP">
-            <Head title="Saldo Awal HPP" />
+        <AdminLayout header="Saldo Awal Modal per item">
+            <Head title="Saldo Awal Modal per item" />
             <Breadcrumb
                 items={[
                     {
-                        label: 'Pembelian',
+                        label: 'Belanja Stok',
                         href: route('tenant.purchases.index'),
                     },
-                    { label: 'Saldo awal HPP' },
+                    { label: 'Saldo awal Modal per item' },
                 ]}
             />
             <div className="mb-6 max-w-2xl">
-                <h2 className="text-2xl font-bold">Saldo awal HPP bahan baku</h2>
+                <h2 className="text-2xl font-bold">Saldo awal Modal per item bahan baku</h2>
                 <p className="mt-2 text-sm text-slate-500">
                     Isi biaya rata-rata stok yang sudah ada. Nilai ini menjadi
-                    dasar moving average saat pembelian pertama dicatat.
+                    dasar moving average saat belanja stok pertama dicatat.
                 </p>
             </div>
             <div className="max-w-3xl overflow-hidden rounded-2xl border border-slate-200/70 bg-white shadow-sm shadow-slate-200/40">
@@ -64,7 +64,7 @@ export default function OpeningCosts({ materials }) {
                 ))}
                 {!materials.length && (
                     <div className="p-10 text-center text-sm text-emerald-700">
-                        Semua saldo awal HPP sudah siap.
+                        Semua saldo awal Modal per item sudah siap.
                     </div>
                 )}
             </div>

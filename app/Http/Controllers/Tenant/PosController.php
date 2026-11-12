@@ -219,7 +219,7 @@ class PosController extends Controller
                 ->first();
 
             if (! $activeShift) {
-                throw ValidationException::withMessages(['items' => 'Shift belum dibuka.']);
+                throw ValidationException::withMessages(['items' => 'Sesi kasir belum dimulai.']);
             }
 
             $productIds = collect($data['items'])->pluck('product_id')->unique();

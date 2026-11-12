@@ -69,7 +69,7 @@ class ProductController extends Controller
         $spreadsheet = new Spreadsheet;
         $sheet = $spreadsheet->getActiveSheet();
         $sheet->setTitle('Produk');
-        $sheet->fromArray(['nama_produk', 'kategori', 'hpp', 'margin_persen', 'harga_jual', 'gunakan_stok', 'stok', 'status_aktif'], null, 'A1');
+        $sheet->fromArray(['nama_produk', 'kategori', 'modal_per_item', 'keuntungan_persen', 'harga_jual', 'gunakan_stok', 'stok', 'status_aktif'], null, 'A1');
         $sheet->fromArray(['Contoh Produk', $categories->first() ?? 'Makanan', 10000, 50, null, 'Ya', 10, 'Ya'], null, 'A2');
         $sheet->setCellValue('E2', '=ROUND(C2*(1+D2/100),0)');
         $sheet->getStyle('A1:H1')->getFont()->setBold(true)->getColor()->setARGB('FFFFFFFF');
@@ -133,9 +133,10 @@ class ProductController extends Controller
             throw ValidationException::withMessages(['file' => 'File tidak dapat dibaca. Pastikan file Excel tidak rusak.']);
         }
 
-        $expectedHeaders = ['nama_produk', 'kategori', 'hpp', 'margin_persen', 'harga_jual', 'gunakan_stok', 'stok', 'status_aktif'];
+        $expectedHeaders = ['nama_produk', 'kategori', 'modal_per_item', 'keuntungan_persen', 'harga_jual', 'gunakan_stok', 'stok', 'status_aktif'];
+        $legacyHeaders = ['nama_produk', 'kategori', 'hpp', 'margin_persen', 'harga_jual', 'gunakan_stok', 'stok', 'status_aktif'];
         $headers = array_map(fn ($value) => strtolower(trim((string) $value)), array_slice($rows[0] ?? [], 0, 8));
-        if ($headers !== $expectedHeaders) {
+        if ($headers !== $expectedHeaders && $headers !== $legacyHeaders) {
             throw ValidationException::withMessages(['file' => 'Format kolom tidak sesuai. Gunakan file template yang tersedia tanpa mengubah judul kolom.']);
         }
 
@@ -176,23 +177,23 @@ class ProductController extends Controller
             $validMargin = is_numeric($margin) && (float) $margin >= 0 && (float) $margin <= 999999.99;
             $validPrice = filter_var($price, FILTER_VALIDATE_INT) !== false && (int) $price >= 0 && (int) $price <= 999999999999;
             if (! $validCost) {
-                $rowErrors[] = 'HPP harus bilangan bulat antara 0 dan 999.999.999.999';
+                $rowErrors[] = 'Modal per item harus bilangan bulat antara 0 dan 999.999.999.999';
             }
             if (! $validMargin) {
-                $rowErrors[] = 'margin harus berupa angka minimal 0';
+                $rowErrors[] = 'keuntungan harus berupa angka minimal 0';
             }
             if (! $validPrice) {
                 $rowErrors[] = 'harga jual harus bilangan bulat antara 0 dan 999.999.999.999';
             }
             if ($validCost && $validPrice && (int) $cost > (int) $price) {
-                $rowErrors[] = 'HPP tidak boleh melebihi harga jual';
+                $rowErrors[] = 'Modal per item tidak boleh melebihi harga jual';
             }
             if ($validCost && $validMargin && $validPrice) {
                 $calculatedMargin = (int) $cost > 0
                     ? round((((int) $price - (int) $cost) / (int) $cost) * 100, 2)
                     : 0;
                 if (abs($calculatedMargin - (float) $margin) > 0.01) {
-                    $rowErrors[] = 'margin tidak sesuai dengan HPP dan harga jual';
+                    $rowErrors[] = 'keuntungan tidak sesuai dengan modal per item dan harga jual';
                 }
             }
             if ($trackStock === null) {
@@ -259,7 +260,7 @@ class ProductController extends Controller
         $ingredients = $this->ingredientsMap($request);
 
         if ((float) ($validated['stock'] ?? $product->stock) !== (float) $product->stock && $this->isInActiveOpname($product)) {
-            throw ValidationException::withMessages(['stock' => 'Stok tidak dapat diubah dari master data selama stock opname aktif. Gunakan transaksi atau selesaikan sesi opname.']);
+            throw ValidationException::withMessages(['stock' => 'Stok tidak dapat diubah dari data toko selama cek stok aktif. Gunakan transaksi atau selesaikan sesi opname.']);
         }
 
         DB::transaction(function () use ($product, $validated, $ingredients, $priceOptions) {
@@ -285,7 +286,7 @@ class ProductController extends Controller
         $this->authorizeTenant($request, $product);
 
         if ($this->isInActiveOpname($product)) {
-            throw ValidationException::withMessages(['product' => 'Produk tidak dapat dihapus karena masih termasuk dalam stock opname aktif.']);
+            throw ValidationException::withMessages(['product' => 'Produk tidak dapat dihapus karena masih termasuk dalam cek stok aktif.']);
         }
 
         $product->delete();

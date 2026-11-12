@@ -90,18 +90,18 @@ export default function Show({ opname, summary, canPost }) {
     };
 
     const actionCopy = {
-        submit: ['Kirim untuk persetujuan?', 'Seluruh hasil hitung akan dikunci sementara dan diperiksa oleh owner.', 'Kirim opname', 'bg-sky-600 hover:bg-sky-700'],
+        submit: ['Kirim untuk persetujuan?', 'Seluruh hasil hitung akan dikunci sementara dan diperiksa oleh owner.', 'Kirim hasil hitung', 'bg-sky-600 hover:bg-sky-700'],
         post: ['Posting selisih stok?', 'Selisih akan diterapkan ke stok terkini secara atomik dan tercatat pada riwayat. Tindakan ini tidak dapat dibatalkan.', 'Posting sekarang', 'bg-emerald-600 hover:bg-emerald-700'],
         return: ['Kembalikan ke petugas?', 'Jelaskan item atau bagian yang perlu dihitung ulang.', 'Kembalikan', 'bg-amber-600 hover:bg-amber-700'],
-        cancel: ['Batalkan sesi opname?', 'Snapshot dan hasil hitung tetap tersimpan sebagai audit, tetapi stok tidak akan berubah.', 'Batalkan sesi', 'bg-rose-600 hover:bg-rose-700'],
+        cancel: ['Batalkan sesi cek stok?', 'Catatan stok dan hasil hitung tetap tersimpan, tetapi jumlah stok tidak akan berubah.', 'Batalkan sesi', 'bg-rose-600 hover:bg-rose-700'],
     };
     const currentAction = actionCopy[action];
     const countingEnabled = opname.status === 'counting' && can('stock-opnames.count');
 
     return (
-        <AdminLayout header="Detail Stock Opname">
-            <Head title={`Stock Opname ${opname.number}`} />
-            <Breadcrumb items={[{ label: 'Stok' }, { label: 'Stock Opname', href: route('tenant.stock-opnames.index') }, { label: opname.number }]} />
+        <AdminLayout header="Detail Cek Stok">
+            <Head title={`Cek Stok ${opname.number}`} />
+            <Breadcrumb items={[{ label: 'Stok' }, { label: 'Cek Stok', href: route('tenant.stock-opnames.index') }, { label: opname.number }]} />
 
             <section className="relative overflow-hidden rounded-3xl bg-slate-950 px-6 py-7 text-white shadow-xl shadow-slate-300/30 sm:px-8">
                 <div className="absolute -right-16 -top-20 h-64 w-64 rounded-full border-[34px] border-sky-400/10" />
@@ -109,8 +109,8 @@ export default function Show({ opname, summary, canPost }) {
                     <div>
                         <span className={`inline-flex rounded-full px-2.5 py-1 text-[11px] font-black ${meta.tone}`}>{meta.label}</span>
                         <p className="mt-4 font-mono text-xs font-bold text-sky-300">{opname.number}</p>
-                        <h1 className="mt-1 text-2xl font-black tracking-tight sm:text-3xl">Stock opname {new Date(opname.opname_date).toLocaleDateString('id-ID', { dateStyle: 'long' })}</h1>
-                        <p className="mt-2 text-sm text-slate-400">Snapshot {dateTime(opname.snapshot_at)} · {summary.items} item · dibuat oleh {opname.creator?.name ?? 'Pengguna terhapus'}</p>
+                        <h1 className="mt-1 text-2xl font-black tracking-tight sm:text-3xl">Cek stok {new Date(opname.opname_date).toLocaleDateString('id-ID', { dateStyle: 'long' })}</h1>
+                        <p className="mt-2 text-sm text-slate-400">Catatan stok {dateTime(opname.snapshot_at)} · {summary.items} barang · dibuat oleh {opname.creator?.name ?? 'Pengguna terhapus'}</p>
                     </div>
                     <div className="flex flex-wrap gap-2">
                         {opname.status === 'draft' && can('stock-opnames.create') && <button onClick={() => router.patch(route('tenant.stock-opnames.start', opname.id))} className="rounded-xl bg-sky-400 px-4 py-2.5 text-sm font-black text-slate-950 hover:bg-sky-300"><i className="fi fi-rr-play mr-2" />Mulai hitung</button>}
@@ -124,7 +124,7 @@ export default function Show({ opname, summary, canPost }) {
             </section>
 
             {opname.review_note && opname.status === 'counting' && <div className="mt-5 rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900"><p className="font-black">Catatan pemeriksaan owner</p><p className="mt-1 leading-6">{opname.review_note}</p></div>}
-            {opname.status === 'cancelled' && <div className="mt-5 rounded-2xl border border-rose-200 bg-rose-50 p-4 text-sm text-rose-900"><p className="font-black">Sesi dibatalkan oleh {opname.canceller?.name ?? 'Owner'}</p><p className="mt-1">{opname.cancel_reason}</p></div>}
+            {opname.status === 'cancelled' && <div className="mt-5 rounded-2xl border border-rose-200 bg-rose-50 p-4 text-sm text-rose-900"><p className="font-black">Sesi dibatalkan oleh {opname.canceller?.name ?? 'Pemilik'}</p><p className="mt-1">{opname.cancel_reason}</p></div>}
 
             <div className="mt-5 grid grid-cols-2 gap-3 lg:grid-cols-5">
                 <SummaryCard label="Progres hitung" value={`${summary.counted}/${summary.items}`} note={`${summary.uncounted} belum dihitung`} />
@@ -151,8 +151,8 @@ export default function Show({ opname, summary, canPost }) {
                         const dirty = counts[item.id] !== '' && String(counts[item.id]) !== String(item.physical_stock ?? '');
                         return (
                             <div key={item.id} className={`grid gap-4 p-4 sm:p-5 lg:grid-cols-[minmax(180px,1.4fr)_repeat(4,minmax(110px,0.75fr))] lg:items-center ${dirty ? 'bg-sky-50/60' : ''}`}>
-                                <div className="min-w-0"><div className="flex flex-wrap items-center gap-2"><p className="truncate font-bold text-slate-900">{item.item_name}</p><span className={`rounded-md px-2 py-0.5 text-[9px] font-black uppercase tracking-wide ${item.item_type === 'product' ? 'bg-indigo-50 text-indigo-600' : 'bg-emerald-50 text-emerald-700'}`}>{item.item_type === 'product' ? 'Produk' : 'Bahan baku'}</span></div><p className="mt-1 text-xs text-slate-400">HPP {money(item.average_cost_at_count ?? item.average_cost_snapshot)} / {item.unit_name}</p></div>
-                                <div><p className="text-[10px] font-bold uppercase text-slate-400">Snapshot awal</p><p className="mt-1 font-semibold text-slate-700">{quantity(item.system_stock_snapshot)} {item.unit_name}</p></div>
+                                <div className="min-w-0"><div className="flex flex-wrap items-center gap-2"><p className="truncate font-bold text-slate-900">{item.item_name}</p><span className={`rounded-md px-2 py-0.5 text-[9px] font-black uppercase tracking-wide ${item.item_type === 'product' ? 'bg-indigo-50 text-indigo-600' : 'bg-emerald-50 text-emerald-700'}`}>{item.item_type === 'product' ? 'Produk' : 'Bahan baku'}</span></div><p className="mt-1 text-xs text-slate-400">Modal per item {money(item.average_cost_at_count ?? item.average_cost_snapshot)} / {item.unit_name}</p></div>
+                                <div><p className="text-[10px] font-bold uppercase text-slate-400">Stok saat mulai</p><p className="mt-1 font-semibold text-slate-700">{quantity(item.system_stock_snapshot)} {item.unit_name}</p></div>
                                 <div><p className="text-[10px] font-bold uppercase text-slate-400">Stok pembanding</p><p className="mt-1 font-semibold text-slate-700">{counted ? `${quantity(item.expected_stock_at_count)} ${item.unit_name}` : 'Dihitung saat disimpan'}</p></div>
                                 <label><span className="text-[10px] font-bold uppercase text-slate-400">Stok fisik</span>{countingEnabled ? <div className="relative mt-1"><input type="number" inputMode="decimal" min="0" step={item.item_type === 'product' ? 1 : 0.01} value={counts[item.id]} onChange={(event) => setCounts((current) => ({ ...current, [item.id]: event.target.value }))} className={`w-full rounded-xl py-2 pr-14 text-base font-black ${dirty ? 'border-sky-400 ring-2 ring-sky-100' : 'border-slate-200'}`} placeholder="0" /><span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400">{item.unit_name}</span></div> : <p className="mt-1 font-black text-slate-900">{counted ? `${quantity(item.physical_stock)} ${item.unit_name}` : '—'}</p>}</label>
                                 <div><p className="text-[10px] font-bold uppercase text-slate-400">Selisih</p>{counted ? <><p className={`mt-1 font-black ${variance < 0 ? 'text-rose-700' : variance > 0 ? 'text-emerald-700' : 'text-slate-500'}`}>{variance > 0 ? '+' : ''}{quantity(variance)} {item.unit_name}</p><p className={`mt-0.5 text-xs font-semibold ${Number(item.variance_value) < 0 ? 'text-rose-600' : 'text-slate-400'}`}>{Number(item.variance_value) < 0 ? '-' : '+'}{money(item.variance_value)}</p></> : <span className="mt-1 inline-flex rounded-full bg-slate-100 px-2 py-1 text-[10px] font-bold text-slate-500">Belum dihitung</span>}</div>

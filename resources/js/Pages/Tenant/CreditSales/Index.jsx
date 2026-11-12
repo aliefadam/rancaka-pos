@@ -61,14 +61,14 @@ export default function Index({ creditSales, filters, summary }) {
     }, [search, status]);
 
     return (
-        <AdminLayout header="Penjualan Kredit">
-            <Head title="Penjualan Kredit" />
-            <Breadcrumb items={[{ label: 'Transaksi' }, { label: 'Penjualan Kredit' }]} />
+        <AdminLayout header="Penjualan Bon">
+            <Head title="Penjualan Bon" />
+            <Breadcrumb items={[{ label: 'Transaksi' }, { label: 'Penjualan Bon' }]} />
 
             <div className="max-w-7xl space-y-6">
                 <div>
                     <p className="text-xs font-bold uppercase tracking-[.18em] text-amber-600">Piutang pelanggan</p>
-                    <h2 className="mt-1 text-2xl font-bold text-slate-900">Penjualan Kredit</h2>
+                    <h2 className="mt-1 text-2xl font-bold text-slate-900">Penjualan Bon</h2>
                     <p className="mt-1 text-sm text-slate-500">Pantau saldo dan catat cicilan pelanggan.</p>
                 </div>
 

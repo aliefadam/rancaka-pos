@@ -42,13 +42,13 @@ const FEATURES = [
         icon: 'fi fi-rr-chart-histogram',
         title: 'Laporan Keuangan',
         description:
-            'Lihat laporan keuangan, riwayat transaksi, dan riwayat shift kasir untuk membantu Anda mengambil keputusan bisnis.',
+            'Lihat laporan keuangan, riwayat transaksi, dan riwayat sesi kasir kasir untuk membantu Anda mengambil keputusan bisnis.',
     },
     {
         icon: 'fi fi-rr-clock',
-        title: 'Manajemen Shift',
+        title: 'Manajemen Sesi Kasir',
         description:
-            'Buka dan tutup shift kasir dengan pencatatan yang jelas, sehingga rekonsiliasi kas di akhir hari jadi lebih mudah.',
+            'Mulai dan tutup sesi kasir dengan pencatatan yang jelas, sehingga pencocokan uang kas di akhir hari jadi lebih mudah.',
     },
     {
         icon: 'fi fi-rr-building',
@@ -72,7 +72,7 @@ const STEPS = [
     {
         title: 'Pantau & Analisis',
         description:
-            'Cek laporan keuangan, stok, dan riwayat shift kapan saja untuk mengambil keputusan lebih baik.',
+            'Cek laporan keuangan, stok, dan riwayat sesi kasir kapan saja untuk mengambil keputusan lebih baik.',
     },
 ];
 
@@ -80,7 +80,7 @@ const BENEFITS = [
     'Data real-time, tanpa perlu sinkronisasi manual',
     'Setiap toko/cabang punya data yang terpisah dan aman',
     'Antarmuka simpel, tim baru cepat terbiasa',
-    'Kontrol ketat riwayat shift kasir & transaksi',
+    'Kontrol ketat riwayat sesi kasir kasir & transaksi',
     'Laporan keuangan otomatis tanpa hitung manual',
 ];
 
@@ -187,7 +187,7 @@ function DashboardPreview() {
                         </p>
                         <p className="mt-0.5 flex items-center gap-1 text-xs font-medium text-slate-400">
                             <i className="fi fi-rr-receipt" />
-                            Shift berjalan
+                            Sesi Kasir berjalan
                         </p>
                     </div>
                 </div>
@@ -237,7 +237,7 @@ function DashboardPreview() {
                 </div>
                 <div>
                     <p className="text-xs font-semibold text-slate-900">
-                        Shift Aktif
+                        Sesi Kasir Aktif
                     </p>
                     <p className="text-[11px] text-slate-400">
                         Dibuka 08:00
@@ -486,7 +486,7 @@ export default function Landing() {
                         <Reveal delay={150}>
                             <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
                                 <p className="text-sm font-semibold text-slate-900">
-                                    Ringkasan Tutup Shift
+                                    Ringkasan Tutup Sesi Kasir
                                 </p>
                                 <div className="mt-4 space-y-3">
                                     <div className="flex items-center justify-between rounded-xl bg-slate-50 px-4 py-3">

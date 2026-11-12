@@ -54,7 +54,7 @@ class SupplierPayableReminderTest extends TestCase
             $owner,
             SupplierPayableNotification::class,
             fn (SupplierPayableNotification $notification) =>
-                $notification->toArray($owner)['title'] === 'Hutang supplier jatuh tempo besok'
+                $notification->toArray($owner)['title'] === 'Hutang ke pemasok jatuh tempo besok'
                 && $notification->toArray($owner)['purchase_id'] === $purchase->id,
         );
     }

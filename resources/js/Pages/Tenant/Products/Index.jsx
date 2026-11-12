@@ -163,7 +163,7 @@ export default function Index({ products, categories, rawMaterials, filters }) {
         <AdminLayout header="Produk">
             <Head title="Produk" />
 
-            <Breadcrumb items={[{ label: 'Master Data' }, { label: 'Produk' }]} />
+            <Breadcrumb items={[{ label: 'Data Toko' }, { label: 'Produk' }]} />
 
             <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                 <div>

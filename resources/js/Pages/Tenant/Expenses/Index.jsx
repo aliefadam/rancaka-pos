@@ -119,7 +119,7 @@ export default function Index({
             preserveScroll: true,
             onError: (errors) => {
                 setDeleteErrors(errors);
-                if (!errors.password && !errors.reason && !errors.expenses) toast.error('Gagal menghapus pengeluaran. Silakan coba lagi.');
+                if (!errors.password && !errors.reason && !errors.expenses) toast.error('Gagal menghapus biaya. Silakan coba lagi.');
             },
             onSuccess: () => {
                 setDeleteTarget(null);
@@ -130,17 +130,17 @@ export default function Index({
     };
 
     return (
-        <AdminLayout header="Pengeluaran">
-            <Head title="Pengeluaran" />
+        <AdminLayout header="Biaya">
+            <Head title="Biaya" />
 
             <Breadcrumb
-                items={[{ label: 'Transaksi' }, { label: 'Pengeluaran' }]}
+                items={[{ label: 'Transaksi' }, { label: 'Biaya' }]}
             />
 
             <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
                 <div>
                     <h2 className="text-xl font-bold text-slate-900">
-                        Pengeluaran
+                        Biaya
                     </h2>
                     <p className="mt-1 text-sm text-slate-500">
                         Total bulan ini:{' '}
@@ -168,7 +168,7 @@ export default function Index({
                             className="flex flex-1 items-center justify-center gap-2 rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-700 sm:flex-none"
                         >
                             <i className="fi fi-rr-add" />
-                            Tambah Pengeluaran
+                            Tambah Biaya
                         </button>
                     )}
                 </div>
@@ -193,7 +193,7 @@ export default function Index({
                 <BulkSelectionBar
                     count={selected.length}
                     totalLabel={`Rp ${selectedTotal.toLocaleString('id-ID')}`}
-                    actionLabel="Hapus pengeluaran"
+                    actionLabel="Hapus biaya"
                     onClear={() => setSelected([])}
                     onAction={() => requestDelete(selectedExpenses)}
                 />
@@ -202,7 +202,7 @@ export default function Index({
                     <table className="w-full min-w-[760px] text-left text-sm">
                         <thead>
                             <tr className="border-b border-slate-100 text-xs font-semibold uppercase tracking-wider text-slate-400">
-                                {can('expenses.delete') && <th className="w-12 px-4 py-3.5"><input type="checkbox" checked={expenses.data.length > 0 && expenses.data.every((expense) => selected.includes(expense.id))} onChange={togglePage} aria-label="Pilih semua pengeluaran di halaman ini" className="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500" /></th>}
+                                {can('expenses.delete') && <th className="w-12 px-4 py-3.5"><input type="checkbox" checked={expenses.data.length > 0 && expenses.data.every((expense) => selected.includes(expense.id))} onChange={togglePage} aria-label="Pilih semua biaya di halaman ini" className="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500" /></th>}
                                 <th className="px-6 py-3.5">Tanggal</th>
                                 <th className="px-6 py-3.5">Kategori</th>
                                 <th className="px-6 py-3.5">Nominal</th>
@@ -216,7 +216,7 @@ export default function Index({
                                     key={expense.id}
                                     className={`transition hover:bg-slate-50/60 ${selected.includes(expense.id) ? 'bg-indigo-50/40' : ''}`}
                                 >
-                                    {can('expenses.delete') && <td className="px-4 py-4"><input type="checkbox" checked={selected.includes(expense.id)} onChange={() => toggleSelected(expense.id)} aria-label={`Pilih pengeluaran ${expense.description}`} className="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500" /></td>}
+                                    {can('expenses.delete') && <td className="px-4 py-4"><input type="checkbox" checked={selected.includes(expense.id)} onChange={() => toggleSelected(expense.id)} aria-label={`Pilih biaya ${expense.description}`} className="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500" /></td>}
                                     <td className="whitespace-nowrap px-6 py-4 text-slate-500">
                                         {expense.formatted_date}
                                     </td>
@@ -253,7 +253,7 @@ export default function Index({
                         <article key={expense.id} className={`p-4 ${selected.includes(expense.id) ? 'bg-indigo-50/40' : ''}`}>
                             <div className="flex items-start justify-between gap-3">
                                 <div className="flex items-start gap-3">
-                                    {can('expenses.delete') && <input type="checkbox" checked={selected.includes(expense.id)} onChange={() => toggleSelected(expense.id)} aria-label={`Pilih pengeluaran ${expense.description}`} className="mt-1 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500" />}
+                                    {can('expenses.delete') && <input type="checkbox" checked={selected.includes(expense.id)} onChange={() => toggleSelected(expense.id)} aria-label={`Pilih biaya ${expense.description}`} className="mt-1 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500" />}
                                     <div>
                                     <CategoryBadge
                                         category={expense.category}
@@ -302,8 +302,8 @@ export default function Index({
                 onConfirm={confirmDelete}
                 processing={deleting}
                 errors={deleteErrors}
-                title={deleteTarget?.count > 1 ? 'Hapus pengeluaran terpilih' : 'Hapus pengeluaran'}
-                message={deleteTarget?.description ? `Pengeluaran “${deleteTarget.description}” akan dihapus dari laporan. Bukti tetap disimpan untuk audit.` : 'Seluruh pengeluaran terpilih akan dihapus dari laporan. Bukti tetap disimpan untuk audit.'}
+                title={deleteTarget?.count > 1 ? 'Hapus biaya terpilih' : 'Hapus biaya'}
+                message={deleteTarget?.description ? `Biaya “${deleteTarget.description}” akan dihapus dari laporan. Bukti tetap disimpan untuk audit.` : 'Seluruh biaya terpilih akan dihapus dari laporan. Bukti tetap disimpan untuk audit.'}
                 count={deleteTarget?.count ?? 1}
                 totalLabel={`Rp ${Number(deleteTarget?.total ?? 0).toLocaleString('id-ID')}`}
                 actionLabel="Konfirmasi penghapusan"
@@ -329,7 +329,7 @@ function ExpenseActions({ expense, onEdit, onDelete, can }) {
             {can('expenses.edit') && (
                 <button
                     type="button"
-                    title="Edit pengeluaran"
+                    title="Edit biaya"
                     onClick={() => onEdit(expense)}
                     className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 transition hover:bg-slate-100 hover:text-indigo-600"
                 >
@@ -339,7 +339,7 @@ function ExpenseActions({ expense, onEdit, onDelete, can }) {
             {can('expenses.delete') && (
                 <button
                     type="button"
-                    title="Hapus pengeluaran"
+                    title="Hapus biaya"
                     onClick={() => onDelete(expense)}
                     className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 transition hover:bg-rose-50 hover:text-rose-600"
                 >
@@ -357,7 +357,7 @@ function EmptyState() {
                 <i className="fi fi-rr-receipt text-xl" />
             </span>
             <p className="mt-4 text-sm font-medium text-slate-600">
-                Belum ada pengeluaran
+                Belum ada biaya
             </p>
             <p className="mt-1 text-sm text-slate-400">
                 Tambahkan biaya operasional pertama Anda.

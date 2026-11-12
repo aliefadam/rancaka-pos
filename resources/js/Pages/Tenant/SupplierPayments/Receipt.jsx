@@ -10,7 +10,7 @@ export default function Receipt({ store, payment, purchase, supplier, back_url: 
             <main className="receipt-page min-h-screen bg-slate-100 px-4 py-6 text-slate-950 print:bg-white print:p-0">
                 <div className="mx-auto mb-4 flex max-w-3xl flex-wrap items-center justify-between gap-3 print:hidden">
                     <Link href={backUrl} className="inline-flex items-center gap-2 rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm font-bold text-slate-700 shadow-sm hover:bg-slate-50">
-                        <i className="fi fi-rr-arrow-left" /> Detail pembelian
+                        <i className="fi fi-rr-arrow-left" /> Detail belanja stok
                     </Link>
                     <div className="flex gap-2">
                         {payment.proof_url && <a href={payment.proof_url} target="_blank" className="rounded-xl border border-indigo-200 bg-indigo-50 px-4 py-2.5 text-sm font-bold text-indigo-700">Bukti unggahan</a>}
@@ -40,7 +40,7 @@ export default function Receipt({ store, payment, purchase, supplier, back_url: 
                         <div>
                             <p className="text-[10px] font-black uppercase tracking-[0.18em] text-slate-500">Dibayarkan kepada</p>
                             <p className="mt-2 text-lg font-bold">{supplier.name}</p>
-                            <p className="mt-1 text-sm text-slate-600">{supplier.address || "Alamat supplier tidak dicatat"}</p>
+                            <p className="mt-1 text-sm text-slate-600">{supplier.address || "Alamat pemasok tidak dicatat"}</p>
                             {supplier.phone && <p className="mt-1 text-sm text-slate-600">{supplier.phone}</p>}
                         </div>
                         <div className="rounded-2xl bg-slate-950 p-5 text-white sm:text-right">
@@ -51,8 +51,8 @@ export default function Receipt({ store, payment, purchase, supplier, back_url: 
                     </section>
 
                     <section className="relative grid gap-x-8 gap-y-4 py-7 text-sm sm:grid-cols-2">
-                        <div className="flex justify-between gap-4 border-b border-slate-100 pb-3"><span className="text-slate-500">Dokumen pembelian</span><b>{purchase.number}</b></div>
-                        <div className="flex justify-between gap-4 border-b border-slate-100 pb-3"><span className="text-slate-500">Faktur supplier</span><b>{purchase.supplier_invoice_number || "-"}</b></div>
+                        <div className="flex justify-between gap-4 border-b border-slate-100 pb-3"><span className="text-slate-500">Dokumen belanja stok</span><b>{purchase.number}</b></div>
+                        <div className="flex justify-between gap-4 border-b border-slate-100 pb-3"><span className="text-slate-500">Faktur pemasok</span><b>{purchase.supplier_invoice_number || "-"}</b></div>
                         <div className="flex justify-between gap-4 border-b border-slate-100 pb-3"><span className="text-slate-500">Sisa sebelum</span><b>{money(payment.remaining_before)}</b></div>
                         <div className="flex justify-between gap-4 border-b border-slate-100 pb-3"><span className="text-slate-500">Sisa sesudah</span><b>{money(payment.remaining_after)}</b></div>
                         <div className="flex justify-between gap-4 border-b border-slate-100 pb-3"><span className="text-slate-500">Dicatat oleh</span><b>{payment.created_by || "-"}</b></div>

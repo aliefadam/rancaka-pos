@@ -470,7 +470,7 @@ export default function ProductFormModal({
                                         Perhitungan Harga
                                     </p>
                                     <p className="mt-0.5 text-xs leading-5 text-slate-500">
-                                        Margin dihitung dari HPP. Ubah margin untuk menghitung harga jual otomatis.
+                                        Keuntungan dihitung dari modal per item. Ubah persentase keuntungan untuk menghitung harga jual otomatis.
                                     </p>
                                 </div>
                             </div>
@@ -481,7 +481,7 @@ export default function ProductFormModal({
                                         htmlFor="cost"
                                         className="mb-1.5 block text-sm font-medium text-slate-700"
                                     >
-                                        HPP (Rp) <span className="text-rose-500">*</span>
+                                        Modal per item (Rp) <span className="text-rose-500">*</span>
                                     </label>
                                     <MoneyInput
                                         id="cost"
@@ -525,7 +525,7 @@ export default function ProductFormModal({
                                     htmlFor="margin_percentage"
                                     className="mb-1.5 block text-sm font-medium text-slate-700"
                                 >
-                                    Margin (%) <span className="text-rose-500">*</span>
+                                    Keuntungan (%) <span className="text-rose-500">*</span>
                                 </label>
                                 <div className="relative">
                                     <input

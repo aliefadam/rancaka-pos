@@ -66,7 +66,7 @@ export default function RoleFormModal({ show, onClose, role, menus }) {
                 onSuccess: () => onClose(),
                 onError: () =>
                     toast.error(
-                        'Gagal memperbarui role. Periksa kembali data yang dimasukkan.',
+                        'Gagal memperbarui kelompok akses. Periksa kembali data yang dimasukkan.',
                     ),
             });
         } else {
@@ -78,7 +78,7 @@ export default function RoleFormModal({ show, onClose, role, menus }) {
                 },
                 onError: () =>
                     toast.error(
-                        'Gagal menambahkan role. Periksa kembali data yang dimasukkan.',
+                        'Gagal menambahkan kelompok akses. Periksa kembali data yang dimasukkan.',
                     ),
             });
         }
@@ -89,7 +89,7 @@ export default function RoleFormModal({ show, onClose, role, menus }) {
             <form onSubmit={submit} className="flex min-h-0 flex-1 flex-col">
                 <Modal.Header>
                     <h2 className="text-lg font-semibold text-slate-900">
-                        {isEdit ? 'Edit Role' : 'Tambah Role'}
+                        {isEdit ? 'Ubah Kelompok Akses' : 'Tambah Kelompok Akses'}
                     </h2>
                 </Modal.Header>
 
@@ -100,7 +100,7 @@ export default function RoleFormModal({ show, onClose, role, menus }) {
                                 htmlFor="name"
                                 className="mb-1.5 block text-sm font-medium text-slate-700"
                             >
-                                Nama Role <span className="text-rose-500">*</span>
+                                Nama kelompok <span className="text-rose-500">*</span>
                             </label>
                             <input
                                 id="name"
@@ -121,7 +121,7 @@ export default function RoleFormModal({ show, onClose, role, menus }) {
 
                         <div>
                             <label className="mb-2 block text-sm font-medium text-slate-700">
-                                Hak Akses
+                                Menu yang boleh digunakan
                             </label>
                             <div className="hidden overflow-hidden rounded-xl border border-slate-200 md:block">
                                 <table className="w-full text-left text-sm">
@@ -284,7 +284,7 @@ export default function RoleFormModal({ show, onClose, role, menus }) {
                         {processing && (
                             <i className="fi fi-rr-spinner animate-spin" />
                         )}
-                        {isEdit ? 'Simpan Perubahan' : 'Tambah Role'}
+                        {isEdit ? 'Simpan Perubahan' : 'Tambah Akses'}
                     </button>
                 </Modal.Footer>
             </form>

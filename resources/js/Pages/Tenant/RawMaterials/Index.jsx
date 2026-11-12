@@ -137,7 +137,7 @@ export default function Index({ rawMaterials, filters }) {
         <AdminLayout header="Bahan Baku">
             <Head title="Bahan Baku" />
 
-            <Breadcrumb items={[{ label: 'Master Data' }, { label: 'Bahan Baku' }]} />
+            <Breadcrumb items={[{ label: 'Data Toko' }, { label: 'Bahan Baku' }]} />
 
             <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                 <div>
@@ -212,7 +212,7 @@ export default function Index({ rawMaterials, filters }) {
                                     Stok
                                 </th>
                                 <th className="px-6 py-3.5 font-semibold">
-                                    HPP / Satuan
+                                    Modal per item / Satuan
                                 </th>
                                 <th className="px-6 py-3.5 font-semibold">
                                     Status
@@ -337,7 +337,7 @@ export default function Index({ rawMaterials, filters }) {
 
                             <div className="mt-2 flex items-center justify-between gap-3">
                                 <span className="text-sm text-slate-400">
-                                    HPP / satuan
+                                    Modal per item / satuan
                                 </span>
                                 <div className="text-right">
                                     <span className="text-sm font-semibold text-slate-700">

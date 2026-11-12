@@ -173,7 +173,7 @@ export default function RawMaterialFormModal({ show, onClose, rawMaterial }) {
                                         htmlFor="average_cost"
                                         className="mb-1.5 block text-sm font-semibold text-slate-700"
                                     >
-                                        {costIsLocked ? 'HPP rata-rata per satuan' : 'HPP awal per satuan'}
+                                        {costIsLocked ? 'Modal per item rata-rata per satuan' : 'Modal per item awal per satuan'}
                                         {costIsRequired && <span className="text-rose-500"> *</span>}
                                     </label>
                                     <MoneyInput
@@ -191,10 +191,10 @@ export default function RawMaterialFormModal({ show, onClose, rawMaterial }) {
                                     />
                                     <p className="mt-2 text-xs leading-5 text-slate-500">
                                         {costIsLocked
-                                            ? 'Nilai ini diperbarui otomatis dari pembelian dan tidak dapat diubah manual.'
+                                            ? 'Nilai ini diperbarui otomatis dari belanja stok dan tidak dapat diubah manual.'
                                             : costIsRequired
                                               ? 'Wajib diisi karena bahan baku sudah memiliki stok awal.'
-                                              : 'Opsional jika stok masih 0; pembelian pertama akan menetapkan HPP otomatis.'}
+                                              : 'Opsional jika stok masih 0; belanja stok pertama akan menetapkan Modal per item otomatis.'}
                                     </p>
                                     {errors.average_cost && (
                                         <p className="mt-1.5 text-sm text-red-600">

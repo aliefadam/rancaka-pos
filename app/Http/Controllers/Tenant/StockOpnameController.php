@@ -60,7 +60,7 @@ class StockOpnameController extends Controller
         $opname = $service->create($request->user(), $data);
 
         return redirect()->route('tenant.stock-opnames.show', $opname)
-            ->with('success', 'Sesi stock opname dan snapshot stok berhasil dibuat.');
+            ->with('success', 'Sesi cek stok dan catatan stok berhasil dibuat.');
     }
 
     public function show(Request $request, StockOpname $stockOpname): Response
@@ -100,7 +100,7 @@ class StockOpnameController extends Controller
     {
         $service->start($request->user(), $stockOpname);
 
-        return back()->with('success', 'Penghitungan stock opname dimulai.');
+        return back()->with('success', 'Penghitungan cek stok dimulai.');
     }
 
     public function saveCounts(Request $request, StockOpname $stockOpname, StockOpnameService $service): RedirectResponse
@@ -119,7 +119,7 @@ class StockOpnameController extends Controller
     {
         $service->submit($request->user(), $stockOpname);
 
-        return back()->with('success', 'Stock opname dikirim kepada owner untuk persetujuan.');
+        return back()->with('success', 'Hasil cek stok dikirim kepada pemilik untuk persetujuan.');
     }
 
     public function returnToCounting(Request $request, StockOpname $stockOpname, StockOpnameService $service): RedirectResponse
@@ -134,7 +134,7 @@ class StockOpnameController extends Controller
     {
         $service->post($request->user(), $stockOpname);
 
-        return back()->with('success', 'Stock opname berhasil diposting ke riwayat stok.');
+        return back()->with('success', 'Cek stok berhasil diposting ke riwayat stok.');
     }
 
     public function cancel(Request $request, StockOpname $stockOpname, StockOpnameService $service): RedirectResponse
@@ -142,7 +142,7 @@ class StockOpnameController extends Controller
         $data = $request->validate(['reason' => ['required', 'string', 'min:3', 'max:1000']]);
         $service->cancel($request->user(), $stockOpname, $data['reason']);
 
-        return back()->with('success', 'Sesi stock opname dibatalkan tanpa mengubah stok.');
+        return back()->with('success', 'Sesi cek stok dibatalkan tanpa mengubah stok.');
     }
 
     private function authorizeTenant(Request $request, StockOpname $stockOpname): void

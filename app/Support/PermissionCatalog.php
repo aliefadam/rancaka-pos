@@ -51,7 +51,7 @@ class PermissionCatalog
             ],
             [
                 'key' => 'expenses',
-                'label' => 'Pengeluaran',
+                'label' => 'Biaya',
                 'actions' => [
                     ['key' => 'view', 'label' => 'Lihat'],
                     ['key' => 'create', 'label' => 'Tambah'],
@@ -61,7 +61,7 @@ class PermissionCatalog
             ],
             [
                 'key' => 'suppliers',
-                'label' => 'Supplier',
+                'label' => 'Pemasok',
                 'actions' => [
                     ['key' => 'view', 'label' => 'Lihat'],
                     ['key' => 'create', 'label' => 'Tambah'],
@@ -70,7 +70,7 @@ class PermissionCatalog
             ],
             [
                 'key' => 'purchases',
-                'label' => 'Pembelian',
+                'label' => 'Belanja Stok',
                 'actions' => [
                     ['key' => 'view', 'label' => 'Lihat'],
                     ['key' => 'create', 'label' => 'Buat'],
@@ -80,7 +80,7 @@ class PermissionCatalog
             ],
             [
                 'key' => 'supplier-payables',
-                'label' => 'Hutang Supplier',
+                'label' => 'Hutang ke Pemasok',
                 'actions' => [
                     ['key' => 'view', 'label' => 'Lihat'],
                 ],
@@ -105,7 +105,7 @@ class PermissionCatalog
             ],
             [
                 'key' => 'stock-opnames',
-                'label' => 'Stock Opname',
+                'label' => 'Cek Stok',
                 'actions' => [
                     ['key' => 'view', 'label' => 'Lihat'],
                     ['key' => 'create', 'label' => 'Buat & Mulai'],
@@ -114,7 +114,7 @@ class PermissionCatalog
             ],
             [
                 'key' => 'stock-transfers',
-                'label' => 'Transfer Stok',
+                'label' => 'Pindah Stok Antar Cabang',
                 'actions' => [
                     ['key' => 'view', 'label' => 'Lihat'],
                     ['key' => 'create', 'label' => 'Kirim'],
@@ -139,7 +139,7 @@ class PermissionCatalog
             ],
             [
                 'key' => 'shift-reports',
-                'label' => 'Riwayat Shift',
+                'label' => 'Riwayat Sesi Kasir',
                 'actions' => [
                     ['key' => 'view', 'label' => 'Lihat'],
                 ],

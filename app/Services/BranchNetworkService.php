@@ -159,7 +159,7 @@ class BranchNetworkService
             }
             $relationship->branchTenant->owner?->notify(new BranchNetworkNotification([
                 'kind' => 'request_approved', 'title' => 'Cabang disetujui',
-                'message' => 'Akses jaringan aktif. Billing pusat berlaku mulai '.$billingEffective->translatedFormat('d M Y').'.',
+                'message' => 'Akses jaringan aktif. Langganan pusat berlaku mulai '.$billingEffective->translatedFormat('d M Y').'.',
             ]));
 
             return $relationship->fresh();
@@ -225,7 +225,7 @@ class BranchNetworkService
             ->get()->each(fn ($relationship) => DB::transaction(function () use ($relationship) {
                 $locked = TenantBranchRelationship::lockForUpdate()->find($relationship->id);
                 if ($locked?->status === 'approved_pending_billing') {
-                    $this->transition($locked, 'active', null, 'Tanggal efektif billing tercapai.');
+                    $this->transition($locked, 'active', null, 'Tanggal mulai langganan tercapai.');
                 }
             }));
 

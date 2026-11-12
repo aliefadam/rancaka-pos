@@ -40,9 +40,9 @@ export default function Index({ payments, settings }) {
             router.patch(route('admin.billing.reject', payment.id), { reason });
     };
     return (
-        <AdminLayout header="Billing Tenant">
-            <Head title="Billing Tenant" />
-            <Breadcrumb items={[{ label: 'SaaS' }, { label: 'Billing Tenant' }]} homeHref={route('admin.dashboard')} />
+        <AdminLayout header="Langganan Toko">
+            <Head title="Langganan Toko" />
+            <Breadcrumb items={[{ label: 'SaaS' }, { label: 'Langganan Toko' }]} homeHref={route('admin.dashboard')} />
             <form
                 onSubmit={saveBank}
                 className="mb-6 overflow-hidden rounded-2xl border border-slate-200/70 bg-white shadow-sm shadow-slate-200/40"
@@ -112,7 +112,7 @@ export default function Index({ payments, settings }) {
                             </div>
                             <p className="mt-7 text-sm font-semibold text-white/70">{bankForm.data.bank_name || 'Nama bank'}</p>
                             <p className="mt-1 break-all font-mono text-2xl font-bold tracking-[0.08em]">{bankForm.data.bank_account || '0000000000'}</p>
-                            <p className="mt-5 text-xs uppercase tracking-[0.12em] text-white/50">a.n. {bankForm.data.bank_holder || 'Nama pemilik rekening'}</p>
+                            <p className="mt-5 text-xs uppercase tracking-[0.12em] text-white/50">a.n. {bankForm.data.bank_holder || 'Nama owner rekening'}</p>
                         </div>
                     </div>
                 </div>

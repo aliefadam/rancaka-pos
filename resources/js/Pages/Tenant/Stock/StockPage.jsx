@@ -4,7 +4,7 @@ import AdminLayout from '@/Layouts/AdminLayout';
 import StockAdjustmentModal from '@/Pages/Tenant/Stock/StockAdjustmentModal';
 import StockHistoryModal from '@/Pages/Tenant/Stock/StockHistoryModal';
 import StockInModal from '@/Pages/Tenant/Stock/StockInModal';
-import { Head, router } from '@inertiajs/react';
+import { Head, Link, router } from '@inertiajs/react';
 import { useEffect, useRef, useState } from 'react';
 
 const LOW_STOCK_THRESHOLD = 5;
@@ -142,11 +142,30 @@ export default function StockPage({
 
             <Breadcrumb
                 items={[
-                    { label: 'Master Data' },
+                    { label: 'Data Toko' },
                     { label: 'Stok' },
                     { label: title },
                 ]}
             />
+
+            <nav className="mb-5 flex w-fit gap-1 rounded-xl border border-slate-200 bg-white p-1" aria-label="Jenis stok">
+                {can('stock-products.view') && (
+                    <Link
+                        href={route('tenant.stock.products.index')}
+                        className={`rounded-lg px-3.5 py-2 text-sm font-semibold transition ${route().current('tenant.stock.products.*') ? 'bg-slate-900 text-white' : 'text-slate-500 hover:bg-slate-50'}`}
+                    >
+                        Produk
+                    </Link>
+                )}
+                {can('stock-raw-materials.view') && (
+                    <Link
+                        href={route('tenant.stock.raw-materials.index')}
+                        className={`rounded-lg px-3.5 py-2 text-sm font-semibold transition ${route().current('tenant.stock.raw-materials.*') ? 'bg-slate-900 text-white' : 'text-slate-500 hover:bg-slate-50'}`}
+                    >
+                        Bahan baku
+                    </Link>
+                )}
+            </nav>
 
             <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                 <div>

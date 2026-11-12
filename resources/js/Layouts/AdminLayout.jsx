@@ -27,7 +27,7 @@ const navigationByRole = {
                     icon: "fi-rr-building",
                 },
                 {
-                    name: "Billing Tenant",
+                    name: "Langganan Toko",
                     href: "admin.billing.index",
                     icon: "fi-rr-credit-card",
                 },
@@ -112,343 +112,83 @@ const navigationByRole = {
             ],
         },
     ],
-    owner: [
-        {
-            group: "Menu",
-            items: [
-                {
-                    name: "Dashboard",
-                    href: "tenant.dashboard",
-                    icon: "fi-rr-apps",
-                    permission: "dashboard.view",
-                },
-            ],
-        },
-        {
-            group: "Transaksi",
-            items: [
-                {
-                    name: "Kasir",
-                    href: "tenant.pos.index",
-                    icon: "fi-rr-cash-register",
-                },
-                {
-                    name: "Penjualan Kredit",
-                    href: "tenant.credit-sales.index",
-                    activePattern: "tenant.credit-sales.*",
-                    icon: "fi-rr-hand-holding-usd",
-                },
-                {
-                    name: "Pengeluaran",
-                    href: "tenant.expenses.index",
-                    icon: "fi-rr-money-bill-wave",
-                    permission: "expenses.view",
-                },
-                {
-                    name: "Pembelian",
-                    href: "tenant.purchases.index",
-                    activePattern: "tenant.purchases.*",
-                    icon: "fi-rr-shopping-cart-add",
-                    permission: "purchases.view",
-                },
-                {
-                    name: "Hutang Supplier",
-                    href: "tenant.supplier-payables.index",
-                    icon: "fi-rr-receipt",
-                    permission: "supplier-payables.view",
-                },
-            ],
-        },
-        {
-            group: "Master Data",
-            items: [
-                {
-                    name: "Kategori",
-                    href: "tenant.categories.index",
-                    icon: "fi-rr-tags",
-                    permission: "categories.view",
-                },
-                {
-                    name: "Produk",
-                    href: "tenant.products.index",
-                    icon: "fi-rr-shopping-bag",
-                    permission: "products.view",
-                },
-                {
-                    name: "Bahan Baku",
-                    href: "tenant.raw-materials.index",
-                    icon: "fi-rr-box-open",
-                    permission: "raw-materials.view",
-                },
-                {
-                    name: "Supplier",
-                    href: "tenant.suppliers.index",
-                    icon: "fi-rr-truck-side",
-                    permission: "suppliers.view",
-                },
-            ],
-        },
-        {
-            group: "Stok",
-            items: [
-                {
-                    name: "Stok Produk",
-                    href: "tenant.stock.products.index",
-                    icon: "fi-rr-box-open",
-                    permission: "stock-products.view",
-                },
-                {
-                    name: "Stok Bahan Baku",
-                    href: "tenant.stock.raw-materials.index",
-                    icon: "fi-rr-boxes",
-                    permission: "stock-raw-materials.view",
-                },
-                {
-                    name: "Stock Opname",
-                    href: "tenant.stock-opnames.index",
-                    icon: "fi-rr-list-check",
-                    permission: "stock-opnames.view",
-                },
-                {
-                    name: "Transfer Stok",
-                    href: "tenant.stock-transfers.index",
-                    activePattern: "tenant.stock-transfers.*",
-                    icon: "fi-rr-truck-loading",
-                    permission: "stock-transfers.view",
-                },
-            ],
-        },
-        {
-            group: "Laporan",
-            items: [
-                {
-                    name: "Pembelian",
-                    href: "tenant.reports.purchases.index",
-                    activePattern: "tenant.reports.purchases.*",
-                    icon: "fi-rr-chart-histogram",
-                    permission: "purchases.view",
-                },
-                {
-                    name: "Keuangan",
-                    href: "tenant.reports.financial.index",
-                    icon: "fi-rr-chart-pie-alt",
-                    permission: "financial-reports.view",
-                },
-                {
-                    name: "Riwayat Transaksi",
-                    href: "tenant.reports.transactions.index",
-                    icon: "fi-rr-receipt",
-                    permission: "transactions.view",
-                },
-                {
-                    name: "Riwayat Shift",
-                    href: "tenant.reports.shifts.index",
-                    icon: "fi-rr-time-past",
-                    permission: "shift-reports.view",
-                },
-            ],
-        },
-        {
-            group: "Tim",
-            items: [
-                {
-                    name: "Karyawan",
-                    href: "tenant.employees.index",
-                    icon: "fi-rr-users",
-                },
-                {
-                    name: "Role & Hak Akses",
-                    href: "tenant.roles.index",
-                    icon: "fi-rr-shield-check",
-                },
-            ],
-        },
-        {
-            group: "Pengaturan",
-            items: [
-                {
-                    name: "Jaringan Cabang",
-                    href: "tenant.network.index",
-                    activePattern: "tenant.network.*",
-                    icon: "fi-rr-chart-network",
-                    networkOnly: true,
-                },
-                {
-                    name: "Pengaturan Toko",
-                    href: "tenant.settings.edit",
-                    icon: "fi-rr-settings",
-                },
-                {
-                    name: "Billing",
-                    href: "tenant.billing.index",
-                    icon: "fi-rr-credit-card",
-                },
-                {
-                    name: "Akun Saya",
-                    href: "account.edit",
-                    icon: "fi-rr-user",
-                },
-            ],
-        },
-        {
-            group: "Sistem",
-            items: [
-                {
-                    name: "Versi Aplikasi",
-                    href: "tenant.version.index",
-                    icon: "fi-rr-code-branch",
-                },
-            ],
-        },
-    ],
-    employee: [
-        {
-            group: "Menu",
-            items: [
-                {
-                    name: "Dashboard",
-                    href: "tenant.dashboard",
-                    icon: "fi-rr-apps",
-                    permission: "dashboard.view",
-                },
-            ],
-        },
-        {
-            group: "Transaksi",
-            items: [
-                {
-                    name: "Kasir",
-                    href: "tenant.pos.index",
-                    icon: "fi-rr-cash-register",
-                },
-                {
-                    name: "Penjualan Kredit",
-                    href: "tenant.credit-sales.index",
-                    activePattern: "tenant.credit-sales.*",
-                    icon: "fi-rr-hand-holding-usd",
-                },
-                {
-                    name: "Pengeluaran",
-                    href: "tenant.expenses.index",
-                    icon: "fi-rr-money-bill-wave",
-                    permission: "expenses.view",
-                },
-                {
-                    name: "Pembelian",
-                    href: "tenant.purchases.index",
-                    activePattern: "tenant.purchases.*",
-                    icon: "fi-rr-shopping-cart-add",
-                    permission: "purchases.view",
-                },
-                {
-                    name: "Hutang Supplier",
-                    href: "tenant.supplier-payables.index",
-                    icon: "fi-rr-receipt",
-                    permission: "supplier-payables.view",
-                },
-            ],
-        },
-        {
-            group: "Master Data",
-            items: [
-                {
-                    name: "Kategori",
-                    href: "tenant.categories.index",
-                    icon: "fi-rr-tags",
-                    permission: "categories.view",
-                },
-                {
-                    name: "Produk",
-                    href: "tenant.products.index",
-                    icon: "fi-rr-shopping-bag",
-                    permission: "products.view",
-                },
-                {
-                    name: "Bahan Baku",
-                    href: "tenant.raw-materials.index",
-                    icon: "fi-rr-box-open",
-                    permission: "raw-materials.view",
-                },
-                {
-                    name: "Supplier",
-                    href: "tenant.suppliers.index",
-                    icon: "fi-rr-truck-side",
-                    permission: "suppliers.view",
-                },
-            ],
-        },
-        {
-            group: "Stok",
-            items: [
-                {
-                    name: "Stok Produk",
-                    href: "tenant.stock.products.index",
-                    icon: "fi-rr-box-open",
-                    permission: "stock-products.view",
-                },
-                {
-                    name: "Stok Bahan Baku",
-                    href: "tenant.stock.raw-materials.index",
-                    icon: "fi-rr-boxes",
-                    permission: "stock-raw-materials.view",
-                },
-                {
-                    name: "Stock Opname",
-                    href: "tenant.stock-opnames.index",
-                    icon: "fi-rr-list-check",
-                    permission: "stock-opnames.view",
-                },
-                {
-                    name: "Transfer Stok",
-                    href: "tenant.stock-transfers.index",
-                    activePattern: "tenant.stock-transfers.*",
-                    icon: "fi-rr-truck-loading",
-                    permission: "stock-transfers.view",
-                },
-            ],
-        },
-        {
-            group: "Laporan",
-            items: [
-                {
-                    name: "Pembelian",
-                    href: "tenant.reports.purchases.index",
-                    activePattern: "tenant.reports.purchases.*",
-                    icon: "fi-rr-chart-histogram",
-                    permission: "purchases.view",
-                },
-                {
-                    name: "Keuangan",
-                    href: "tenant.reports.financial.index",
-                    icon: "fi-rr-chart-pie-alt",
-                    permission: "financial-reports.view",
-                },
-                {
-                    name: "Riwayat Transaksi",
-                    href: "tenant.reports.transactions.index",
-                    icon: "fi-rr-receipt",
-                    permission: "transactions.view",
-                },
-                {
-                    name: "Riwayat Shift",
-                    href: "tenant.reports.shifts.index",
-                    icon: "fi-rr-time-past",
-                    permission: "shift-reports.view",
-                },
-            ],
-        },
-        {
-            group: "Sistem",
-            items: [
-                {
-                    name: "Versi Aplikasi",
-                    href: "tenant.version.index",
-                    icon: "fi-rr-code-branch",
-                },
-            ],
-        },
-    ],
+    owner: [],
+    employee: [],
 };
+
+const tenantNavigation = [
+    {
+        name: "Beranda",
+        href: "tenant.dashboard",
+        icon: "fi-rr-home",
+        permission: "dashboard.view",
+    },
+    {
+        name: "Kasir",
+        icon: "fi-rr-cash-register",
+        children: [
+            { name: "Jualan", href: "tenant.pos.index" },
+            { name: "Riwayat transaksi", href: "tenant.reports.transactions.index", permission: "transactions.view" },
+            { name: "Penjualan bon (kredit)", href: "tenant.credit-sales.index", activePattern: "tenant.credit-sales.*" },
+            { name: "Sesi kasir", href: "tenant.reports.shifts.index", permission: "shift-reports.view" },
+        ],
+    },
+    {
+        name: "Produk & Stok",
+        icon: "fi-rr-boxes",
+        children: [
+            { name: "Produk", href: "tenant.products.index", permission: "products.view" },
+            { name: "Kategori", href: "tenant.categories.index", permission: "categories.view" },
+            { name: "Stok", href: "tenant.stock.products.index", activePatterns: ["tenant.stock.products.*", "tenant.stock.raw-materials.*"], permissions: ["stock-products.view", "stock-raw-materials.view"], alternateHref: "tenant.stock.raw-materials.index", alternatePermission: "stock-raw-materials.view" },
+            { name: "Bahan baku", href: "tenant.raw-materials.index", permission: "raw-materials.view" },
+            { name: "Cek stok", href: "tenant.stock-opnames.index", activePattern: "tenant.stock-opnames.*", permission: "stock-opnames.view" },
+            { name: "Pindah stok", href: "tenant.stock-transfers.index", activePattern: "tenant.stock-transfers.*", permission: "stock-transfers.view" },
+        ],
+    },
+    {
+        name: "Belanja & Biaya",
+        icon: "fi-rr-shopping-cart",
+        children: [
+            { name: "Belanja stok", href: "tenant.purchases.index", activePattern: "tenant.purchases.*", permission: "purchases.view" },
+            { name: "Biaya operasional", href: "tenant.expenses.index", permission: "expenses.view" },
+            { name: "Hutang ke pemasok", href: "tenant.supplier-payables.index", permission: "supplier-payables.view" },
+            { name: "Pemasok", href: "tenant.suppliers.index", activePattern: "tenant.suppliers.*", permission: "suppliers.view" },
+        ],
+    },
+    {
+        name: "Laporan",
+        icon: "fi-rr-chart-histogram",
+        children: [
+            { name: "Untung-rugi", href: "tenant.reports.financial.index", inactiveHashes: ["#penjualan"] , permission: "financial-reports.view" },
+            { name: "Laporan belanja", href: "tenant.reports.purchases.index", activePattern: "tenant.reports.purchases.*", permission: "purchases.view" },
+            { name: "Laporan penjualan", href: "tenant.reports.financial.index", hash: "#penjualan", permission: "financial-reports.view" },
+        ],
+    },
+    {
+        name: "Pengaturan",
+        icon: "fi-rr-settings",
+        ownerOnly: true,
+        children: [
+            { name: "Info toko", href: "tenant.settings.edit", inactiveHashes: ["#struk-pajak"] },
+            { name: "Struk & pajak", href: "tenant.settings.edit", hash: "#struk-pajak" },
+            { name: "Karyawan & akses", href: "tenant.employees.index", activePatterns: ["tenant.employees.*", "tenant.roles.*"] },
+            { name: "Cabang", href: "tenant.network.index", activePattern: "tenant.network.*", networkOnly: true },
+            { name: "Langganan", href: "tenant.billing.index" },
+        ],
+    },
+];
+
+const itemIsActive = (item) => {
+    const patterns = item.activePatterns ?? [item.activePattern ?? item.href];
+    const routeMatches = patterns.some((pattern) => route().current(pattern));
+    if (!routeMatches) return false;
+
+    const hash = typeof window === "undefined" ? "" : window.location.hash;
+    if (item.hash) return hash === item.hash;
+    return !(item.inactiveHashes ?? []).includes(hash);
+};
+
+const itemUrl = (item) => `${route(item.href)}${item.hash ?? ""}`;
 
 const SidebarContent = ({ navigation, onClose, version }) => (
     <>
@@ -473,13 +213,11 @@ const SidebarContent = ({ navigation, onClose, version }) => (
                     </p>
                     <div className="mt-1.5 space-y-0.5">
                         {section.items.map((item) => {
-                            const active = route().current(
-                                item.activePattern ?? item.href,
-                            );
+                            const active = item.children?.some(itemIsActive) ?? itemIsActive(item);
                             return (
                                 <Link
                                     key={item.name}
-                                    href={route(item.href)}
+                                    href={itemUrl(item)}
                                     className={`app-nav-link group relative flex min-h-10 items-center gap-3 overflow-hidden rounded-xl px-3 py-2 text-sm font-medium transition-all duration-200 ${
                                         active
                                             ? "app-nav-link-active bg-indigo-50 text-indigo-700 shadow-sm shadow-indigo-100/40 ring-1 ring-inset ring-indigo-100/70"
@@ -521,6 +259,45 @@ export default function AdminLayout({ children }) {
         auth.supplier_payable_notifications ?? 0,
     );
     const navigation = useMemo(() => {
+        if (user.role === "owner" || user.role === "employee") {
+            const permissions = auth.permissions ?? [];
+            const canOpen = (item) => {
+                if (item.ownerOnly && user.role !== "owner") return false;
+                if (item.networkOnly && !page.props.features?.branch_network) return false;
+                if (!route().has(item.href)) return false;
+                if (user.role !== "employee") return true;
+                if (item.permission) return permissions.includes(item.permission);
+                if (item.permissions) return item.permissions.some((permission) => permissions.includes(permission));
+                return true;
+            };
+            const items = tenantNavigation
+                .filter((item) => !item.ownerOnly || user.role === "owner")
+                .map((item) => {
+                    if (!item.children) return item;
+                    const children = item.children
+                        .map((child) => {
+                            if (
+                                user.role === "employee" &&
+                                child.permission === undefined &&
+                                child.permissions &&
+                                !permissions.includes(child.permissions[0]) &&
+                                child.alternateHref &&
+                                permissions.includes(child.alternatePermission)
+                            ) {
+                                return { ...child, href: child.alternateHref };
+                            }
+                            return child;
+                        })
+                        .filter(canOpen);
+                    return children.length
+                        ? { ...item, href: children[0].href, children }
+                        : null;
+                })
+                .filter((item) => item && canOpen(item));
+
+            return [{ group: "Menu Utama", items }];
+        }
+
         const sections = navigationByRole[user.role] ?? [];
         const availableSections = sections
             .map((section) => ({
@@ -529,24 +306,15 @@ export default function AdminLayout({ children }) {
             }))
             .filter((section) => section.items.length > 0);
 
-        if (user.role !== "employee") return availableSections;
-
-        const permissions = auth.permissions ?? [];
-
-        return availableSections
-            .map((section) => ({
-                ...section,
-                items: section.items.filter(
-                    (item) =>
-                        !item.permission || permissions.includes(item.permission),
-                ),
-            }))
-            .filter((section) => section.items.length > 0);
+        return availableSections;
     }, [auth.permissions, page.props.features?.branch_network, user.role]);
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const [desktopSidebarOpen, setDesktopSidebarOpen] = useState(true);
     const [searchQuery, setSearchQuery] = useState("");
     const [searchOpen, setSearchOpen] = useState(false);
+    const [currentHash, setCurrentHash] = useState(() =>
+        typeof window === "undefined" ? "" : window.location.hash,
+    );
     const [stoppingImpersonation, setStoppingImpersonation] = useState(false);
     const [darkMode, setDarkMode] = useState(() => {
         if (typeof window === "undefined") return false;
@@ -563,15 +331,29 @@ export default function AdminLayout({ children }) {
         );
     }, [darkMode]);
 
+    useEffect(() => {
+        const updateHash = () => setCurrentHash(window.location.hash);
+        window.addEventListener("hashchange", updateHash);
+        updateHash();
+        return () => window.removeEventListener("hashchange", updateHash);
+    }, [page.url]);
+
     const searchableItems = useMemo(
         () =>
             navigation.flatMap((section) =>
-                section.items.map((item) => ({
-                    ...item,
-                    group: section.group,
-                })),
+                section.items.flatMap((item) =>
+                    (item.children ?? [item]).map((child) => ({
+                        ...child,
+                        icon: child.icon ?? item.icon,
+                        group: item.children ? item.name : section.group,
+                    })),
+                ),
             ),
         [navigation],
+    );
+    const contextNavigation = useMemo(
+        () => navigation.flatMap((section) => section.items).find((item) => item.children?.some(itemIsActive)),
+        [navigation, page.url, currentHash],
     );
 
     const searchResults = useMemo(() => {
@@ -599,7 +381,7 @@ export default function AdminLayout({ children }) {
     const goToSearchResult = (item) => {
         setSearchQuery("");
         setSearchOpen(false);
-        router.visit(route(item.href));
+        router.visit(itemUrl(item));
     };
 
     const [now, setNow] = useState(new Date());
@@ -757,7 +539,7 @@ export default function AdminLayout({ children }) {
                                         <div className="max-h-72 overflow-y-auto py-1">
                                             {searchResults.map((item) => (
                                                 <button
-                                                    key={item.href}
+                                                    key={`${item.href}${item.hash ?? ""}`}
                                                     type="button"
                                                     onMouseDown={(e) =>
                                                         e.preventDefault()
@@ -792,8 +574,8 @@ export default function AdminLayout({ children }) {
                                         ? "bg-amber-50 text-amber-700 hover:bg-amber-100"
                                         : "text-slate-500 hover:bg-slate-50 hover:text-indigo-600"
                                 }`}
-                                aria-label={`Hutang Supplier${supplierPayableNotifications > 0 ? `, ${supplierPayableNotifications} tagihan perlu diperhatikan` : ""}`}
-                                title="Hutang Supplier"
+                                aria-label={`Hutang ke Pemasok${supplierPayableNotifications > 0 ? `, ${supplierPayableNotifications} tagihan perlu diperhatikan` : ""}`}
+                                title="Hutang ke Pemasok"
                             >
                                 <i className="fi fi-rr-file-invoice-dollar text-lg" />
                                 {supplierPayableNotifications > 0 && (
@@ -851,6 +633,22 @@ export default function AdminLayout({ children }) {
                                     @{user.username}
                                 </p>
                             </div>
+                            {(user.role === "owner" || user.role === "employee") && (
+                                <>
+                                    <Dropdown.Link href={route("account.edit")}>
+                                        <span className="flex items-center gap-2">
+                                            <i className="fi fi-rr-user" />
+                                            Akun Saya
+                                        </span>
+                                    </Dropdown.Link>
+                                    <Dropdown.Link href={route("tenant.version.index")}>
+                                        <span className="flex items-center gap-2">
+                                            <i className="fi fi-rr-code-branch" />
+                                            Versi Aplikasi
+                                        </span>
+                                    </Dropdown.Link>
+                                </>
+                            )}
                             <Dropdown.Link
                                 href={route("logout")}
                                 method="post"
@@ -867,7 +665,34 @@ export default function AdminLayout({ children }) {
                 </header>
                 </div>
 
-                <main className="app-main p-4 sm:p-6">{children}</main>
+                <main className="app-main p-4 sm:p-6">
+                    {contextNavigation && (
+                        <nav
+                            className="mb-5 overflow-x-auto rounded-2xl border border-slate-200/80 bg-white p-1.5 shadow-sm"
+                            aria-label={`Navigasi ${contextNavigation.name}`}
+                        >
+                            <div className="flex min-w-max gap-1">
+                                {contextNavigation.children.map((item) => {
+                                    const active = itemIsActive(item);
+                                    return (
+                                        <Link
+                                            key={`${item.href}${item.hash ?? item.name}`}
+                                            href={itemUrl(item)}
+                                            className={`rounded-xl px-4 py-2.5 text-sm font-semibold transition ${
+                                                active
+                                                    ? "bg-indigo-600 text-white shadow-sm"
+                                                    : "text-slate-500 hover:bg-slate-50 hover:text-slate-900"
+                                            }`}
+                                        >
+                                            {item.name}
+                                        </Link>
+                                    );
+                                })}
+                            </div>
+                        </nav>
+                    )}
+                    {children}
+                </main>
             </div>
         </div>
     );

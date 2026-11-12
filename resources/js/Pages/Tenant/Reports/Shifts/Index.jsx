@@ -99,17 +99,17 @@ export default function Index({ shifts, filters, outletScope }) {
     };
 
     return (
-        <AdminLayout header="Riwayat Shift">
-            <Head title="Riwayat Shift" />
+        <AdminLayout header="Riwayat Sesi Kasir">
+            <Head title="Riwayat Sesi Kasir" />
 
-            <Breadcrumb items={[{ label: 'Laporan' }, { label: 'Riwayat Shift' }]} />
+            <Breadcrumb items={[{ label: 'Laporan' }, { label: 'Riwayat Sesi Kasir' }]} />
 
             <div className="mb-6">
                 <h2 className="text-xl font-bold text-slate-900">
-                    Riwayat Shift
+                    Riwayat Sesi Kasir
                 </h2>
                 <p className="mt-1 text-sm text-slate-500">
-                    Pantau riwayat buka-tutup kas dan penjualan setiap shift.
+                    Pantau riwayat buka-tutup kas dan penjualan setiap sesi kasir.
                 </p>
             </div>
 
@@ -138,7 +138,7 @@ export default function Index({ shifts, filters, outletScope }) {
                             type="date"
                             value={date}
                             onChange={(e) => setDate(e.target.value)}
-                            aria-label="Filter tanggal buka shift"
+                            aria-label="Filter tanggal mulai sesi kasir"
                             className="w-full rounded-lg border border-slate-200 py-2.5 pl-10 pr-3 text-sm text-slate-900 focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-100"
                         />
                     </div>
@@ -176,7 +176,7 @@ export default function Index({ shifts, filters, outletScope }) {
                                     Penjualan QRIS
                                 </th>
                                 <th className="px-6 py-3.5 font-semibold">Penjualan Online</th>
-                                <th className="px-6 py-3.5 font-semibold">Penjualan Kredit</th>
+                                <th className="px-6 py-3.5 font-semibold">Penjualan Bon</th>
                                 <th className="px-6 py-3.5 font-semibold">Pembayaran Utang</th>
                                 <th className="px-6 py-3.5 font-semibold">
                                     Modal Akhir Sistem
@@ -277,7 +277,7 @@ export default function Index({ shifts, filters, outletScope }) {
                                             <i className="fi fi-rr-time-past text-xl" />
                                         </span>
                                         <p className="mt-4 text-sm font-medium text-slate-600">
-                                            Belum ada riwayat shift
+                                            Belum ada riwayat sesi kasir
                                         </p>
                                     </td>
                                 </tr>
@@ -340,7 +340,7 @@ export default function Index({ shifts, filters, outletScope }) {
                                     <dd className="text-right text-slate-600">{formatRupiah(shift.online_sales)}</dd>
                                 </div>
                                 <div className="flex items-center justify-between gap-3">
-                                    <dt className="text-slate-400">Penjualan Kredit</dt>
+                                    <dt className="text-slate-400">Penjualan Bon</dt>
                                     <dd className="text-right text-slate-600">{formatRupiah(shift.credit_sales)}</dd>
                                 </div>
                                 <div className="flex items-center justify-between gap-3">
@@ -413,7 +413,7 @@ export default function Index({ shifts, filters, outletScope }) {
                                 <i className="fi fi-rr-time-past text-xl" />
                             </span>
                             <p className="mt-4 text-sm font-medium text-slate-600">
-                                Belum ada riwayat shift
+                                Belum ada riwayat sesi kasir
                             </p>
                         </div>
                     )}
@@ -423,7 +423,7 @@ export default function Index({ shifts, filters, outletScope }) {
                     <div className="flex flex-col items-center justify-between gap-4 border-t border-slate-100 px-6 py-4 sm:flex-row">
                         <p className="text-sm text-slate-500">
                             Menampilkan {shifts.from}-{shifts.to} dari{' '}
-                            {shifts.total} shift
+                            {shifts.total} sesi kasir
                         </p>
                         <Pagination links={shifts.links} />
                     </div>

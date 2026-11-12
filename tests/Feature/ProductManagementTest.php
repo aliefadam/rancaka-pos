@@ -328,8 +328,8 @@ class ProductManagementTest extends TestCase
                 return count($errors) === 1
                     && str_contains($errors[0], 'Baris 3')
                     && str_contains($errors[0], 'kategori tidak ditemukan')
-                    && str_contains($errors[0], 'HPP harus bilangan bulat')
-                    && str_contains($errors[0], 'margin harus berupa angka')
+                    && str_contains($errors[0], 'Modal per item harus bilangan bulat')
+                    && str_contains($errors[0], 'keuntungan harus berupa angka')
                     && str_contains($errors[0], 'harga jual harus bilangan bulat');
             });
 
@@ -350,7 +350,7 @@ class ProductManagementTest extends TestCase
             ->post(route('tenant.products.import'), ['file' => $file])
             ->assertSessionHas('import_errors', fn (array $errors) => str_contains(
                 $errors[0],
-                'margin tidak sesuai dengan HPP dan harga jual',
+                'keuntungan tidak sesuai dengan modal per item dan harga jual',
             ));
 
         $this->assertDatabaseMissing('products', [

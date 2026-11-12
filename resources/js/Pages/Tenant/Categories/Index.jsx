@@ -116,7 +116,7 @@ export default function Index({ categories, filters }) {
         <AdminLayout header="Kategori">
             <Head title="Kategori Produk" />
 
-            <Breadcrumb items={[{ label: 'Master Data' }, { label: 'Kategori' }]} />
+            <Breadcrumb items={[{ label: 'Data Toko' }, { label: 'Kategori' }]} />
 
             <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                 <div>

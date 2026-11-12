@@ -138,7 +138,7 @@ export default function Index({
 
             <div className="mt-5 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-5">
                 <SummaryCard
-                    label="Pendapatan"
+                    label="Uang masuk"
                     value={summary.revenue}
                     icon="fi-rr-chart-line-up"
                     tone="emerald"
@@ -146,7 +146,7 @@ export default function Index({
                     comparisonLabel={comparison.label}
                 />
                 <SummaryCard
-                    label="HPP"
+                    label="Modal per item"
                     value={summary.costOfGoodsSold}
                     icon="fi-rr-box-dollar"
                     tone="amber"
@@ -155,17 +155,17 @@ export default function Index({
                     inverseComparison
                 />
                 <SummaryCard
-                    label="Pengeluaran"
+                    label="Biaya"
                     value={summary.expenses}
                     icon="fi-rr-money-bill-wave"
                     tone="rose"
                     comparison={comparison.expenses}
                     comparisonLabel={comparison.label}
                     inverseComparison
-                    footer={`Pembayaran supplier ${summary.supplierPayments} dicatat sebagai arus kas, bukan biaya ulang`}
+                    footer={`Pembayaran ke pemasok ${summary.supplierPayments} dicatat sebagai arus kas, bukan biaya ulang`}
                 />
                 <SummaryCard
-                    label="Laba Bersih"
+                    label="Untung Bersih"
                     value={summary.netProfit}
                     icon="fi-rr-sack-dollar"
                     tone={summary.netProfitValue < 0 ? 'amber' : 'indigo'}
@@ -276,7 +276,7 @@ export default function Index({
                                 wrapperStyle={{ fontSize: 12 }}
                             />
                             <Area
-                                name="Pendapatan"
+                                name="Uang masuk"
                                 type="monotone"
                                 dataKey="revenue"
                                 stroke="#4f46e5"
@@ -284,7 +284,7 @@ export default function Index({
                                 fill="url(#financialRevenueFill)"
                             />
                             <Line
-                                name="Pengeluaran"
+                                name="Biaya"
                                 type="monotone"
                                 dataKey="expenses"
                                 stroke="#f43f5e"
@@ -292,7 +292,7 @@ export default function Index({
                                 dot={false}
                             />
                             <Line
-                                name="Laba Bersih"
+                                name="Untung Bersih"
                                 type="monotone"
                                 dataKey="netProfit"
                                 stroke="#059669"
@@ -309,7 +309,7 @@ export default function Index({
                 granularityLabel={chartMeta.granularityLabel}
             />
 
-            <div className="financial-product-grid mt-6 gap-4">
+            <div id="penjualan" className="financial-product-grid scroll-mt-28 mt-6 gap-4">
                 <ProductList
                     title="Produk Terlaris"
                     subtitle={`Penjualan tertinggi periode ${periodLabel}`}
@@ -620,9 +620,9 @@ function BreakdownTable({ rows, granularityLabel }) {
                     <thead className="sticky top-0 z-10 bg-slate-50/95 backdrop-blur">
                         <tr className="border-b border-slate-100 text-xs font-semibold uppercase tracking-wider text-slate-400">
                             <th className="px-6 py-3.5">{granularityLabel}</th>
-                            <th className="px-6 py-3.5 text-right">Pendapatan</th>
-                            <th className="px-6 py-3.5 text-right">Pengeluaran</th>
-                            <th className="px-6 py-3.5 text-right">Laba Bersih</th>
+                            <th className="px-6 py-3.5 text-right">Uang masuk</th>
+                            <th className="px-6 py-3.5 text-right">Biaya</th>
+                            <th className="px-6 py-3.5 text-right">Untung Bersih</th>
                             <th className="px-6 py-3.5 text-right">Transaksi</th>
                         </tr>
                     </thead>
@@ -669,7 +669,7 @@ function BreakdownTable({ rows, granularityLabel }) {
                         <dl className="mt-4 grid grid-cols-2 gap-x-3 gap-y-4 rounded-xl bg-slate-50/70 p-3">
                             <div>
                                 <dt className="text-[10px] font-semibold uppercase tracking-wider text-slate-400">
-                                    Pendapatan
+                                    Uang masuk
                                 </dt>
                                 <dd className="mt-1 text-sm font-semibold text-slate-700">
                                     {formatRupiah(row.revenue)}
@@ -677,7 +677,7 @@ function BreakdownTable({ rows, granularityLabel }) {
                             </div>
                             <div className="text-right">
                                 <dt className="text-[10px] font-semibold uppercase tracking-wider text-slate-400">
-                                    Pengeluaran
+                                    Biaya
                                 </dt>
                                 <dd className="mt-1 text-sm font-semibold text-rose-600">
                                     {formatRupiah(row.expenses)}
@@ -685,7 +685,7 @@ function BreakdownTable({ rows, granularityLabel }) {
                             </div>
                             <div className="col-span-2 border-t border-slate-200/70 pt-3">
                                 <dt className="text-[10px] font-semibold uppercase tracking-wider text-slate-400">
-                                    Laba bersih
+                                    Untung bersih
                                 </dt>
                                 <dd className={`mt-1 text-base font-bold ${row.netProfit < 0 ? 'text-rose-600' : 'text-emerald-700'}`}>
                                     {formatRupiah(row.netProfit)}

@@ -30,7 +30,7 @@ class StockOpnameService
                     StockOpnameStatus::Submitted,
                 ])->exists()) {
                 throw ValidationException::withMessages([
-                    'opname' => 'Selesaikan atau batalkan sesi stock opname yang masih aktif terlebih dahulu.',
+                    'opname' => 'Selesaikan atau batalkan sesi cek stok yang masih aktif terlebih dahulu.',
                 ]);
             }
 
@@ -212,7 +212,7 @@ class StockOpnameService
                         $stockable,
                         StockMovementType::Adjustment,
                         $variance,
-                        "Stock opname {$opname->number}: selisih fisik",
+                        "Cek stok {$opname->number}: selisih fisik",
                         $actor->id,
                         $context,
                     );

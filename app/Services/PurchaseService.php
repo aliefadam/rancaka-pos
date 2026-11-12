@@ -27,7 +27,7 @@ class PurchaseService
                     throw ValidationException::withMessages(['items' => 'Produk harus memakai stok dan kuantitasnya berupa bilangan bulat.']);
                 }
                 if ($item instanceof RawMaterial && (float) $item->stock > 0 && ! $item->opening_cost_confirmed_at) {
-                    throw ValidationException::withMessages(['items' => "Tetapkan saldo awal HPP {$item->name} sebelum menerima pembelian baru."]);
+                    throw ValidationException::withMessages(['items' => "Tetapkan saldo awal Modal per item {$item->name} sebelum menerima belanja stok baru."]);
                 }
 
                 return ['model' => $item, 'quantity' => (float) $row['quantity'], 'unit_cost' => (float) $row['unit_cost'], 'subtotal' => (int) round($row['quantity'] * $row['unit_cost'])];
@@ -80,7 +80,7 @@ class PurchaseService
                     'allocated_discount' => $itemDiscount, 'allocated_additional_cost' => $itemAdditional,
                     'inventory_cost_total' => $inventoryTotal, 'inventory_unit_cost' => $inventoryTotal / $row['quantity'],
                 ]);
-                StockMovementService::record($row['model'], StockMovementType::In, $row['quantity'], "Pembelian {$purchase->number}", $actor->id, ['unit_cost' => $inventoryTotal / $row['quantity'], 'reference' => $purchaseItem]);
+                StockMovementService::record($row['model'], StockMovementType::In, $row['quantity'], "Belanja stok {$purchase->number}", $actor->id, ['unit_cost' => $inventoryTotal / $row['quantity'], 'reference' => $purchaseItem]);
             }
             foreach ($schedules as $index => $schedule) {
                 $purchase->installments()->create(['tenant_id' => $actor->tenant_id, 'sequence' => $index + 1, 'due_date' => $schedule['due_date'], 'planned_amount' => $schedule['amount']]);
@@ -105,14 +105,14 @@ class PurchaseService
             abort_unless($actor->isOwner() && $purchase->tenant_id === $actor->tenant_id, 403);
             $purchase = Purchase::query()->with(['items.purchasable', 'items.stockMovements'])->lockForUpdate()->findOrFail($purchase->id);
             if ($purchase->document_status !== 'posted' || $purchase->payments()->where('status', 'valid')->exists()) {
-                throw ValidationException::withMessages(['purchase' => 'Batalkan seluruh pembayaran valid sebelum membatalkan pembelian.']);
+                throw ValidationException::withMessages(['purchase' => 'Batalkan seluruh pembayaran valid sebelum membatalkan belanja stok.']);
             }
             foreach ($purchase->items as $item) {
                 $movement = $item->stockMovements->sortByDesc('id')->first();
                 if (! $movement || $movement->stockable->stock < $item->quantity || $movement->stockable->stockMovements()->where('id', '>', $movement->id)->exists()) {
-                    throw ValidationException::withMessages(['purchase' => "Pembelian tidak dapat dibatalkan karena stok {$item->item_name} sudah bergerak setelah penerimaan."]);
+                    throw ValidationException::withMessages(['purchase' => "Belanja stok tidak dapat dibatalkan karena stok {$item->item_name} sudah bergerak setelah penerimaan."]);
                 }
-                StockMovementService::record($movement->stockable, StockMovementType::Adjustment, -$item->quantity, "Void pembelian {$purchase->number}: {$reason}", $actor->id, ['reference' => $item, 'unit_cost' => $movement->unit_cost_snapshot, 'force_average_cost_after' => $movement->average_cost_before]);
+                StockMovementService::record($movement->stockable, StockMovementType::Adjustment, -$item->quantity, "Void belanja stok {$purchase->number}: {$reason}", $actor->id, ['reference' => $item, 'unit_cost' => $movement->unit_cost_snapshot, 'force_average_cost_after' => $movement->average_cost_before]);
             }
             $purchase->installments()->update(['status' => 'void']);
             $purchase->update(['document_status' => 'void', 'payment_status' => 'void', 'voided_by' => $actor->id, 'voided_at' => now(), 'void_reason' => $reason]);

@@ -198,7 +198,7 @@ export default function Show({
                                 </div>
                                 <dl className="space-y-2 text-sm">
                                     <div className="flex justify-between gap-3"><dt className="text-slate-400">Periode mulai</dt><dd className="font-medium text-slate-700">{date(subscription.current_period_start)}</dd></div>
-                                    <div className="flex justify-between gap-3"><dt className="text-slate-400">{['trialing', 'trial_expired'].includes(subscription.lifecycle.status) ? 'Trial berakhir' : 'Langganan berakhir'}</dt><dd className="font-medium text-slate-700">{date(subscription.lifecycle.ends_at)}</dd></div>
+                                    <div className="flex justify-between gap-3"><dt className="text-slate-400">{['trialing', 'trial_expired'].includes(subscription.lifecycle.status) ? 'Masa coba berakhir' : 'Langganan berakhir'}</dt><dd className="font-medium text-slate-700">{date(subscription.lifecycle.ends_at)}</dd></div>
                                     {subscription.lifecycle.grace_ends_at && <div className="flex justify-between gap-3"><dt className="text-slate-400">Batas masa tenggang</dt><dd className="font-semibold text-amber-700">{date(subscription.lifecycle.grace_ends_at)}</dd></div>}
                                     <div className="flex justify-between gap-3"><dt className="text-slate-400">Grandfathered</dt><dd className="font-medium text-slate-700">{subscription.is_grandfathered ? 'Ya' : 'Tidak'}</dd></div>
                                 </dl>
@@ -224,7 +224,7 @@ export default function Show({
                     </div>
                 </Section>
 
-                <Section title="Metode Pembayaran" subtitle={`Pengeluaran bulan ini ${rupiah(metrics.month_expenses)}`}>
+                <Section title="Metode Pembayaran" subtitle={`Biaya bulan ini ${rupiah(metrics.month_expenses)}`}>
                     <div className="grid grid-cols-2 gap-3 p-3 sm:p-5">
                         {paymentMethods.map((method) => (
                             <div key={method.method} className="min-w-0 rounded-xl border border-slate-100 bg-slate-50/70 p-3 sm:p-4">
@@ -265,10 +265,10 @@ export default function Show({
             </div>
 
             <div className="mt-4 grid gap-4 xl:grid-cols-2">
-                <Section title="Riwayat Shift" subtitle="Aktivitas kasir terbaru">
+                <Section title="Riwayat Sesi Kasir" subtitle="Aktivitas kasir terbaru">
                     <div className="divide-y divide-slate-100 px-5">
                         {recentShifts.map((shift) => <div key={shift.id} className="flex items-center justify-between gap-4 py-3"><div><p className="text-sm font-medium text-slate-800">{shift.user?.name ?? '-'}</p><p className="mt-0.5 text-xs text-slate-400">Dibuka {date(shift.opened_at, true)}</p></div><div className="text-right"><Badge value={shift.closed_at ? 'closed' : 'active'} /><p className="mt-1 text-xs text-slate-400">Modal {rupiah(shift.opening_cash)}</p></div></div>)}
-                        {recentShifts.length === 0 && <p className="py-12 text-center text-sm text-slate-400">Belum ada shift.</p>}
+                        {recentShifts.length === 0 && <p className="py-12 text-center text-sm text-slate-400">Belum ada sesi kasir.</p>}
                     </div>
                 </Section>
 

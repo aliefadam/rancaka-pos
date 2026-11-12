@@ -107,7 +107,7 @@ class RestrictedCashierAccessTest extends TestCase
         $this->actingAs($employee)
             ->post(route('tenant.shift.close'), ['closing_cash' => 1])
             ->assertSessionHasErrors([
-                'closing_cash' => 'Shift tidak dapat ditutup karena masih ada 2 transaksi ditahan. Selesaikan atau batalkan transaksi tersebut terlebih dahulu.',
+                'closing_cash' => 'Sesi kasir tidak dapat ditutup karena masih ada 2 transaksi ditahan. Selesaikan atau batalkan transaksi tersebut terlebih dahulu.',
             ]);
 
         $ownHeld->delete();

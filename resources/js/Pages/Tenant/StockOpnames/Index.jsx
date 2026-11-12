@@ -59,17 +59,17 @@ export default function Index({ opnames, filters, hasActiveSession }) {
     };
 
     return (
-        <AdminLayout header="Stock Opname">
-            <Head title="Stock Opname" />
-            <Breadcrumb items={[{ label: 'Stok' }, { label: 'Stock Opname' }]} />
+        <AdminLayout header="Cek Stok">
+            <Head title="Cek Stok" />
+            <Breadcrumb items={[{ label: 'Stok' }, { label: 'Cek Stok' }]} />
 
             <section className="relative overflow-hidden rounded-3xl bg-slate-950 px-6 py-7 text-white shadow-xl shadow-slate-300/30 sm:px-8">
                 <div className="absolute -right-12 -top-16 h-52 w-52 rounded-full border-[28px] border-sky-400/10" />
                 <div className="absolute bottom-0 left-1/3 h-px w-1/2 bg-gradient-to-r from-transparent via-sky-400/50 to-transparent" />
                 <div className="relative flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between">
                     <div>
-                        <p className="text-[10px] font-black uppercase tracking-[.24em] text-sky-300">Inventory control room</p>
-                        <h1 className="mt-2 text-2xl font-black tracking-tight sm:text-3xl">Hitung fisik. Rekonsiliasi otomatis.</h1>
+                        <p className="text-[10px] font-black uppercase tracking-[.24em] text-sky-300">Pemeriksaan stok</p>
+                        <h1 className="mt-2 text-2xl font-black tracking-tight sm:text-3xl">Hitung stok fisik dengan mudah.</h1>
                         <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-300">Satu sesi untuk produk dan bahan baku. Transaksi yang tetap berjalan selama penghitungan akan diperhitungkan oleh sistem.</p>
                     </div>
                     {can('stock-opnames.create') && (
@@ -83,7 +83,7 @@ export default function Index({ opnames, filters, hasActiveSession }) {
             {hasActiveSession && (
                 <div className="mt-5 flex items-start gap-3 rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-950">
                     <i className="fi fi-rr-info mt-0.5 text-amber-600" />
-                    <p><b>Satu sesi masih aktif.</b> Selesaikan atau batalkan sesi tersebut sebelum membuat snapshot baru.</p>
+                    <p><b>Satu sesi masih aktif.</b> Selesaikan atau batalkan sesi tersebut sebelum membuat catatan stok baru.</p>
                 </div>
             )}
 
@@ -91,7 +91,7 @@ export default function Index({ opnames, filters, hasActiveSession }) {
                 <div className="flex flex-col gap-3 border-b border-slate-100 p-4 sm:flex-row sm:items-center sm:p-5">
                     <div className="relative flex-1 sm:max-w-sm">
                         <i className="fi fi-rr-search pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
-                        <input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Cari nomor opname..." className="w-full rounded-xl border-slate-200 py-2.5 pl-10 text-sm" />
+                        <input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Cari nomor cek stok..." className="w-full rounded-xl border-slate-200 py-2.5 pl-10 text-sm" />
                     </div>
                     <Select value={status} onChange={setStatus} options={statusOptions} className="w-full sm:w-56" />
                 </div>
@@ -122,21 +122,21 @@ export default function Index({ opnames, filters, hasActiveSession }) {
                             </Link>
                         );
                     })}
-                    {!opnames.data.length && <div className="px-6 py-16 text-center"><span className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-slate-100 text-slate-400"><i className="fi fi-rr-list-check" /></span><p className="mt-4 font-bold text-slate-700">Belum ada sesi stock opname</p><p className="mt-1 text-sm text-slate-400">Buat sesi pertama untuk mengambil snapshot persediaan.</p></div>}
+                    {!opnames.data.length && <div className="px-6 py-16 text-center"><span className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-slate-100 text-slate-400"><i className="fi fi-rr-list-check" /></span><p className="mt-4 font-bold text-slate-700">Belum ada sesi cek stok</p><p className="mt-1 text-sm text-slate-400">Buat sesi pertama untuk mencatat jumlah stok saat ini.</p></div>}
                 </div>
                 <div className="border-t border-slate-100 p-4"><Pagination links={opnames.links} /></div>
             </section>
 
             <Modal show={createOpen} onClose={() => setCreateOpen(false)} maxWidth="md">
                 <form onSubmit={create}>
-                    <Modal.Header><div><p className="text-[10px] font-black uppercase tracking-[.2em] text-sky-600">Snapshot persediaan</p><h2 className="mt-1 text-lg font-black text-slate-900">Buat sesi opname</h2></div></Modal.Header>
+                    <Modal.Header><div><p className="text-[10px] font-black uppercase tracking-[.2em] text-sky-600">Catatan stok saat ini</p><h2 className="mt-1 text-lg font-black text-slate-900">Buat sesi cek stok</h2></div></Modal.Header>
                     <Modal.Body><div className="space-y-4">
                         {form.errors.opname && <p className="rounded-xl bg-rose-50 p-3 text-sm font-medium text-rose-700">{form.errors.opname}</p>}
-                        <label className="block text-sm font-semibold text-slate-700">Tanggal opname *<input type="date" max={today} value={form.data.opname_date} onChange={(event) => form.setData('opname_date', event.target.value)} className="mt-1.5 w-full rounded-xl border-slate-200" />{form.errors.opname_date && <span className="mt-1 block text-xs text-rose-600">{form.errors.opname_date}</span>}</label>
-                        <label className="block text-sm font-semibold text-slate-700">Catatan<textarea rows="3" value={form.data.note} onChange={(event) => form.setData('note', event.target.value)} placeholder="Contoh: Opname akhir bulan" className="mt-1.5 w-full rounded-xl border-slate-200 text-sm" />{form.errors.note && <span className="mt-1 block text-xs text-rose-600">{form.errors.note}</span>}</label>
-                        <div className="rounded-xl border border-sky-100 bg-sky-50 p-3 text-xs leading-5 text-sky-800">Sistem langsung menyimpan snapshot seluruh produk tracked dan bahan baku aktif. Item baru setelah sesi dibuat akan masuk ke opname berikutnya.</div>
+                        <label className="block text-sm font-semibold text-slate-700">Tanggal cek stok *<input type="date" max={today} value={form.data.opname_date} onChange={(event) => form.setData('opname_date', event.target.value)} className="mt-1.5 w-full rounded-xl border-slate-200" />{form.errors.opname_date && <span className="mt-1 block text-xs text-rose-600">{form.errors.opname_date}</span>}</label>
+                        <label className="block text-sm font-semibold text-slate-700">Catatan<textarea rows="3" value={form.data.note} onChange={(event) => form.setData('note', event.target.value)} placeholder="Contoh: Cek stok akhir bulan" className="mt-1.5 w-full rounded-xl border-slate-200 text-sm" />{form.errors.note && <span className="mt-1 block text-xs text-rose-600">{form.errors.note}</span>}</label>
+                        <div className="rounded-xl border border-sky-100 bg-sky-50 p-3 text-xs leading-5 text-sky-800">Sistem langsung mencatat stok semua produk yang dipantau dan bahan baku aktif. Barang baru setelah sesi dibuat akan masuk ke sesi cek stok berikutnya.</div>
                     </div></Modal.Body>
-                    <Modal.Footer><button type="button" onClick={() => setCreateOpen(false)} className="rounded-xl border border-slate-200 px-4 py-2 text-sm font-bold text-slate-600">Batal</button><button disabled={form.processing} className="rounded-xl bg-sky-600 px-4 py-2 text-sm font-black text-white disabled:opacity-50">{form.processing ? 'Membuat...' : 'Buat snapshot'}</button></Modal.Footer>
+                    <Modal.Footer><button type="button" onClick={() => setCreateOpen(false)} className="rounded-xl border border-slate-200 px-4 py-2 text-sm font-bold text-slate-600">Batal</button><button disabled={form.processing} className="rounded-xl bg-sky-600 px-4 py-2 text-sm font-black text-white disabled:opacity-50">{form.processing ? 'Membuat...' : 'Buat catatan stok'}</button></Modal.Footer>
                 </form>
             </Modal>
         </AdminLayout>

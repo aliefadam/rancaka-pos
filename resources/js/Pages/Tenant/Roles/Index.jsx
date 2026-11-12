@@ -41,7 +41,7 @@ export default function Index({ roles, menus }) {
             preserveScroll: true,
             onError: () =>
                 toast.error(
-                    'Gagal menghapus role. Pastikan tidak ada karyawan yang masih memakainya.',
+                    'Gagal menghapus kelompok akses. Pastikan tidak ada karyawan yang masih memakainya.',
                 ),
             onFinish: () => {
                 setDeleting(false);
@@ -53,18 +53,18 @@ export default function Index({ roles, menus }) {
     const permissionCount = (role) => role.permissions?.length ?? 0;
 
     return (
-        <AdminLayout header="Role & Hak Akses">
-            <Head title="Role & Hak Akses" />
-            <Breadcrumb items={[{ label: 'Tim' }, { label: 'Karyawan', href: route('tenant.employees.index') }, { label: 'Role & Hak Akses' }]} />
+        <AdminLayout header="Akses Karyawan">
+            <Head title="Akses Karyawan" />
+            <Breadcrumb items={[{ label: 'Tim' }, { label: 'Karyawan', href: route('tenant.employees.index') }, { label: 'Akses Karyawan' }]} />
 
             <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                 <div>
                     <h2 className="mt-1 text-xl font-bold text-slate-900">
-                        Role &amp; Hak Akses
+                        Akses Karyawan
                     </h2>
                     <p className="mt-1 text-sm text-slate-500">
-                        Atur menu dan aksi apa saja yang boleh diakses tiap
-                        role karyawan.
+                        Atur menu dan tindakan yang boleh digunakan oleh tiap
+                        kelompok karyawan.
                     </p>
                 </div>
 
@@ -75,7 +75,7 @@ export default function Index({ roles, menus }) {
                         className="flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-700"
                     >
                         <i className="fi fi-rr-add" />
-                        Tambah Role
+                        Tambah Akses
                     </button>
                 </div>
             </div>
@@ -86,10 +86,10 @@ export default function Index({ roles, menus }) {
                         <thead>
                             <tr className="border-b border-slate-100 text-xs font-semibold uppercase tracking-wider text-slate-400">
                                 <th className="px-6 py-3.5 font-semibold">
-                                    Nama Role
+                                    Nama Akses
                                 </th>
                                 <th className="px-6 py-3.5 font-semibold">
-                                    Hak Akses
+                                    Izin
                                 </th>
                                 <th className="px-6 py-3.5 font-semibold">
                                     Karyawan
@@ -149,10 +149,10 @@ export default function Index({ roles, menus }) {
                                             <i className="fi fi-rr-shield-check text-xl" />
                                         </span>
                                         <p className="mt-4 text-sm font-medium text-slate-600">
-                                            Belum ada role
+                                            Belum ada kelompok akses
                                         </p>
                                         <p className="mt-1 text-sm text-slate-400">
-                                            Buat role untuk mengatur hak akses
+                                            Buat kelompok untuk mengatur akses
                                             karyawan.
                                         </p>
                                     </td>
@@ -203,10 +203,10 @@ export default function Index({ roles, menus }) {
                                 <i className="fi fi-rr-shield-check text-xl" />
                             </span>
                             <p className="mt-4 text-sm font-medium text-slate-600">
-                                Belum ada role
+                                Belum ada kelompok akses
                             </p>
                             <p className="mt-1 text-sm text-slate-400">
-                                Buat role untuk mengatur hak akses karyawan.
+                                Buat kelompok untuk mengatur akses karyawan.
                             </p>
                         </div>
                     )}
@@ -225,10 +225,10 @@ export default function Index({ roles, menus }) {
                 onClose={cancelDelete}
                 onConfirm={confirmDelete}
                 processing={deleting}
-                title="Hapus Role"
+                title="Hapus Akses"
                 message={
                     deleteTarget &&
-                    `Yakin ingin menghapus role "${deleteTarget.name}"? Karyawan yang memakai role ini akan kehilangan hak aksesnya.`
+                    `Yakin ingin menghapus kelompok akses "${deleteTarget.name}"? Karyawan yang memakainya akan kehilangan akses.`
                 }
                 confirmText="Ya, Hapus"
             />

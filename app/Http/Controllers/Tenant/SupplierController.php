@@ -28,7 +28,7 @@ class SupplierController extends Controller
     {
         Supplier::create(['tenant_id' => $request->user()->tenant_id, ...$this->validated($request)]);
 
-        return back()->with('success', 'Supplier berhasil ditambahkan.');
+        return back()->with('success', 'Pemasok berhasil ditambahkan.');
     }
 
     public function show(Request $request, Supplier $supplier): Response
@@ -66,7 +66,7 @@ class SupplierController extends Controller
         abort_unless($supplier->tenant_id === $request->user()->tenant_id, 403);
         $supplier->update($this->validated($request, $supplier));
 
-        return back()->with('success', 'Supplier berhasil diperbarui.');
+        return back()->with('success', 'Pemasok berhasil diperbarui.');
     }
 
     private function validated(Request $request, ?Supplier $supplier = null): array

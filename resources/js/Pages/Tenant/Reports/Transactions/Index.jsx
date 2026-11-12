@@ -242,7 +242,7 @@ export default function Index({ transactions, paymentSummary, filters, limitedTo
                     <div>
                         <p className="font-semibold">Akses kasir terbatas</p>
                         <p className="mt-0.5 text-xs leading-5 text-sky-700">
-                            Tanpa role, riwayat hanya menampilkan transaksi milik Anda pada hari ini.
+                            Tanpa kelompok akses, riwayat hanya menampilkan transaksi milik Anda pada hari ini.
                         </p>
                     </div>
                 </div>

@@ -112,7 +112,7 @@ export default function Index({ employees, filters, roles }) {
                         className="flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-3.5 py-2.5 text-sm font-medium text-slate-600 transition hover:bg-slate-50"
                     >
                         <i className="fi fi-rr-shield-check" />
-                        <span className="hidden sm:inline">Role &amp; Hak Akses</span>
+                        <span className="hidden sm:inline">Akses Karyawan</span>
                     </Link>
                     <button
                         type="button"
@@ -162,7 +162,7 @@ export default function Index({ employees, filters, roles }) {
                                     Username
                                 </th>
                                 <th className="px-6 py-3.5 font-semibold">
-                                    Role
+                                    Kelompok akses
                                 </th>
                                 <th className="px-6 py-3.5 font-semibold">
                                     Bergabung
@@ -200,7 +200,7 @@ export default function Index({ employees, filters, roles }) {
                                             </span>
                                         ) : (
                                             <span className="text-xs text-slate-400">
-                                                Tanpa role
+                                                 Tanpa kelompok
                                             </span>
                                         )}
                                     </td>
@@ -276,7 +276,7 @@ export default function Index({ employees, filters, roles }) {
 
                             <dl className="mt-3 space-y-1.5 text-sm">
                                 <div className="flex items-center justify-between gap-3">
-                                    <dt className="text-slate-400">Role</dt>
+                                    <dt className="text-slate-400">Kelompok akses</dt>
                                     <dd className="text-right text-slate-600">
                                         {employee.employee_role ? (
                                             <span className="inline-flex items-center rounded-full bg-indigo-50 px-2.5 py-1 text-xs font-medium text-indigo-700">
@@ -284,7 +284,7 @@ export default function Index({ employees, filters, roles }) {
                                             </span>
                                         ) : (
                                             <span className="text-xs text-slate-400">
-                                                Tanpa role
+                                                 Tanpa kelompok
                                             </span>
                                         )}
                                     </dd>
