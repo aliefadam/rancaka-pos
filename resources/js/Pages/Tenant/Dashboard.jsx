@@ -1,7 +1,9 @@
 import AdminLayout from '@/Layouts/AdminLayout';
+import ConfirmDialog from '@/Components/ConfirmDialog';
+import Modal from '@/Components/Modal';
 import OutletScopeFilter from '@/Components/OutletScopeFilter';
 import { Head, Link, router } from '@inertiajs/react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
     Area,
     AreaChart,
@@ -127,6 +129,106 @@ function AttentionRow({ item }) {
     return item.href ? <Link href={item.href}>{content}</Link> : content;
 }
 
+const tourSteps = [
+    {
+        icon: 'fi-rr-shop',
+        eyebrow: 'Langkah 1 dari 4',
+        title: 'Pastikan identitas toko siap',
+        description: 'Lengkapi nomor WhatsApp dan alamat. Informasi ini membantu profil toko dan struk terlihat lebih meyakinkan.',
+    },
+    {
+        icon: 'fi-rr-box-open',
+        eyebrow: 'Langkah 2 dari 4',
+        title: 'Siapkan barang yang dijual',
+        description: 'Tambahkan produk sendiri atau isi lima produk contoh untuk mencoba Rancaka tanpa harus mengetik semuanya dari awal.',
+    },
+    {
+        icon: 'fi-rr-cash-register',
+        eyebrow: 'Langkah 3 dari 4',
+        title: 'Coba satu transaksi',
+        description: 'Buka Kasir, mulai sesi kasir bila diminta, pilih produk, lalu selesaikan pembayaran seperti transaksi biasa.',
+    },
+    {
+        icon: 'fi-rr-chart-histogram',
+        eyebrow: 'Langkah 4 dari 4',
+        title: 'Dashboard terisi otomatis',
+        description: 'Setelah transaksi pertama selesai, ringkasan penjualan, tren, produk terlaris, dan metode pembayaran akan muncul di sini.',
+    },
+];
+
+function OnboardingChecklist({ onboarding, onOpenTour, onCreateSample, sampleProcessing }) {
+    const progress = Math.round((onboarding.completed_steps / onboarding.steps.length) * 100);
+
+    return (
+        <section className="mt-6 overflow-hidden rounded-3xl bg-slate-950 text-white shadow-xl shadow-slate-300/40">
+            <div className="grid lg:grid-cols-[minmax(0,1.4fr)_minmax(260px,.6fr)]">
+                <div className="p-5 sm:p-7">
+                    <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+                        <div>
+                            <p className="text-xs font-bold uppercase tracking-[.18em] text-indigo-300">Mulai dalam 3 langkah</p>
+                            <h2 className="mt-2 text-2xl font-black tracking-tight">Siapkan toko untuk transaksi pertama</h2>
+                            <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-400">Ikuti urutan berikut. Dashboard lengkap akan tampil otomatis setelah transaksi pertama selesai.</p>
+                        </div>
+                        <div className="shrink-0 text-left sm:text-right">
+                            <p className="text-2xl font-black">{onboarding.completed_steps}/3</p>
+                            <p className="text-xs text-slate-400">langkah selesai</p>
+                        </div>
+                    </div>
+                    <div className="mt-5 h-2 overflow-hidden rounded-full bg-white/10">
+                        <div className="h-full rounded-full bg-indigo-400 transition-all" style={{ width: `${progress}%` }} />
+                    </div>
+                    <div className="mt-5 grid gap-3">
+                        {onboarding.steps.map((step, index) => (
+                            <Link key={step.key} href={step.href} className="group flex items-center gap-4 rounded-2xl border border-white/10 bg-white/[.06] p-4 transition hover:border-indigo-400/50 hover:bg-white/[.1]">
+                                <span className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-sm font-black ${step.complete ? 'bg-emerald-400 text-emerald-950' : 'bg-white/10 text-white'}`}>
+                                    {step.complete ? <i className="fi fi-rr-check" /> : index + 1}
+                                </span>
+                                <div className="min-w-0 flex-1">
+                                    <p className="font-bold">{step.title}</p>
+                                    <p className="mt-1 text-xs leading-5 text-slate-400">{step.description}</p>
+                                </div>
+                                <span className={`hidden shrink-0 text-xs font-bold sm:block ${step.complete ? 'text-emerald-300' : 'text-indigo-300'}`}>{step.action} →</span>
+                            </Link>
+                        ))}
+                    </div>
+                </div>
+                <aside className="border-t border-white/10 bg-indigo-500/10 p-5 sm:p-7 lg:border-l lg:border-t-0">
+                    <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-indigo-400/15 text-xl text-indigo-300"><i className="fi fi-rr-sparkles" /></span>
+                    <h3 className="mt-5 text-lg font-black">Ingin mencoba lebih cepat?</h3>
+                    <p className="mt-2 text-sm leading-6 text-slate-400">Gunakan produk contoh atau ikuti panduan singkat sekitar satu menit.</p>
+                    <div className="mt-5 space-y-2.5">
+                        {onboarding.can_create_sample_data && (
+                            <button type="button" onClick={onCreateSample} disabled={sampleProcessing} className="flex w-full items-center justify-center gap-2 rounded-xl bg-indigo-500 px-4 py-3 text-sm font-bold text-white transition hover:bg-indigo-400 disabled:opacity-60">
+                                <i className={`fi ${sampleProcessing ? 'fi-rr-spinner animate-spin' : 'fi-rr-magic-wand'}`} />
+                                {sampleProcessing ? 'Menyiapkan...' : 'Isi 5 produk contoh'}
+                            </button>
+                        )}
+                        <button type="button" onClick={onOpenTour} className="flex w-full items-center justify-center gap-2 rounded-xl border border-white/15 px-4 py-3 text-sm font-bold text-slate-200 transition hover:bg-white/10">
+                            <i className="fi fi-rr-play" /> Lihat panduan 1 menit
+                        </button>
+                    </div>
+                </aside>
+            </div>
+        </section>
+    );
+}
+
+function EmptyDashboard({ onboarding, canViewProducts }) {
+    return (
+        <section className="mt-5 overflow-hidden rounded-3xl border border-slate-200 bg-white p-6 text-center shadow-sm sm:p-10">
+            <div className="mx-auto flex h-24 w-24 items-center justify-center rounded-full bg-indigo-50 text-4xl text-indigo-600">
+                <i className="fi fi-rr-chart-histogram" />
+            </div>
+            <h2 className="mt-6 text-2xl font-black tracking-tight text-slate-950">Ringkasan akan muncul setelah transaksi pertama</h2>
+            <p className="mx-auto mt-2 max-w-xl text-sm leading-6 text-slate-500">Belum ada angka yang perlu dibandingkan. Siapkan produk lalu coba satu transaksi agar penjualan dan laporan mulai tercatat.</p>
+            <div className="mt-6 flex flex-col justify-center gap-3 sm:flex-row">
+                {canViewProducts && <Link href={route('tenant.products.index')} className="inline-flex items-center justify-center gap-2 rounded-xl border border-slate-200 px-5 py-3 text-sm font-bold text-slate-700 transition hover:border-indigo-200 hover:text-indigo-700"><i className="fi fi-rr-box-open" /> Kelola produk</Link>}
+                <Link href={route('tenant.pos.index')} className="inline-flex items-center justify-center gap-2 rounded-xl bg-indigo-600 px-5 py-3 text-sm font-bold text-white transition hover:bg-indigo-700"><i className="fi fi-rr-cash-register" /> {onboarding ? 'Coba transaksi pertama' : 'Buka kasir'}</Link>
+            </div>
+        </section>
+    );
+}
+
 export default function Dashboard({
     greetingName,
     todayLabel,
@@ -141,8 +243,45 @@ export default function Dashboard({
     activeShift,
     capabilities,
     outletScope,
+    hasDashboardData,
+    onboarding,
+    sampleData,
 }) {
     const [refreshing, setRefreshing] = useState(false);
+    const [tourOpen, setTourOpen] = useState(false);
+    const [tourIndex, setTourIndex] = useState(0);
+    const [sampleProcessing, setSampleProcessing] = useState(false);
+    const [confirmSampleRemoval, setConfirmSampleRemoval] = useState(false);
+
+    useEffect(() => {
+        if (!onboarding || window.localStorage.getItem('rancaka-onboarding-tour-seen')) return;
+        setTourOpen(true);
+    }, [onboarding]);
+
+    const closeTour = () => {
+        window.localStorage.setItem('rancaka-onboarding-tour-seen', '1');
+        setTourOpen(false);
+        setTourIndex(0);
+    };
+
+    const createSampleData = () => {
+        setSampleProcessing(true);
+        router.post(route('tenant.onboarding.sample-data.store'), {}, {
+            preserveScroll: true,
+            onFinish: () => setSampleProcessing(false),
+        });
+    };
+
+    const removeSampleData = () => {
+        setSampleProcessing(true);
+        router.delete(route('tenant.onboarding.sample-data.destroy'), {
+            preserveScroll: true,
+            onFinish: () => {
+                setSampleProcessing(false);
+                setConfirmSampleRemoval(false);
+            },
+        });
+    };
 
     const changePeriod = (period) => {
         router.get(route('tenant.dashboard'), { period, scope: filters.scope }, {
@@ -200,6 +339,28 @@ export default function Dashboard({
                 </header>
 
                 <OutletScopeFilter scope={outletScope} onChange={changeScope} className="mt-6" />
+
+                {onboarding && (
+                    <OnboardingChecklist
+                        onboarding={onboarding}
+                        onOpenTour={() => setTourOpen(true)}
+                        onCreateSample={createSampleData}
+                        sampleProcessing={sampleProcessing}
+                    />
+                )}
+
+                {sampleData.can_manage && sampleData.has_sample_data && (
+                    <div className="mt-5 flex flex-col gap-3 rounded-2xl border border-indigo-100 bg-indigo-50/70 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
+                        <div className="flex items-center gap-3">
+                            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-indigo-100 text-indigo-700"><i className="fi fi-rr-magic-wand" /></span>
+                            <div><p className="text-sm font-bold text-indigo-950">Menggunakan {sampleData.sample_product_count} produk contoh</p><p className="mt-0.5 text-xs text-indigo-700">Anda boleh mengubahnya, atau hapus seluruh data contoh dalam satu klik.</p></div>
+                        </div>
+                        <button type="button" onClick={() => setConfirmSampleRemoval(true)} className="shrink-0 text-left text-xs font-bold text-rose-600 hover:text-rose-700 sm:text-right">Hapus data contoh</button>
+                    </div>
+                )}
+
+                {hasDashboardData ? (
+                    <>
 
                 <div className="mt-7 flex w-fit rounded-xl border border-slate-200 bg-white p-1 shadow-sm">
                     {periods.map((period) => (
@@ -339,7 +500,49 @@ export default function Dashboard({
                         <Link href={route('tenant.reports.financial.index')} className="text-xs font-bold text-slate-500 transition hover:text-indigo-600">Buka laporan keuangan lengkap →</Link>
                     </div>
                 )}
+                    </>
+                ) : (
+                    <EmptyDashboard onboarding={onboarding} canViewProducts={capabilities.can_view_products} />
+                )}
             </div>
+
+            <Modal show={tourOpen} onClose={closeTour} maxWidth="lg">
+                <Modal.Header>
+                    <div>
+                        <p className="text-[10px] font-bold uppercase tracking-[.2em] text-indigo-600">Panduan toko baru</p>
+                        <h2 className="mt-1 text-lg font-black text-slate-950">Transaksi pertama di Rancaka</h2>
+                    </div>
+                </Modal.Header>
+                <Modal.Body>
+                    <div className="py-3 text-center">
+                        <span className="mx-auto flex h-20 w-20 items-center justify-center rounded-3xl bg-indigo-50 text-3xl text-indigo-600"><i className={`fi ${tourSteps[tourIndex].icon}`} /></span>
+                        <p className="mt-6 text-xs font-bold uppercase tracking-[.18em] text-indigo-600">{tourSteps[tourIndex].eyebrow}</p>
+                        <h3 className="mt-2 text-2xl font-black tracking-tight text-slate-950">{tourSteps[tourIndex].title}</h3>
+                        <p className="mx-auto mt-3 max-w-md text-sm leading-7 text-slate-500">{tourSteps[tourIndex].description}</p>
+                        <div className="mt-7 flex justify-center gap-2" aria-label="Posisi panduan">
+                            {tourSteps.map((step, index) => <span key={step.title} className={`h-2 rounded-full transition-all ${index === tourIndex ? 'w-7 bg-indigo-600' : 'w-2 bg-slate-200'}`} />)}
+                        </div>
+                    </div>
+                </Modal.Body>
+                <Modal.Footer>
+                    {tourIndex > 0 && <button type="button" onClick={() => setTourIndex((index) => index - 1)} className="rounded-xl border border-slate-200 px-4 py-2.5 text-sm font-bold text-slate-600">Kembali</button>}
+                    {tourIndex < tourSteps.length - 1 ? (
+                        <button type="button" onClick={() => setTourIndex((index) => index + 1)} className="rounded-xl bg-indigo-600 px-5 py-2.5 text-sm font-bold text-white">Lanjut</button>
+                    ) : (
+                        <button type="button" onClick={closeTour} className="rounded-xl bg-indigo-600 px-5 py-2.5 text-sm font-bold text-white">Mulai sekarang</button>
+                    )}
+                </Modal.Footer>
+            </Modal>
+
+            <ConfirmDialog
+                show={confirmSampleRemoval}
+                onClose={() => setConfirmSampleRemoval(false)}
+                onConfirm={removeSampleData}
+                title="Hapus semua data contoh?"
+                message="Produk dan kategori contoh akan dihapus. Riwayat transaksi yang sudah selesai tetap tersimpan."
+                confirmText="Hapus data contoh"
+                processing={sampleProcessing}
+            />
         </AdminLayout>
     );
 }

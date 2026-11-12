@@ -11,7 +11,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-#[Fillable(['name', 'category_id', 'price', 'cost', 'margin_percentage', 'track_stock', 'stock', 'is_active', 'tenant_id', 'source_product_id'])]
+#[Fillable(['name', 'category_id', 'price', 'cost', 'margin_percentage', 'track_stock', 'stock', 'is_active', 'is_onboarding_sample', 'tenant_id', 'source_product_id'])]
 class Product extends Model
 {
     /** @use HasFactory<ProductFactory> */
@@ -25,6 +25,7 @@ class Product extends Model
             'margin_percentage' => 'decimal:2',
             'track_stock' => 'boolean',
             'is_active' => 'boolean',
+            'is_onboarding_sample' => 'boolean',
         ];
     }
 

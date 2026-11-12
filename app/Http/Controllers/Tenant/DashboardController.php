@@ -30,6 +30,22 @@ class DashboardController extends Controller
         $tenantId = $user->tenant_id;
         $outletScope = $outletScopes->resolve($user, $request->string('scope')->toString());
         $tenantIds = $outletScope['tenant_ids'];
+        $isOwnOutletScope = $tenantIds === [$tenantId];
+        $hasDashboardData = Transaction::query()
+            ->whereIn('tenant_id', $tenantIds)
+            ->where('status', TransactionStatus::Completed)
+            ->exists();
+        $hasOwnCompletedTransaction = $isOwnOutletScope
+            ? $hasDashboardData
+            : Transaction::query()
+                ->where('tenant_id', $tenantId)
+                ->where('status', TransactionStatus::Completed)
+                ->exists();
+        $productCount = Product::query()->where('tenant_id', $tenantId)->count();
+        $sampleProductCount = Product::query()
+            ->where('tenant_id', $tenantId)
+            ->where('is_onboarding_sample', true)
+            ->count();
         $requestedPeriod = $request->string('period')->toString();
         $periodKey = in_array($requestedPeriod, ['today', '7days', 'month'], true) ? $requestedPeriod : 'today';
         [$start, $end, $previousStart, $previousEnd, $periodLabel, $comparisonLabel] = $this->periodRange($periodKey);
@@ -74,7 +90,6 @@ class DashboardController extends Controller
             ],
         ];
 
-        $isOwnOutletScope = $tenantIds === [$tenantId];
         $activeShift = $isOwnOutletScope
             ? Shift::query()->where('tenant_id', $tenantId)->whereNull('closed_at')->with('user:id,name')->first()
             : null;
@@ -84,6 +99,19 @@ class DashboardController extends Controller
             'todayLabel' => Carbon::today()->translatedFormat('l, d F Y'),
             'filters' => ['period' => $periodKey, 'scope' => $outletScope['value']],
             'outletScope' => $outletScope,
+            'hasDashboardData' => $hasDashboardData,
+            'onboarding' => $this->onboarding(
+                $user,
+                $isOwnOutletScope,
+                $hasOwnCompletedTransaction,
+                $productCount,
+                $sampleProductCount,
+            ),
+            'sampleData' => [
+                'has_sample_data' => $sampleProductCount > 0,
+                'sample_product_count' => $sampleProductCount,
+                'can_manage' => $user->isOwner() && $isOwnOutletScope,
+            ],
             'periodLabel' => $periodLabel,
             'summary' => $summary,
             'salesTrend' => $this->salesTrend($periodKey, $start, $end, (clone $transactions)->get(['total', 'created_at'])),
@@ -102,8 +130,58 @@ class DashboardController extends Controller
                 'can_view_profit' => $canViewProfit,
                 'can_view_financial_report' => $user->hasPermission('financial-reports.view'),
                 'can_view_stock' => $user->hasPermission('stock-products.view'),
+                'can_view_products' => $user->hasPermission('products.view'),
             ],
         ]);
+    }
+
+    /** @return array<string, mixed>|null */
+    private function onboarding(
+        User $user,
+        bool $isOwnOutletScope,
+        bool $hasCompletedTransaction,
+        int $productCount,
+        int $sampleProductCount,
+    ): ?array {
+        if (! $user->isOwner() || ! $isOwnOutletScope || $hasCompletedTransaction) {
+            return null;
+        }
+
+        $tenant = $user->tenant;
+        $storeComplete = filled($tenant->phone) && filled($tenant->address);
+        $steps = [
+            [
+                'key' => 'store',
+                'title' => 'Lengkapi info toko',
+                'description' => 'Tambahkan nomor WhatsApp dan alamat agar struk serta profil toko siap dipakai.',
+                'complete' => $storeComplete,
+                'href' => route('tenant.settings.edit'),
+                'action' => $storeComplete ? 'Sudah lengkap' : 'Lengkapi toko',
+            ],
+            [
+                'key' => 'product',
+                'title' => 'Tambah produk pertama',
+                'description' => 'Siapkan nama, harga jual, dan stok barang sebelum mulai berjualan.',
+                'complete' => $productCount > 0,
+                'href' => route('tenant.products.index'),
+                'action' => $productCount > 0 ? $productCount.' produk siap' : 'Tambah produk',
+            ],
+            [
+                'key' => 'transaction',
+                'title' => 'Coba transaksi pertama',
+                'description' => 'Buka kasir, pilih produk, lalu selesaikan satu transaksi percobaan.',
+                'complete' => false,
+                'href' => route('tenant.pos.index'),
+                'action' => 'Buka kasir',
+            ],
+        ];
+
+        return [
+            'steps' => $steps,
+            'completed_steps' => collect($steps)->where('complete', true)->count(),
+            'can_create_sample_data' => $productCount === 0,
+            'has_sample_data' => $sampleProductCount > 0,
+        ];
     }
 
     /** @param array<int, int> $tenantIds */

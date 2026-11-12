@@ -23,6 +23,7 @@ use App\Http\Controllers\Tenant\DashboardController as TenantDashboardController
 use App\Http\Controllers\Tenant\EmployeeController as TenantEmployeeController;
 use App\Http\Controllers\Tenant\ExpenseController as TenantExpenseController;
 use App\Http\Controllers\Tenant\OpeningCostController as TenantOpeningCostController;
+use App\Http\Controllers\Tenant\OnboardingSampleDataController as TenantOnboardingSampleDataController;
 use App\Http\Controllers\Tenant\PosController as TenantPosController;
 use App\Http\Controllers\Tenant\ProductController as TenantProductController;
 use App\Http\Controllers\Tenant\PurchaseController as TenantPurchaseController;
@@ -166,6 +167,13 @@ Route::middleware(['auth', 'role:owner,employee', 'tenant.onboarded', 'subscript
     Route::get('/dashboard', [TenantDashboardController::class, 'index'])
         ->name('dashboard')
         ->middleware('permission:dashboard.view');
+
+    Route::post('/onboarding/sample-data', [TenantOnboardingSampleDataController::class, 'store'])
+        ->name('onboarding.sample-data.store')
+        ->middleware('role:owner');
+    Route::delete('/onboarding/sample-data', [TenantOnboardingSampleDataController::class, 'destroy'])
+        ->name('onboarding.sample-data.destroy')
+        ->middleware('role:owner');
 
     Route::resource('categories', TenantCategoryController::class)
         ->only(['index', 'store', 'update', 'destroy'])

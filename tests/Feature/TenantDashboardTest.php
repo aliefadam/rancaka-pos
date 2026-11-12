@@ -111,7 +111,7 @@ class TenantDashboardTest extends TestCase
             ->where('summary.0.value', 'Rp 30.000')
             ->where('summary.1.key', 'profit')
             ->where('summary.1.value', 'Rp 6.000')
-                ->where('summary.1.subtitle', 'Hasil jualan dikurangi modal barang dan biaya')
+            ->where('summary.1.subtitle', 'Hasil jualan dikurangi modal barang dan biaya')
             ->where('summary.2.value', '1')
             ->where('trendTotal', 'Rp 30.000')
             ->where('topProducts.0.name', 'Kopi Susu')
@@ -121,6 +121,8 @@ class TenantDashboardTest extends TestCase
             ->where('paymentMethods.0.value', 'Rp 30.000')
             ->where('paymentMethods.0.percentage', 100)
             ->where('attentionItems.0.key', 'stock')
+            ->where('hasDashboardData', true)
+            ->where('onboarding', null)
             ->where('capabilities.can_view_profit', true)
             ->where('activeShift.cashier', $owner->name)
         );
@@ -180,5 +182,65 @@ class TenantDashboardTest extends TestCase
                 ->where('summary.1.key', 'products')
                 ->where('capabilities.can_view_profit', false)
                 ->where('capabilities.can_view_financial_report', false));
+
+        $this->actingAs($employee)
+            ->post(route('tenant.onboarding.sample-data.store'))
+            ->assertForbidden();
+    }
+
+    public function test_new_owner_receives_onboarding_steps_and_empty_dashboard_state(): void
+    {
+        $tenant = Tenant::factory()->create(['phone' => '081234567890', 'address' => null]);
+        $owner = User::factory()->create(['tenant_id' => $tenant->id, 'role' => UserRole::Owner]);
+
+        $this->actingAs($owner)
+            ->get(route('tenant.dashboard'))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('hasDashboardData', false)
+                ->where('onboarding.completed_steps', 0)
+                ->where('onboarding.steps.0.key', 'store')
+                ->where('onboarding.steps.0.complete', false)
+                ->where('onboarding.steps.1.key', 'product')
+                ->where('onboarding.steps.1.complete', false)
+                ->where('onboarding.steps.2.key', 'transaction')
+                ->where('onboarding.can_create_sample_data', true)
+                ->where('sampleData.has_sample_data', false)
+                ->where('sampleData.can_manage', true));
+    }
+
+    public function test_owner_can_create_and_remove_onboarding_sample_products(): void
+    {
+        $tenant = Tenant::factory()->create();
+        $owner = User::factory()->create(['tenant_id' => $tenant->id, 'role' => UserRole::Owner]);
+
+        $this->actingAs($owner)
+            ->post(route('tenant.onboarding.sample-data.store'))
+            ->assertRedirect();
+
+        $this->assertDatabaseCount('products', 5);
+        $this->assertDatabaseCount('product_price_options', 5);
+        $this->assertDatabaseHas('categories', [
+            'tenant_id' => $tenant->id,
+            'is_onboarding_sample' => true,
+        ]);
+        $this->assertDatabaseHas('products', [
+            'tenant_id' => $tenant->id,
+            'name' => 'Kopi Susu',
+            'is_onboarding_sample' => true,
+        ]);
+
+        $this->actingAs($owner)
+            ->delete(route('tenant.onboarding.sample-data.destroy'))
+            ->assertRedirect();
+
+        $this->assertDatabaseMissing('products', [
+            'tenant_id' => $tenant->id,
+            'is_onboarding_sample' => true,
+        ]);
+        $this->assertDatabaseMissing('categories', [
+            'tenant_id' => $tenant->id,
+            'is_onboarding_sample' => true,
+        ]);
     }
 }
