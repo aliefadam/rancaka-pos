@@ -4,24 +4,67 @@ import RichTextEditor, { EMPTY_DOCUMENT } from '@/Components/RichTextEditor';
 import Select from '@/Components/Select';
 import AdminLayout from '@/Layouts/AdminLayout';
 import { Head, Link, router, useForm } from '@inertiajs/react';
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { longDate, priorityUi, shortDate, statusUi, typeLabels } from './ticketUi';
 
 export default function Show({ ticket, options, canManage }) {
     const [editorKey, setEditorKey] = useState(0);
-    const form = useForm({ status: ticket.status, note: EMPTY_DOCUMENT });
+    const form = useForm({ status: ticket.status, note: EMPTY_DOCUMENT, completion_photos: [] });
     const currentStatus = statusUi[ticket.status];
     const priority = priorityUi[ticket.priority];
+    const clearCompletionPhotoErrors = () => {
+        const keys = Object.keys(form.errors).filter((key) => key === 'completion_photos' || key.startsWith('completion_photos.'));
+        if (keys.length > 0) form.clearErrors(...keys);
+    };
 
     const submitUpdate = (event) => {
         event.preventDefault();
+        if (form.data.status === 'completed' && form.data.completion_photos.length === 0) {
+            form.setError('completion_photos', 'Minimal satu foto hasil wajib ditambahkan untuk menyelesaikan tiket.');
+            return;
+        }
         form.post(route('admin.development-tickets.updates.store', ticket.id), {
             preserveScroll: true,
+            forceFormData: true,
             onSuccess: () => {
-                form.setData({ status: form.data.status, note: EMPTY_DOCUMENT });
+                form.setData({ status: form.data.status, note: EMPTY_DOCUMENT, completion_photos: [] });
                 setEditorKey((key) => key + 1);
             },
         });
+    };
+
+    const changeStatus = (status) => {
+        form.setData((data) => ({
+            ...data,
+            status,
+            completion_photos: status === 'completed' ? data.completion_photos : [],
+        }));
+        clearCompletionPhotoErrors();
+    };
+
+    const addCompletionPhotos = (selectedFiles) => {
+        clearCompletionPhotoErrors();
+        const files = Array.from(selectedFiles ?? []);
+        const invalidType = files.find((file) => !['image/jpeg', 'image/png', 'image/webp'].includes(file.type));
+        if (invalidType) {
+            form.setError('completion_photos', `${invalidType.name}: format foto tidak didukung.`);
+            return;
+        }
+        const oversized = files.find((file) => file.size > 2 * 1024 * 1024);
+        if (oversized) {
+            form.setError('completion_photos', `${oversized.name}: ukuran foto maksimal 2 MB.`);
+            return;
+        }
+
+        form.setData('completion_photos', [
+            ...form.data.completion_photos,
+            ...files.filter((file) => !form.data.completion_photos.some((current) => current.name === file.name && current.size === file.size && current.lastModified === file.lastModified)),
+        ]);
+    };
+
+    const removeCompletionPhoto = (index) => {
+        form.setData('completion_photos', form.data.completion_photos.filter((_, photoIndex) => photoIndex !== index));
+        clearCompletionPhotoErrors();
     };
 
     const destroy = () => {
@@ -46,8 +89,19 @@ export default function Show({ ticket, options, canManage }) {
                         </section>
 
                         <section className="rounded-3xl border border-slate-200/70 bg-white p-5 shadow-sm shadow-slate-200/40 sm:p-6">
-                            <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between"><div><p className="text-[10px] font-bold uppercase tracking-[0.17em] text-indigo-500">Work log</p><h2 className="mt-1 text-xl font-black tracking-tight text-slate-900">Tambahkan update pengerjaan</h2><p className="mt-1 text-xs text-slate-400">Status dan catatan akan masuk ke timeline permanen.</p></div><Select value={form.data.status} onChange={(value) => form.setData('status', value)} options={options.statuses} className="w-full sm:w-52" searchPlaceholder="Cari status..." /></div>
-                            <form onSubmit={submitUpdate} className="mt-4"><RichTextEditor key={editorKey} value={form.data.note} onChange={(value) => form.setData('note', value)} error={form.errors.note} placeholder="Jelaskan apa yang dikerjakan, kendala, atau alasan revisi…" minHeight="180px" /><div className="mt-3 flex justify-end"><button disabled={form.processing} className="rounded-xl bg-indigo-600 px-5 py-2.5 text-sm font-bold text-white shadow-lg shadow-indigo-200 transition hover:bg-indigo-700 disabled:opacity-50">{form.processing ? 'Mengirim...' : 'Kirim update'}</button></div></form>
+                            <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between"><div><p className="text-[10px] font-bold uppercase tracking-[0.17em] text-indigo-500">Work log</p><h2 className="mt-1 text-xl font-black tracking-tight text-slate-900">Tambahkan update pengerjaan</h2><p className="mt-1 text-xs text-slate-400">Status dan catatan akan masuk ke timeline permanen.</p></div><Select value={form.data.status} onChange={changeStatus} options={options.statuses} className="w-full sm:w-52" searchPlaceholder="Cari status..." /></div>
+                            <form onSubmit={submitUpdate} className="mt-4">
+                                <RichTextEditor key={editorKey} value={form.data.note} onChange={(value) => form.setData('note', value)} error={form.errors.note} placeholder="Jelaskan apa yang dikerjakan, kendala, atau alasan revisi…" minHeight="180px" />
+                                {form.data.status === 'completed' && (
+                                    <CompletionPhotoDropzone
+                                        files={form.data.completion_photos}
+                                        onFilesAdded={addCompletionPhotos}
+                                        onRemove={removeCompletionPhoto}
+                                        error={form.errors.completion_photos ?? Object.entries(form.errors).find(([key]) => key.startsWith('completion_photos.'))?.[1]}
+                                    />
+                                )}
+                                <div className="mt-3 flex justify-end"><button disabled={form.processing} className="rounded-xl bg-indigo-600 px-5 py-2.5 text-sm font-bold text-white shadow-lg shadow-indigo-200 transition hover:bg-indigo-700 disabled:opacity-50">{form.processing ? 'Mengirim...' : 'Kirim update'}</button></div>
+                            </form>
                         </section>
 
                         <section className="rounded-3xl border border-slate-200/70 bg-white p-5 shadow-sm shadow-slate-200/40 sm:p-6"><div className="flex items-center justify-between"><div><p className="text-[10px] font-bold uppercase tracking-[0.17em] text-slate-400">Audit trail</p><h2 className="mt-1 text-xl font-black text-slate-900">Timeline tiket</h2></div><span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-bold text-slate-500">{ticket.updates.length} aktivitas</span></div>
@@ -55,7 +109,7 @@ export default function Show({ ticket, options, canManage }) {
                                 {ticket.updates.map((update, index) => {
                                     const to = statusUi[update.to_status];
                                     const from = update.from_status ? statusUi[update.from_status] : null;
-                                    return <article key={update.id} className="relative flex gap-4 pb-7 last:pb-0"><span className={`relative z-10 mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border-4 border-white text-xs text-white shadow-sm ${to.dot}`}><i className={`fi ${to.icon}`} /></span><div className="min-w-0 flex-1 rounded-2xl border border-slate-100 bg-slate-50/70 p-4"><div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between"><div className="flex flex-wrap items-center gap-2"><span className="text-sm font-black text-slate-800">{update.user?.name ?? 'Akun terhapus'}</span>{from ? <><span className={`rounded-md px-2 py-0.5 text-[9px] font-bold uppercase ${from.className}`}>{from.label}</span><i className="fi fi-rr-arrow-small-right text-slate-300" /><span className={`rounded-md px-2 py-0.5 text-[9px] font-bold uppercase ${to.className}`}>{to.label}</span></> : <span className={`rounded-md px-2 py-0.5 text-[9px] font-bold uppercase ${to.className}`}>Tiket dibuat · {to.label}</span>}</div><time className="shrink-0 text-[10px] text-slate-400">{longDate(update.created_at)}</time></div>{update.note && <RichTextContent content={update.note} className="mt-3 border-t border-slate-200/70 pt-3" />}</div></article>;
+                                    return <article key={update.id} className="relative flex gap-4 pb-7 last:pb-0"><span className={`relative z-10 mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border-4 border-white text-xs text-white shadow-sm ${to.dot}`}><i className={`fi ${to.icon}`} /></span><div className="min-w-0 flex-1 rounded-2xl border border-slate-100 bg-slate-50/70 p-4"><div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between"><div className="flex flex-wrap items-center gap-2"><span className="text-sm font-black text-slate-800">{update.user?.name ?? 'Akun terhapus'}</span>{from ? <><span className={`rounded-md px-2 py-0.5 text-[9px] font-bold uppercase ${from.className}`}>{from.label}</span><i className="fi fi-rr-arrow-small-right text-slate-300" /><span className={`rounded-md px-2 py-0.5 text-[9px] font-bold uppercase ${to.className}`}>{to.label}</span></> : <span className={`rounded-md px-2 py-0.5 text-[9px] font-bold uppercase ${to.className}`}>Tiket dibuat · {to.label}</span>}</div><time className="shrink-0 text-[10px] text-slate-400">{longDate(update.created_at)}</time></div>{update.note && <RichTextContent content={update.note} className="mt-3 border-t border-slate-200/70 pt-3" />}{update.completion_photo_urls?.length > 0 && <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-3">{update.completion_photo_urls.map((url, photoIndex) => <a key={url} href={url} target="_blank" rel="noreferrer" className="group overflow-hidden rounded-xl border border-emerald-100 bg-white"><img src={url} alt={`Foto hasil pekerjaan ${photoIndex + 1}`} loading="lazy" className="h-32 w-full object-cover transition group-hover:scale-105" /><span className="block truncate border-t border-emerald-100 px-2 py-1.5 text-[10px] font-bold text-emerald-700">Foto {photoIndex + 1} · Lihat</span></a>)}</div>}</div></article>;
                                 })}
                             </div>
                         </section>
@@ -75,6 +129,63 @@ export default function Show({ ticket, options, canManage }) {
                 </div>
             </div>
         </AdminLayout>
+    );
+}
+
+function CompletionPhotoDropzone({ files, onFilesAdded, onRemove, error }) {
+    const inputRef = useRef(null);
+    const [dragging, setDragging] = useState(false);
+
+    const receiveFiles = (selectedFiles) => {
+        onFilesAdded(selectedFiles);
+        if (inputRef.current) inputRef.current.value = '';
+    };
+
+    return (
+        <div className={`mt-4 rounded-2xl border p-4 ${error ? 'border-rose-300 bg-rose-50/50' : 'border-emerald-200 bg-emerald-50/50'}`}>
+            <div>
+                <p className="text-sm font-black text-slate-800"><i className="fi fi-rr-camera mr-2 text-emerald-600" />Foto hasil pekerjaan <span className="text-rose-500">*</span></p>
+                <p className="mt-1 text-xs text-slate-500">Minimal satu foto. JPG, PNG, atau WebP, maksimal 2 MB per foto.</p>
+            </div>
+            <div
+                onDragEnter={(event) => { event.preventDefault(); setDragging(true); }}
+                onDragOver={(event) => event.preventDefault()}
+                onDragLeave={(event) => { if (!event.currentTarget.contains(event.relatedTarget)) setDragging(false); }}
+                onDrop={(event) => {
+                    event.preventDefault();
+                    setDragging(false);
+                    receiveFiles(event.dataTransfer.files);
+                }}
+                className={`mt-3 rounded-xl border-2 border-dashed transition ${dragging ? 'border-emerald-500 bg-emerald-100' : 'border-emerald-200 bg-white'}`}
+            >
+                <input ref={inputRef} type="file" multiple accept="image/jpeg,image/png,image/webp" onChange={(event) => receiveFiles(event.target.files)} className="hidden" />
+                <button type="button" onClick={() => inputRef.current?.click()} className="flex w-full flex-col items-center justify-center px-4 py-6 text-center">
+                    <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-emerald-100 text-emerald-600"><i className="fi fi-rr-cloud-upload-alt text-lg" /></span>
+                    <span className="mt-2 text-sm font-bold text-slate-700">Tarik foto ke sini atau pilih dari perangkat</span>
+                    <span className="mt-1 text-xs text-slate-400">Bisa memilih dan menambahkan beberapa foto sekaligus</span>
+                </button>
+            </div>
+            {files.length > 0 && <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-3">{files.map((file, index) => <CompletionPhotoPreview key={`${file.name}-${file.size}-${file.lastModified}`} file={file} onRemove={() => onRemove(index)} />)}</div>}
+            {error && <p className="mt-2 text-xs font-semibold text-rose-600">{error}</p>}
+        </div>
+    );
+}
+
+function CompletionPhotoPreview({ file, onRemove }) {
+    const [url, setUrl] = useState('');
+
+    useEffect(() => {
+        const objectUrl = URL.createObjectURL(file);
+        setUrl(objectUrl);
+        return () => URL.revokeObjectURL(objectUrl);
+    }, [file]);
+
+    return (
+        <div className="relative overflow-hidden rounded-xl border border-emerald-100 bg-white">
+            {url && <img src={url} alt={file.name} className="h-28 w-full object-cover" />}
+            <div className="px-2 py-1.5"><p className="truncate text-[10px] font-bold text-slate-600">{file.name}</p><p className="text-[9px] text-slate-400">{(file.size / 1024).toFixed(0)} KB</p></div>
+            <button type="button" onClick={onRemove} aria-label={`Hapus ${file.name}`} className="absolute right-1.5 top-1.5 flex h-7 w-7 items-center justify-center rounded-lg bg-white/95 text-rose-500 shadow"><i className="fi fi-rr-trash text-xs" /></button>
+        </div>
     );
 }
 

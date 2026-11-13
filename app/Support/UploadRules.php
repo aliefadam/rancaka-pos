@@ -11,13 +11,13 @@ class UploadRules
     private const MAX_SOURCE_IMAGE_KB = 12 * 1024;
 
     /** @return array<int, mixed> */
-    public static function image(bool $required = true): array
+    public static function image(bool $required = true, int $maxKilobytes = self::MAX_SOURCE_IMAGE_KB): array
     {
         return [
             $required ? 'required' : 'nullable',
             'file',
             'extensions:jpg,jpeg,png,webp',
-            File::types(['jpg', 'jpeg', 'png', 'webp'])->max(self::MAX_SOURCE_IMAGE_KB),
+            File::types(['jpg', 'jpeg', 'png', 'webp'])->max($maxKilobytes),
             'dimensions:max_width=10000,max_height=10000',
             self::decodableImageRule(),
         ];

@@ -133,30 +133,61 @@ class DevelopmentTicketController extends Controller
             ->with('success', 'Detail tiket berhasil diperbarui.');
     }
 
-    public function addUpdate(Request $request, DevelopmentTicket $developmentTicket): RedirectResponse
-    {
+    public function addUpdate(
+        Request $request,
+        DevelopmentTicket $developmentTicket,
+        OptimizedUploadService $uploads,
+    ): RedirectResponse {
         $data = $request->validate([
             'status' => ['required', Rule::enum(DevelopmentTicketStatus::class)],
             'note' => ['required', 'array'],
+            'completion_photos' => [
+                Rule::requiredIf(fn () => $request->input('status') === DevelopmentTicketStatus::Completed->value),
+                'array',
+                'min:1',
+            ],
+            'completion_photos.*' => [
+                ...UploadRules::image(required: false, maxKilobytes: 2048),
+            ],
         ]);
         $this->validateDocumentSize($data['note'], 'note');
         $fromStatus = $developmentTicket->status;
         $toStatus = DevelopmentTicketStatus::from($data['status']);
+        $completionPhotoPaths = [];
 
-        DB::transaction(function () use ($developmentTicket, $request, $data, $fromStatus, $toStatus) {
-            $developmentTicket->update([
-                'status' => $toStatus,
-                'completed_at' => $toStatus === DevelopmentTicketStatus::Completed
-                    ? ($developmentTicket->completed_at ?? now())
-                    : null,
-            ]);
-            $developmentTicket->updates()->create([
-                'user_id' => $request->user()->id,
-                'from_status' => $fromStatus,
-                'to_status' => $toStatus,
-                'note' => $data['note'],
-            ]);
-        });
+        try {
+            if ($toStatus === DevelopmentTicketStatus::Completed) {
+                foreach ($data['completion_photos'] as $photo) {
+                    $completionPhotoPaths[] = $uploads->store(
+                        $photo,
+                        'development-tickets/completions/'.now()->format('Y/m'),
+                        targetBytes: 500 * 1024,
+                    );
+                }
+            }
+
+            DB::transaction(function () use ($developmentTicket, $request, $data, $fromStatus, $toStatus, $completionPhotoPaths) {
+                $developmentTicket->update([
+                    'status' => $toStatus,
+                    'completed_at' => $toStatus === DevelopmentTicketStatus::Completed
+                        ? ($developmentTicket->completed_at ?? now())
+                        : null,
+                ]);
+                $developmentTicket->updates()->create([
+                    'user_id' => $request->user()->id,
+                    'from_status' => $fromStatus,
+                    'to_status' => $toStatus,
+                    'note' => $data['note'],
+                    'completion_photo_paths' => $completionPhotoPaths ?: null,
+                ]);
+            });
+        } catch (\Throwable $exception) {
+            if ($completionPhotoPaths) {
+                Storage::disk('public')->delete($completionPhotoPaths);
+            }
+
+            throw $exception;
+        }
 
         return back()->with('success', 'Update pengerjaan berhasil ditambahkan.');
     }

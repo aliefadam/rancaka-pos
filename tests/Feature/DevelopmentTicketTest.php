@@ -104,6 +104,7 @@ class DevelopmentTicketTest extends TestCase
 
     public function test_completed_and_revision_updates_manage_completion_timestamp(): void
     {
+        Storage::fake('public');
         $admin = User::factory()->create(['role' => UserRole::Superadmin]);
         $developer = User::factory()->create(['role' => UserRole::Developer]);
         $ticket = $this->ticket($admin, $developer);
@@ -111,14 +112,50 @@ class DevelopmentTicketTest extends TestCase
         $this->actingAs($developer)->post(route('admin.development-tickets.updates.store', $ticket), [
             'status' => DevelopmentTicketStatus::Completed->value,
             'note' => $this->document('Sudah selesai.'),
+            'completion_photos' => [
+                UploadedFile::fake()->image('hasil-depan.jpg', 1600, 1200)->size(1900),
+                UploadedFile::fake()->image('hasil-belakang.png', 1200, 900)->size(1200),
+            ],
         ]);
         $this->assertNotNull($ticket->fresh()->completed_at);
+        $completionUpdate = $ticket->updates()->where('to_status', DevelopmentTicketStatus::Completed)->firstOrFail();
+        $this->assertCount(2, $completionUpdate->completion_photo_paths);
+        foreach ($completionUpdate->completion_photo_paths as $path) {
+            Storage::disk('public')->assertExists($path);
+            $this->assertLessThanOrEqual(500 * 1024, Storage::disk('public')->size($path));
+        }
 
         $this->actingAs($admin)->post(route('admin.development-tickets.updates.store', $ticket), [
             'status' => DevelopmentTicketStatus::Revision->value,
             'note' => $this->document('Mohon perbaiki filter tanggal.'),
         ]);
         $this->assertNull($ticket->fresh()->completed_at);
+    }
+
+    public function test_completion_photo_is_mandatory_and_limited_to_two_megabytes(): void
+    {
+        Storage::fake('public');
+        $admin = User::factory()->create(['role' => UserRole::Superadmin]);
+        $developer = User::factory()->create(['role' => UserRole::Developer]);
+        $ticket = $this->ticket($admin, $developer);
+
+        $payload = [
+            'status' => DevelopmentTicketStatus::Completed->value,
+            'note' => $this->document('Sudah selesai.'),
+        ];
+
+        $this->actingAs($developer)
+            ->post(route('admin.development-tickets.updates.store', $ticket), $payload)
+            ->assertSessionHasErrors('completion_photos');
+        $this->assertSame(DevelopmentTicketStatus::Pending, $ticket->fresh()->status);
+
+        $this->actingAs($developer)
+            ->post(route('admin.development-tickets.updates.store', $ticket), [
+                ...$payload,
+                'completion_photos' => [UploadedFile::fake()->image('terlalu-besar.jpg')->size(2049)],
+            ])
+            ->assertSessionHasErrors('completion_photos.0');
+        $this->assertSame(DevelopmentTicketStatus::Pending, $ticket->fresh()->status);
     }
 
     public function test_ticket_image_upload_is_limited_to_authorized_images(): void
