@@ -5,6 +5,7 @@ import Select from '@/Components/Select';
 import { useToast } from '@/Contexts/ToastContext';
 import AdminLayout from '@/Layouts/AdminLayout';
 import TenantFormModal from '@/Pages/Admin/Tenants/TenantFormModal';
+import SubscriptionModal from '@/Pages/Admin/Tenants/SubscriptionModal';
 import { Head, Link, router } from '@inertiajs/react';
 import { useEffect, useRef, useState } from 'react';
 
@@ -95,6 +96,7 @@ export default function Index({ tenants, filters }) {
     const [impersonating, setImpersonating] = useState(false);
     const [resetPasswordTarget, setResetPasswordTarget] = useState(null);
     const [resettingPassword, setResettingPassword] = useState(false);
+    const [subscriptionTarget, setSubscriptionTarget] = useState(null);
     const isFirstRun = useRef(true);
 
     useEffect(() => {
@@ -349,6 +351,15 @@ export default function Index({ tenants, filters }) {
                                             </Link>
                                             <button
                                                 type="button"
+                                                onClick={() => setSubscriptionTarget(tenant)}
+                                                className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 transition hover:bg-violet-50 hover:text-violet-600"
+                                                title={`Atur langganan ${tenant.name}`}
+                                                aria-label={`Atur langganan ${tenant.name}`}
+                                            >
+                                                <i className="fi fi-rr-calendar" />
+                                            </button>
+                                            <button
+                                                type="button"
                                                 disabled={!tenant.can_impersonate}
                                                 onClick={() =>
                                                     setImpersonateTarget(tenant)
@@ -499,6 +510,14 @@ export default function Index({ tenants, filters }) {
                                 <div className="flex gap-2">
                                     <button
                                         type="button"
+                                        onClick={() => setSubscriptionTarget(tenant)}
+                                        className="flex h-10 min-w-0 flex-1 items-center justify-center gap-2 rounded-lg bg-violet-50 px-3 text-xs font-semibold text-violet-700 transition hover:bg-violet-100"
+                                    >
+                                        <i className="fi fi-rr-calendar shrink-0" />
+                                        <span className="truncate">Langganan</span>
+                                    </button>
+                                    <button
+                                        type="button"
                                         disabled={!tenant.can_reset_password}
                                         onClick={() => setResetPasswordTarget(tenant)}
                                         className="flex h-10 min-w-0 flex-1 items-center justify-center gap-2 rounded-lg bg-sky-50 px-3 text-xs font-semibold text-sky-700 transition hover:bg-sky-100 disabled:cursor-not-allowed disabled:opacity-40"
@@ -559,6 +578,12 @@ export default function Index({ tenants, filters }) {
                 show={modalOpen}
                 onClose={closeModal}
                 tenant={editingTenant}
+            />
+
+            <SubscriptionModal
+                show={Boolean(subscriptionTarget)}
+                tenant={subscriptionTarget}
+                onClose={() => setSubscriptionTarget(null)}
             />
 
             <ConfirmDialog

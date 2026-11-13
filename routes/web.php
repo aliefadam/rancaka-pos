@@ -22,8 +22,8 @@ use App\Http\Controllers\Tenant\CreditSaleController as TenantCreditSaleControll
 use App\Http\Controllers\Tenant\DashboardController as TenantDashboardController;
 use App\Http\Controllers\Tenant\EmployeeController as TenantEmployeeController;
 use App\Http\Controllers\Tenant\ExpenseController as TenantExpenseController;
-use App\Http\Controllers\Tenant\OpeningCostController as TenantOpeningCostController;
 use App\Http\Controllers\Tenant\OnboardingSampleDataController as TenantOnboardingSampleDataController;
+use App\Http\Controllers\Tenant\OpeningCostController as TenantOpeningCostController;
 use App\Http\Controllers\Tenant\PosController as TenantPosController;
 use App\Http\Controllers\Tenant\ProductController as TenantProductController;
 use App\Http\Controllers\Tenant\PurchaseController as TenantPurchaseController;
@@ -107,6 +107,8 @@ Route::middleware(['auth', 'role:superadmin'])->prefix('admin')->name('admin.')-
         ->name('tenants.impersonate');
     Route::patch('/tenants/{tenant}/reset-password', [TenantController::class, 'resetPassword'])
         ->name('tenants.reset-password');
+    Route::patch('/tenants/{tenant}/subscription', [TenantController::class, 'updateSubscription'])
+        ->name('tenants.subscription.update');
 
     Route::get('/billing', [AdminBillingController::class, 'index'])->name('billing.index');
     Route::get('/networks', [AdminBranchNetworkController::class, 'index'])->name('networks.index');

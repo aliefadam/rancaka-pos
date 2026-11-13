@@ -216,6 +216,67 @@ class TenantController extends Controller
         return back()->with('success', "Password owner tenant {$tenant->name} berhasil direset menjadi 123123123.");
     }
 
+    public function updateSubscription(Request $request, Tenant $tenant): RedirectResponse
+    {
+        $data = $request->validate([
+            'action' => ['required', Rule::in(['trial', 'package'])],
+            'trial_days' => ['nullable', 'required_if:action,trial', 'integer', 'min:1', 'max:365'],
+            'package_months' => ['nullable', 'required_if:action,package', 'integer', 'min:1', 'max:120'],
+        ], [
+            'trial_days.required_if' => 'Jumlah hari trial wajib diisi.',
+            'trial_days.min' => 'Durasi trial minimal 1 hari.',
+            'trial_days.max' => 'Durasi trial maksimal 365 hari.',
+            'package_months.required_if' => 'Jumlah bulan paket wajib diisi.',
+            'package_months.min' => 'Durasi paket minimal 1 bulan.',
+            'package_months.max' => 'Durasi paket maksimal 120 bulan.',
+        ]);
+
+        DB::transaction(function () use ($tenant, $data) {
+            $subscription = $tenant->subscription()->lockForUpdate()->firstOrCreate([], [
+                'plan_code' => 'monthly',
+                'plan_name' => config('billing.plan_name'),
+                'price' => config('billing.monthly_price'),
+                'status' => 'trial_expired',
+                'is_grandfathered' => false,
+            ]);
+
+            $startsAt = collect([
+                now(),
+                $subscription->trial_ends_at,
+                $subscription->current_period_end,
+            ])->filter()->max()->copy();
+
+            if ($data['action'] === 'trial') {
+                $subscription->update([
+                    'status' => 'trialing',
+                    'is_grandfathered' => false,
+                    'trial_ends_at' => $startsAt->addDays((int) $data['trial_days']),
+                    'current_period_start' => null,
+                    'current_period_end' => null,
+                ]);
+
+                return;
+            }
+
+            $subscription->update([
+                'plan_code' => 'monthly',
+                'plan_name' => config('billing.plan_name'),
+                'price' => config('billing.monthly_price'),
+                'status' => 'active',
+                'is_grandfathered' => false,
+                'trial_ends_at' => null,
+                'current_period_start' => $startsAt,
+                'current_period_end' => $startsAt->copy()->addMonthsNoOverflow((int) $data['package_months']),
+            ]);
+        });
+
+        $message = $data['action'] === 'trial'
+            ? "Masa trial tenant {$tenant->name} berhasil ditambahkan."
+            : "Paket tenant {$tenant->name} berhasil diaktifkan.";
+
+        return back()->with('success', $message);
+    }
+
     public function destroy(Tenant $tenant): RedirectResponse
     {
         $tenant->delete();

@@ -89,6 +89,51 @@ class SubscriptionBillingTest extends TestCase
                 ->where('tenants.data.0.subscription.allows_access', true));
     }
 
+    public function test_admin_can_add_trial_time_to_a_tenant(): void
+    {
+        [$tenant] = $this->tenantOwner();
+        $existingTrialEnd = now()->startOfSecond()->addDays(3);
+        $tenant->subscription->update([
+            'is_grandfathered' => false,
+            'status' => 'trialing',
+            'trial_ends_at' => $existingTrialEnd,
+        ]);
+        $admin = User::factory()->create(['role' => UserRole::Superadmin, 'tenant_id' => null]);
+
+        $this->actingAs($admin)->patch(route('admin.tenants.subscription.update', $tenant), [
+            'action' => 'trial',
+            'trial_days' => 14,
+        ])->assertRedirect();
+
+        $subscription = $tenant->subscription->fresh();
+        $this->assertSame('trialing', $subscription->status);
+        $this->assertFalse($subscription->is_grandfathered);
+        $this->assertTrue($subscription->trial_ends_at->equalTo($existingTrialEnd->copy()->addDays(14)));
+        $this->assertNull($subscription->current_period_end);
+    }
+
+    public function test_admin_can_activate_a_package_directly(): void
+    {
+        [$tenant] = $this->tenantOwner();
+        $tenant->subscription->update([
+            'is_grandfathered' => false,
+            'status' => 'trial_expired',
+            'trial_ends_at' => now()->subDay(),
+        ]);
+        $admin = User::factory()->create(['role' => UserRole::Superadmin, 'tenant_id' => null]);
+
+        $this->actingAs($admin)->patch(route('admin.tenants.subscription.update', $tenant), [
+            'action' => 'package',
+            'package_months' => 3,
+        ])->assertRedirect();
+
+        $subscription = $tenant->subscription->fresh();
+        $this->assertSame('active', $subscription->status);
+        $this->assertSame('monthly', $subscription->plan_code);
+        $this->assertNull($subscription->trial_ends_at);
+        $this->assertTrue($subscription->current_period_end->between(now()->addMonths(3)->subMinute(), now()->addMonths(3)->addMinute()));
+    }
+
     public function test_billing_page_repairs_a_missing_legacy_subscription(): void
     {
         [$tenant, $owner] = $this->tenantOwner();
